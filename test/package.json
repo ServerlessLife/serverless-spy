@@ -1,0 +1,20 @@
+{
+  "name": "serverless-spy-test",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@aws-sdk/client-lambda": "^3.148.0",
+    "aws-cdk-lib": "^2.37.1",
+    "serverless-spy": "*",
+    "serverless-spy-listener": "*"
+  },
+  "devDependencies": {
+    "jest": "^28.1.3"
+  }
+}

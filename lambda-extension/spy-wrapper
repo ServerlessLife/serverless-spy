@@ -1,0 +1,4 @@
+#!/bin/bash
+export ORIGINAL_HANDLER=$_HANDLER
+export _HANDLER="interceptor.handler"
+exec "$@"
