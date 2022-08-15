@@ -25,68 +25,68 @@ import {
 } from './SpyHandlers.ts';
 
 export type SpyListener<TSpyEvents> = {
-  [P in keyof FilterConditionally<TSpyEvents, 'DynamoDB'> &
+  [P in keyof FilterConditionally<TSpyEvents, `DynamoDB#${any}`> &
     string as `waitFor${P}`]: <T = any>(
     param?: PrettifyForDisplay<
       WaitForParams<PrettifyForDisplay<DynamoDBSpyEvent>>
     >
   ) => DynamoDBSpyHandler<T>;
 } & {
-  [P in keyof FilterConditionally<TSpyEvents, 'EventBridge'> &
+  [P in keyof FilterConditionally<TSpyEvents, `EventBridge#${any}`> &
     string as `waitFor${P}`]: <T = any>(
     param?: PrettifyForDisplay<
       WaitForParams<PrettifyForDisplay<EventBridgeSpyEvent<T>>>
     >
   ) => EventBridgeSpyHandler<T>;
 } & {
-  [P in keyof FilterConditionally<TSpyEvents, 'EventBridgeRule'> &
+  [P in keyof FilterConditionally<TSpyEvents, `EventBridgeRule#${any}`> &
     string as `waitFor${P}`]: <T = any>(
     param?: PrettifyForDisplay<
       WaitForParams<PrettifyForDisplay<EventBridgeRuleSpyEvent<T>>>
     >
   ) => EventBridgeRuleSpyHandler<T>;
 } & {
-  [P in keyof FilterConditionally<TSpyEvents, 'S3'> &
+  [P in keyof FilterConditionally<TSpyEvents, `S3#${any}`> &
     string as `waitFor${P}`]: (
     param?: PrettifyForDisplay<WaitForParams<PrettifyForDisplay<S3SpyEvent>>>
   ) => S3SpyHandler;
 } & {
-  [P in keyof FilterConditionally<TSpyEvents, 'SnsSubscription'> &
+  [P in keyof FilterConditionally<TSpyEvents, `SnsSubscription#${any}`> &
     string as `waitFor${P}`]: <T = any>(
     param?: PrettifyForDisplay<
       WaitForParams<PrettifyForDisplay<SnsSubscriptionSpyEvent<T>>>
     >
   ) => SnsSubscriptionSpyHandler<T>;
 } & {
-  [P in keyof FilterConditionally<TSpyEvents, 'SnsTopic'> &
+  [P in keyof FilterConditionally<TSpyEvents, `SnsTopic#${any}`> &
     string as `waitFor${P}`]: <T = any>(
     param?: PrettifyForDisplay<
       WaitForParams<PrettifyForDisplay<SnsTopicSpyEvent<T>>>
     >
   ) => SnsTopicSpyHandler<T>;
 } & {
-  [P in keyof FilterConditionally<TSpyEvents, 'Sqs'> &
+  [P in keyof FilterConditionally<TSpyEvents, `Sqs#${any}`> &
     string as `waitFor${P}`]: <T = any>(
     param?: PrettifyForDisplay<
       WaitForParams<PrettifyForDisplay<SqsSpyEvent<T>>>
     >
   ) => SqsSpyHandler<T>;
 } & {
-  [P in keyof FilterConditionally<TSpyEvents, 'FunctionRequest'> &
+  [P in keyof FilterConditionally<TSpyEvents, `Function#${any}#Request`> &
     string as `waitFor${P}`]: <T = any>(
     param?: PrettifyForDisplay<
       WaitForParams<PrettifyForDisplay<FunctionRequestSpyEvent<T>>>
     >
   ) => FunctionRequestSpyHandler<T>;
 } & {
-  [P in keyof FilterConditionally<TSpyEvents, 'FunctionConsole'> &
+  [P in keyof FilterConditionally<TSpyEvents, `Function#${any}#Console`> &
     string as `waitFor${P}`]: <T = any>(
     param?: PrettifyForDisplay<
       WaitForParams<PrettifyForDisplay<FunctionConsoleSpyEvent<T>>>
     >
   ) => FunctionConsoleSpyHandler<T>;
 } & {
-  [P in keyof FilterConditionally<TSpyEvents, 'FunctionResponse'> &
+  [P in keyof FilterConditionally<TSpyEvents, `Function#${any}#Response`> &
     string as `waitFor${P}`]: <T = any>(
     param?: PrettifyForDisplay<
       WaitForParams<PrettifyForDisplay<FunctionResponseSpyEvent<T>>>
