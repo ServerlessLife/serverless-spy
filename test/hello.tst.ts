@@ -1,6 +1,6 @@
 import { App, Stack } from 'aws-cdk-lib';
 import { Template } from 'aws-cdk-lib/assertions';
-import { ServerlessSpy } from '../lib';
+import { ServerlessSpy } from '../src/ServerlessSpy';
 
 const mockApp = new App();
 const stack = new Stack(mockApp);
