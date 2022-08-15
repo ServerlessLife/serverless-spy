@@ -6,19 +6,21 @@ import { getWebSocketUrl } from '../common/getWebSocketUrl';
 async function run() {
   const cdkExportFileName = '../.spy/cdkExports.json';
 
-  const rawdata = fs.readFileSync(cdkExportFileName);
-  const config = JSON.parse(rawdata.toString());
   let serverlessSpyWsUrl: string | undefined;
+  if (fs.existsSync(cdkExportFileName)) {
+    const rawdata = fs.readFileSync(cdkExportFileName);
+    const config = JSON.parse(rawdata.toString());
 
-  if (config && config[Object.keys(config)[0]]) {
-    // get first ServerlessSpyWsUrl
-    // {
-    //   "my-stack": {
-    //     "ServerlessSpyWsUrl": "xxx"
-    //   }
-    // }
+    if (config && config[Object.keys(config)[0]]) {
+      // get first ServerlessSpyWsUrl
+      // {
+      //   "my-stack": {
+      //     "ServerlessSpyWsUrl": "xxx"
+      //   }
+      // }
 
-    serverlessSpyWsUrl = config[Object.keys(config)[0]].ServerlessSpyWsUrl;
+      serverlessSpyWsUrl = config[Object.keys(config)[0]].ServerlessSpyWsUrl;
+    }
   }
 
   serverlessSpyWsUrl =

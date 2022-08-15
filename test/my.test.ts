@@ -1,14 +1,20 @@
 import * as fs from 'fs';
+import * as path from 'path';
 import { LambdaClient, InvokeCommand } from '@aws-sdk/client-lambda';
-import { createServerlessSpyListener } from 'serverless-spy';
+import { createServerlessSpyListener } from 'serverless-spy-listener';
 import { SpyEvents } from './SpyEvents';
 
 jest.setTimeout(30000);
 
 describe('Ingredient DAL', () => {
-  const output: any = JSON.parse(
-    fs.readFileSync('../cdk/cdkExports.json').toString()
-  );
+  const exportLocation = path.join(__dirname, './cdk/cdkExports.json');
+
+  if (!fs.existsSync(exportLocation)) {
+    throw new Error(`File ${exportLocation} doen not exists.`);
+  }
+  const output = JSON.parse(fs.readFileSync(exportLocation).toString())[
+    'serverless-spy-test-e2e'
+  ];
 
   test('two plus two is four', async () => {
     // expect(2 + 2).toBe(4);
