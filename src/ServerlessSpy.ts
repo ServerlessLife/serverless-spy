@@ -36,7 +36,7 @@ export class ServerlessSpy extends Construct {
   constructor(scope: Construct, id: string) {
     super(scope, id);
 
-    this.extensionLayer = new lambda.LayerVersion(this, 'Extension', {
+    this.extensionLayer = new lambda.LayerVersion(this, 'Extension2', {
       compatibleRuntimes: [
         lambda.Runtime.NODEJS_12_X,
         lambda.Runtime.NODEJS_14_X,
