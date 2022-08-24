@@ -24,7 +24,12 @@
     "test:watch": "scripts/run-task test:watch",
     "unbump": "scripts/run-task unbump",
     "upgrade": "scripts/run-task upgrade",
-    "watch": "scripts/run-task watch"
+    "watch": "scripts/run-task watch",
+    "typecheck": "tsc --noEmit",
+    "prepare": "husky install",
+    "lint": "eslint **/*.ts",
+    "lint-fix": "eslint --fix './**/*.ts'",
+    "pretty": "prettier --write '**/*.ts'"
   },
   "author": {
     "name": "Marko (ServerlessLife.com)",
@@ -32,18 +37,22 @@
     "organization": false
   },
   "devDependencies": {
+    "@types/aws-lambda": "^8.10.101",
     "@types/jest": "^27",
     "@types/node": "^14",
     "@typescript-eslint/eslint-plugin": "^5",
     "@typescript-eslint/parser": "^5",
     "aws-cdk-lib": "2.37.1",
     "constructs": "10.0.5",
+    "esbuild": "^0.14.54",
+    "esbuild-jest": "^0.5.0",
     "eslint": "^8",
     "eslint-config-prettier": "^8.5.0",
     "eslint-import-resolver-node": "^0.3.6",
     "eslint-import-resolver-typescript": "^3.4.0",
     "eslint-plugin-import": "^2.26.0",
     "eslint-plugin-prettier": "^4.2.1",
+    "husky": "^8.0.0",
     "jest": "^27",
     "jest-junit": "^13",
     "jsii": "^1.63.2",
@@ -55,63 +64,58 @@
     "prettier": "^2.7.1",
     "standard-version": "^9",
     "projen": "^0.61.7",
-    "ts-jest": "^27",
     "typescript": "^4.7.4"
   },
+  "workspaces": [
+    "index",
+    "lambda-extension",
+    "common",
+    "test",
+    "listener",
+    "cli",
+    "combine",
+    "test/cdk"
+  ],
   "peerDependencies": {
     "aws-cdk-lib": "^2.37.1",
     "constructs": "^10.0.5"
   },
   "dependencies": {
     "@aws-cdk/aws-apigatewayv2-alpha": "2.37.1-alpha.0",
-    "@aws-cdk/aws-apigatewayv2-integrations-alpha": "2.37.1-alpha.0"
+    "@aws-cdk/aws-apigatewayv2-integrations-alpha": "2.37.1-alpha.0",
+    "@aws-sdk/client-apigatewaymanagementapi": "^3.131.0",
+    "@aws-sdk/client-dynamodb": "^3.131.0",
+    "@aws-sdk/client-eventbridge": "^3.137.0",
+    "@aws-sdk/client-lambda": "^3.131.0",
+    "@aws-sdk/client-s3": "^3.135.0",
+    "@aws-sdk/client-sns": "^3.131.0",
+    "@aws-sdk/client-sqs": "^3.137.0",
+    "@aws-sdk/lib-dynamodb": "^3.137.0",
+    "@aws-sdk/util-dynamodb": "^3.142.0",
+    "@serverless-stack/node": "^1.6.0",
+    "aws-lambda": "^1.0.7",
+    "aws4": "^1.11.0"
   },
+  "bundledDependencies": [
+    "@aws-sdk/client-apigatewaymanagementapi",
+    "@aws-sdk/client-dynamodb",
+    "@aws-sdk/client-eventbridge",
+    "@aws-sdk/client-lambda",
+    "@aws-sdk/client-s3",
+    "@aws-sdk/client-sns",
+    "@aws-sdk/client-sqs",
+    "@aws-sdk/lib-dynamodb",
+    "@aws-sdk/util-dynamodb",
+    "@serverless-stack/node",
+    "aws4",
+    "aws-lambda"
+  ],
   "keywords": [
     "cdk"
   ],
   "main": "lib/index.js",
   "license": "Apache-2.0",
   "version": "0.0.0",
-  "jest": {
-    "testMatch": [
-      "<rootDir>/src/**/__tests__/**/*.ts?(x)",
-      "<rootDir>/(test|src)/**/*(*.)@(spec|test).ts?(x)"
-    ],
-    "clearMocks": true,
-    "collectCoverage": true,
-    "coverageReporters": [
-      "json",
-      "lcov",
-      "clover",
-      "cobertura",
-      "text"
-    ],
-    "coverageDirectory": "coverage",
-    "coveragePathIgnorePatterns": [
-      "/node_modules/"
-    ],
-    "testPathIgnorePatterns": [
-      "/node_modules/"
-    ],
-    "watchPathIgnorePatterns": [
-      "/node_modules/"
-    ],
-    "reporters": [
-      "default",
-      [
-        "jest-junit",
-        {
-          "outputDirectory": "test-reports"
-        }
-      ]
-    ],
-    "preset": "ts-jest",
-    "globals": {
-      "ts-jest": {
-        "tsconfig": "tsconfig.dev.json"
-      }
-    }
-  },
   "types": "lib/index.d.ts",
   "stability": "stable",
   "jsii": {

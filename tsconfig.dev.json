@@ -24,11 +24,6 @@
     "stripInternal": true,
     "target": "ES2019"
   },
-  "include": [
-    ".projenrc.js",
-    "src/**/*.ts",
-    "test/**/*.ts"
-  ],
   "exclude": [
     "node_modules"
   ]

@@ -1,13 +1,12 @@
-
 env:
   jest: true
   node: true
 root: true
 plugins:
-  - "@typescript-eslint"
+  - '@typescript-eslint'
   - import
   - prettier
-parser: "@typescript-eslint/parser"
+parser: '@typescript-eslint/parser'
 parserOptions:
   ecmaVersion: 2018
   sourceType: module
@@ -18,31 +17,31 @@ extends:
   - plugin:prettier/recommended
 settings:
   import/parsers:
-    "@typescript-eslint/parser":
+    '@typescript-eslint/parser':
       - .ts
       - .tsx
   import/resolver:
     node: {}
     typescript:
-      project: ./tsconfig.dev.json
+      project: ./**/tsconfig.dev.json
       alwaysTryTypes: true
 ignorePatterns:
-  - "*.js"
-  - "!.projenrc.js"
-  - "*.d.ts"
+  - '*.js'
+  - '!.projenrc.js'
+  - '*.d.ts'
   - node_modules/
-  - "*.generated.ts"
+  - '*.generated.ts'
   - coverage
 rules:
   prettier/prettier:
     - error
-  "@typescript-eslint/no-require-imports":
+  '@typescript-eslint/no-require-imports':
     - error
   import/no-extraneous-dependencies:
     - error
     - devDependencies:
-        - "**/test/**"
-        - "**/build-tools/**"
+        - '**/test/**'
+        - '**/build-tools/**'
       optionalDependencies: false
       peerDependencies: true
   import/no-unresolved:
@@ -59,17 +58,17 @@ rules:
     - error
   no-shadow:
     - off
-  "@typescript-eslint/no-shadow":
-    - error
+  '@typescript-eslint/no-shadow':
+    - off
   key-spacing:
     - error
   no-multiple-empty-lines:
     - error
-  "@typescript-eslint/no-floating-promises":
+  '@typescript-eslint/no-floating-promises':
     - error
   no-return-await:
     - off
-  "@typescript-eslint/return-await":
+  '@typescript-eslint/return-await':
     - error
   no-trailing-spaces:
     - error
@@ -77,7 +76,7 @@ rules:
     - error
   no-bitwise:
     - error
-  "@typescript-eslint/member-ordering":
+  '@typescript-eslint/member-ordering':
     - error
     - default:
         - public-static-field
@@ -93,5 +92,5 @@ overrides:
   - files:
       - .projenrc.js
     rules:
-      "@typescript-eslint/no-require-imports": off
+      '@typescript-eslint/no-require-imports': off
       import/no-extraneous-dependencies: off
