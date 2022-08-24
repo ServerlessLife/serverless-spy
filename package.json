@@ -62,8 +62,9 @@
     "json-schema": "^0.4.0",
     "npm-check-updates": "^15",
     "prettier": "^2.7.1",
-    "standard-version": "^9",
     "projen": "^0.61.7",
+    "standard-version": "^9",
+    "ts-node": "^10.9.1",
     "typescript": "^4.7.4"
   },
   "workspaces": [
@@ -128,5 +129,19 @@
   },
   "overrides": {
     "@types/prettier": "2.6.0"
-  }
+  },
+  "bundleDependencies": [
+    "@aws-sdk/client-apigatewaymanagementapi",
+    "@aws-sdk/client-dynamodb",
+    "@aws-sdk/client-eventbridge",
+    "@aws-sdk/client-lambda",
+    "@aws-sdk/client-s3",
+    "@aws-sdk/client-sns",
+    "@aws-sdk/client-sqs",
+    "@aws-sdk/lib-dynamodb",
+    "@aws-sdk/util-dynamodb",
+    "@serverless-stack/node",
+    "aws4",
+    "aws-lambda"
+  ]
 }
