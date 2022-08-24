@@ -26,7 +26,7 @@ export async function createServerlessSpyListener<TSpyEvents>(
   const functionPrefix = 'waitFor';
   let connectionOpenResolve: (value: unknown) => void;
 
-  let waitForConnection = new Promise((resolve, reject) => {
+  let waitForConnection = new Promise((resolve) => {
     connectionOpenResolve = resolve;
   });
 
