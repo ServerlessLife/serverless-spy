@@ -29,9 +29,10 @@ export async function createServerlessSpyListener<TSpyEvents>(
     console.log('connected ' + new Date().toISOString());
   });
   ws.on('message', (data) => {
+    if (closed) return;
+
     console.log(`From server: ${data}`);
 
-    if (closed) return;
     const message = JSON.parse(data.toString()) as SpyMessageStorage;
 
     message.serviceKeyForFunction = message.serviceKey.replace(/#/g, '');
@@ -46,6 +47,7 @@ export async function createServerlessSpyListener<TSpyEvents>(
     resolveOldTrackerWithNewMessage(message);
   });
   ws.on('close', () => {
+    closed = true;
     // console.log("disconnected " + new Date().toISOString());
   });
 
