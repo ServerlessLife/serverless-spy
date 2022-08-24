@@ -24,9 +24,15 @@ export async function createServerlessSpyListener<TSpyEvents>(
   let trackers: Tracker[] = [];
   let closed = false;
   const functionPrefix = 'waitFor';
+  let connectionOpenResolve: (value: unknown) => void;
+
+  let waitForConnection = new Promise((resolve, reject) => {
+    connectionOpenResolve = resolve;
+  });
 
   ws.on('open', () => {
     console.log('connected ' + new Date().toISOString());
+    connectionOpenResolve(undefined);
   });
   ws.on('message', (data) => {
     if (closed) return;
@@ -172,6 +178,8 @@ export async function createServerlessSpyListener<TSpyEvents>(
       }
     },
   });
+
+  await waitForConnection;
 
   return proxy as SpyListener<TSpyEvents>;
 
