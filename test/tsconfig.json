@@ -14,8 +14,14 @@
     "resolveJsonModule": true,
     "paths": {
       "serverless-spy/*": ["../*"],
-      "serverless-spy": ["../"]
+      "serverless-spy": ["../"],
+      "serverless-spy-listener/*": ["../listener/*"],
+      "serverless-spy-listener": ["../listener"]
     },
-
-  }
+  },
+  "ts-node": {
+    "require": [
+      "tsconfig-paths/register"
+    ]
+  },
 }
