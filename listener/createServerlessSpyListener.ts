@@ -223,7 +223,7 @@ export async function createServerlessSpyListener<TSpyEvents>(
             `Timeout waiting for Serverless Spy message ${serviceKeyForFunction}`
           )
         );
-      }, paramsW?.timoutMs || 5000);
+      }, paramsW?.timoutMs || 10000);
 
       promise.finally(() => {
         clearTimeout(timer);
