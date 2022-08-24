@@ -97,20 +97,6 @@
     "aws-lambda": "^1.0.7",
     "aws4": "^1.11.0"
   },
-  "bundledDependencies": [
-    "@aws-sdk/client-apigatewaymanagementapi",
-    "@aws-sdk/client-dynamodb",
-    "@aws-sdk/client-eventbridge",
-    "@aws-sdk/client-lambda",
-    "@aws-sdk/client-s3",
-    "@aws-sdk/client-sns",
-    "@aws-sdk/client-sqs",
-    "@aws-sdk/lib-dynamodb",
-    "@aws-sdk/util-dynamodb",
-    "@serverless-stack/node",
-    "aws4",
-    "aws-lambda"
-  ],
   "keywords": [
     "cdk"
   ],
