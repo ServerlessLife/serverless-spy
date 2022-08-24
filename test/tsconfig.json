@@ -11,13 +11,7 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "moduleResolution": "node",
-    "resolveJsonModule": true,
-    "paths": {
-      "serverless-spy/*": ["../*"],
-      "serverless-spy": ["../"],
-      "serverless-spy-listener/*": ["../listener/*"],
-      "serverless-spy-listener": ["../listener"]
-    },
+    "resolveJsonModule": true   
   },
   "ts-node": {
     "require": [

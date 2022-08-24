@@ -1,13 +1,17 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { LambdaClient, InvokeCommand } from '@aws-sdk/client-lambda';
-import { createServerlessSpyListener } from 'serverless-spy-listener';
+import {
+  SpyListener,
+  createServerlessSpyListener,
+} from 'serverless-spy-listener';
 import { SpyEvents } from './SpyEvents';
 
 jest.setTimeout(30000);
 
 describe('Ingredient DAL', () => {
   const exportLocation = path.join(__dirname, './cdk/cdkExports.json');
+  let serverlessSpyListener: SpyListener<SpyEvents>;
 
   if (!fs.existsSync(exportLocation)) {
     throw new Error(`File ${exportLocation} doen not exists.`);
@@ -16,12 +20,18 @@ describe('Ingredient DAL', () => {
     'serverless-spy-test-e2e'
   ];
 
-  test('two plus two is four', async () => {
-    // expect(2 + 2).toBe(4);
-    const serverlessSpyListener = await createServerlessSpyListener<SpyEvents>({
-      // events: SpyEvents,
+  beforeEach(async () => {
+    serverlessSpyListener = await createServerlessSpyListener<SpyEvents>({
       serverlessSpyWsUrl: output.ServerlessSpyWsUrl,
     });
+  });
+
+  afterEach(async () => {
+    serverlessSpyListener.stop();
+  });
+
+  test('two plus two is four', async () => {
+    // expect(2 + 2).toBe(4);
 
     const lambdaClient = new LambdaClient({});
 
@@ -115,8 +125,6 @@ describe('Ingredient DAL', () => {
     //   })
     // ).getData(); //toMatchObject({ newImage: { data: { key1: "value1" } } });
     // console.log(d.newImage.key1);
-
-    serverlessSpyListener.stop();
   });
 });
 
