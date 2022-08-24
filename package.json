@@ -95,7 +95,8 @@
     "@aws-sdk/util-dynamodb": "^3.142.0",
     "@serverless-stack/node": "^1.6.0",
     "aws-lambda": "^1.0.7",
-    "aws4": "^1.11.0"
+    "aws4": "^1.11.0",
+    "@aws-sdk/credential-providers": "^3.145.0"
   },
   "keywords": [
     "cdk"
@@ -117,6 +118,7 @@
     "@types/prettier": "2.6.0"
   },
   "bundleDependencies": [
+    "@aws-sdk/credential-providers",
     "@aws-sdk/client-apigatewaymanagementapi",
     "@aws-sdk/client-dynamodb",
     "@aws-sdk/client-eventbridge",
