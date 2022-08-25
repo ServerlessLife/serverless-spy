@@ -63,7 +63,7 @@ async function run() {
   });
   ws.on('close', () => {
     console.log(`disconnected ${new Date().toISOString()}`);
-    fs.close(fileDescriptor);
+    fs.close(fileDescriptor, () => undefined);
     process.exit();
   });
 

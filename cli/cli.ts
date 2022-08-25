@@ -68,7 +68,7 @@ async function run() {
       fs.readFile(filePath, (error, content) => {
         if (error) {
           if (error.code === 'ENOENT') {
-            fs.readFile('./404.html', (err, cont) => {
+            fs.readFile('./404.html', (_err, cont) => {
               response.writeHead(404, { 'Content-Type': 'text/html' });
               response.end(cont, 'utf-8');
             });

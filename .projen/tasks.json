@@ -82,10 +82,28 @@
     "compile": {
       "name": "compile",
       "description": "Only compile",
-      "steps": [
+      "steps": [        
+        {
+          "exec": "rm -rf lib && rm -rf temp"
+        },
         {
           "exec": "jsii --silence-warnings=reserved-word"
-        }
+        },
+        {
+          "spawn": "docgen"
+        },
+        {
+          "exec": "mv lib temp"
+        },      
+        {
+          "exec": "tsc --project tsconfig.npm.json --module commonjs --outDir lib/cjs && tsc --project tsconfig.npm.json --module esnext --outDir lib/mjs"
+        },
+        {
+          "exec": "cp -rlf temp/* lib/cjs/src"
+        }, 
+        {
+          "exec": "rm -rf temp"
+        } 
       ]
     },
     "docgen": {
@@ -136,11 +154,7 @@
     "post-compile": {
       "name": "post-compile",
       "description": "Runs after successful compilation",
-      "steps": [
-        {
-          "spawn": "docgen"
-        }
-      ]
+      "steps": []
     },
     "post-upgrade": {
       "name": "post-upgrade",

@@ -30,7 +30,8 @@
     "lint": "eslint **/*.ts",
     "lint-fix": "eslint --fix './**/*.ts'",
     "pretty": "prettier --write '**/*.ts'",
-    "bundle-extension": "esbuild --bundle --platform=node --sourcemap lambda-extension/interceptor.ts --outdir=lambda-extension/dist/layer/nodejs/node_modules; cp lambda-extension/spy-wrapper lambda-extension/dist/layer"
+    "bundle-extension": "esbuild --bundle --platform=node --sourcemap lambda-extension/interceptor.ts --outdir=lambda-extension/dist/layer/nodejs/node_modules; cp lambda-extension/spy-wrapper lambda-extension/dist/layer",
+    "transpile": "scripts/run-task transpile"
   },
   "author": {
     "name": "Marko (ServerlessLife.com)",
@@ -102,7 +103,14 @@
   "keywords": [
     "cdk"
   ],
-  "main": "lib/index.js",
+  "bin": {
+    "spy": "lib/cjs/cli/cli.js"
+  },
+  "main": "lib/cjs/index.js",
+  "exports": {
+    "import": "./lib/mjs/index.js",
+    "require": "./lib/cjs/index.js"
+  },
   "license": "Apache-2.0",
   "version": "0.0.0",
   "types": "lib/index.d.ts",

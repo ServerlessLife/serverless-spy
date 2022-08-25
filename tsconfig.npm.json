@@ -1,0 +1,54 @@
+{
+  "compilerOptions": {
+    //"lib": ["es2021"],
+    "module": "esnext",
+    //"target": "es2021",
+    //"strict": true,
+    "allowSyntheticDefaultImports": true,
+    //"esModuleInterop": true,
+    "skipLibCheck": true,
+    //"forceConsistentCasingInFileNames": true,
+    "moduleResolution": "node",
+    //"resolveJsonModule": true,
+
+    // "outDir": "build",
+     "declarationMap": false,
+     "inlineSourceMap": true,
+     "inlineSources": true,
+     "alwaysStrict": true,
+     "charset": "utf8",
+     "declaration": true,
+     "experimentalDecorators": true,
+     "incremental": true,
+     "lib": [
+       "es2020"
+     ],
+    // "module": "CommonJS",
+     "newLine": "lf",
+     "noEmitOnError": true,
+     "noFallthroughCasesInSwitch": true,
+     "noImplicitAny": true,
+     "noImplicitReturns": true,
+     "noImplicitThis": true,
+     "noUnusedLocals": true,
+     "noUnusedParameters": true,
+     "resolveJsonModule": true,
+     "strict": true,
+     "strictNullChecks": true,
+     "strictPropertyInitialization": true,
+     "stripInternal": false,
+     "target": "ES2020",
+     "composite": false,
+     "tsBuildInfoFile": "lib/tsconfig.tsbuildinfo"
+  },
+  "include": [
+    "src/**/*.ts",    
+    "listener/**/*.ts",    
+    "cli/**/*.ts",        
+    "index.ts",    
+  ],
+  "exclude": [
+    "node_modules",
+    "listener/node_modules"
+  ],
+}
