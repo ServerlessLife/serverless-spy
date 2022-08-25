@@ -104,12 +104,12 @@
     "cdk"
   ],
   "bin": {
-    "spy": "lib/cjs/cli/cli.js"
+    "spy": "lib/cli/cli.js"
   },
-  "main": "lib/cjs/index.js",
+  "main": "lib/index.js",
   "exports": {
-    "import": "./lib/mjs/index.js",
-    "require": "./lib/cjs/index.js"
+    "import": "./lib/index.mjs",
+    "require": "./lib/index.js"
   },
   "license": "Apache-2.0",
   "version": "0.0.0",

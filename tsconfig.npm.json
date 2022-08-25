@@ -43,6 +43,7 @@
   },
   "include": [
     "src/**/*.ts",    
+    "common/**/*.ts",        
     "listener/**/*.ts",    
     "cli/**/*.ts",        
     "index.ts",    

@@ -96,10 +96,16 @@
           "exec": "mv lib temp"
         },      
         {
-          "exec": "tsc --project tsconfig.npm.json --module commonjs --outDir lib/cjs && tsc --project tsconfig.npm.json --module esnext --outDir lib/mjs"
+          "exec": "tsc --project tsconfig.npm.json --module esnext --outDir lib"
         },
         {
-          "exec": "cp -rlf temp/* lib/cjs/src"
+          "exec": "find ./lib -depth -name \"*.js\" -exec sh -c 'mv \"$1\" \"${1%.js}.mjs\"' _ {} \\;"
+        },
+        {
+          "exec": "tsc --project tsconfig.npm.json --module commonjs --outDir lib"
+        },
+        {
+          "exec": "cp -rlf temp/* lib/src"
         }, 
         {
           "exec": "rm -rf temp"
