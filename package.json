@@ -29,7 +29,8 @@
     "prepare": "husky install",
     "lint": "eslint **/*.ts",
     "lint-fix": "eslint --fix './**/*.ts'",
-    "pretty": "prettier --write '**/*.ts'"
+    "pretty": "prettier --write '**/*.ts'",
+    "bundle-extension": "esbuild --bundle --platform=node --sourcemap lambda-extension/interceptor.ts --outdir=lambda-extension/dist/layer/nodejs/node_modules; cp lambda-extension/spy-wrapper lambda-extension/dist/layer"
   },
   "author": {
     "name": "Marko (ServerlessLife.com)",
@@ -103,7 +104,7 @@
   ],
   "main": "lib/index.js",
   "license": "Apache-2.0",
-  "version": "0.0.6",
+  "version": "0.0.0",
   "types": "lib/index.d.ts",
   "stability": "stable",
   "jsii": {
