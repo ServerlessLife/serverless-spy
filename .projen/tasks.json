@@ -240,17 +240,11 @@
           "exec": "npm-check-updates --dep prod --upgrade --target=minor --reject='aws-cdk-lib,constructs,@aws-cdk/aws-apigatewayv2-alpha,@aws-cdk/aws-apigatewayv2-integrations-alpha'"
         },
         {
-          "exec": "npm-check-updates --dep bundle --upgrade --target=minor --reject='aws-cdk-lib,constructs,@aws-cdk/aws-apigatewayv2-alpha,@aws-cdk/aws-apigatewayv2-integrations-alpha'"
-        },
-        {
           "exec": "npm install"
         },
         {
           "exec": "npm update"
-        },
-        {
-          "exec": "scripts/run-task"
-        },
+        },        
         {
           "spawn": "post-upgrade"
         }
