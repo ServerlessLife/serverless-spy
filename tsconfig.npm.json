@@ -43,9 +43,9 @@
   },
   "include": [
     "src/**/*.ts",    
-    "listener/**/*.ts",    
+    // "listener/**/*.ts",    
     "cli/**/*.ts",        
-    "index.ts",    
+    // "index.ts",    
   ],
   "exclude": [
     "node_modules",
