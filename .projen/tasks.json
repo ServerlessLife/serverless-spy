@@ -82,16 +82,7 @@
     "compile": {
       "name": "compile",
       "description": "Only compile",
-      "steps": [        
-        {
-          "exec": "npm -v"
-        },  
-        {
-          "exec": "node -v"
-        },          
-        {
-          "exec": "tsc -v"
-        },   
+      "steps": [         
         {
           "exec": "rm -rf lib && rm -rf temp"
         },
