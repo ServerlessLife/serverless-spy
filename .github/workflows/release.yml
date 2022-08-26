@@ -44,32 +44,32 @@ jobs:
           path: dist
     container:
       image: jsii/superchain:1-buster-slim-node14
-  release_github:
-    name: Publish to GitHub Releases
-    needs: release
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    if: needs.release.outputs.latest_commit == github.sha
-    steps:
-      - uses: actions/setup-node@v3
-        with:
-          node-version: 16
-      - name: Download build artifacts
-        uses: actions/download-artifact@v3
-        with:
-          name: build-artifact
-          path: dist
-      - name: Prepare Repository
-        run: mv dist .repo
-      - name: Collect GitHub Metadata
-        run: mv .repo/dist dist
-      - name: Release
-        run: errout=$(mktemp); gh release create $(cat dist/releasetag.txt) -R $GITHUB_REPOSITORY -F dist/changelog.md -t $(cat dist/releasetag.txt) --target $GITHUB_REF 2> $errout && true; exitcode=$?; if [ $exitcode -ne 0 ] && ! grep -q "Release.tag_name already exists" $errout; then cat $errout; exit $exitcode; fi
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GITHUB_REPOSITORY: ${{ github.repository }}
-          GITHUB_REF: ${{ github.ref }}
+  # release_github:
+  #   name: Publish to GitHub Releases
+  #   needs: release
+  #   runs-on: ubuntu-latest
+  #   permissions:
+  #     contents: write
+  #   if: needs.release.outputs.latest_commit == github.sha
+  #   steps:
+  #     - uses: actions/setup-node@v3
+  #       with:
+  #         node-version: 16
+  #     - name: Download build artifacts
+  #       uses: actions/download-artifact@v3
+  #       with:
+  #         name: build-artifact
+  #         path: dist
+  #     - name: Prepare Repository
+  #       run: mv dist .repo
+  #     - name: Collect GitHub Metadata
+  #       run: mv .repo/dist dist
+  #     - name: Release
+  #       run: errout=$(mktemp); gh release create $(cat dist/releasetag.txt) -R $GITHUB_REPOSITORY -F dist/changelog.md -t $(cat dist/releasetag.txt) --target $GITHUB_REF 2> $errout && true; exitcode=$?; if [ $exitcode -ne 0 ] && ! grep -q "Release.tag_name already exists" $errout; then cat $errout; exit $exitcode; fi
+  #       env:
+  #         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  #         GITHUB_REPOSITORY: ${{ github.repository }}
+  #         GITHUB_REF: ${{ github.ref }}
   release_npm:
     name: Publish to npm
     needs: release
@@ -86,6 +86,8 @@ jobs:
         with:
           name: build-artifact
           path: dist
+      - name: List files 2
+        run: ls -R
       - name: Prepare Repository
         run: mv dist .repo
       - name: Install Dependencies
