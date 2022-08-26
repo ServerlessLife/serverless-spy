@@ -147,7 +147,7 @@
       "description": "Creates the distribution package",
       "steps": [
         {
-          "exec": "if [ ! -z ${CI} ]; then rsync -a . .repo --exclude .git --exclude node_modules && rm -rf dist && mv .repo dist; else scripts/run-task package-all; fi"
+          "exec": "if [ ! -z ${CI} ]; then rsync -a . .repo --exclude .git --exclude node_modules --exclude lib && rsync -a ./lib .repo && rm -rf dist && mv .repo dist; else scripts/run-task package-all; fi"
         }
       ]
     },
