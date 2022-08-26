@@ -11,7 +11,6 @@ junit.xml
 !/lib/
 !/lib/**/*.js
 !/lib/**/*.d.ts
-dist
 /tsconfig.json
 /.github/
 /.vscode/
