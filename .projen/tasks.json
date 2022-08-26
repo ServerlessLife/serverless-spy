@@ -5,6 +5,9 @@
       "description": "Full release build",
       "steps": [
         {
+          "exec": "rm -rf lib"
+        },
+        {
           "spawn": "test"
         },
         {
@@ -120,7 +123,7 @@
       "description": "Bundle extension",
       "steps": [
         {
-          "exec": "esbuild --bundle --platform=node --sourcemap lambda-extension/interceptor.ts --outdir=lib/lambda-extension/dist/layer/nodejs/node_modules; cp lambda-extension/spy-wrapper lib/lambda-extension/dist/layer"
+          "exec": "esbuild --bundle --platform=node --sourcemap extension/interceptor.ts --outdir=lib/extension/dist/layer/nodejs/node_modules; cp extension/spy-wrapper lib/extension/dist/layer"
         }
       ]
     },
@@ -190,7 +193,7 @@
       },
       "steps": [
         {
-          "exec": "rm -fr dist && rm -rf lib"
+          "exec": "rm -fr dist"
         },
         {
           "spawn": "bump"

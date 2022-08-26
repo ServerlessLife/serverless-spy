@@ -43,7 +43,7 @@ export class ServerlessSpy extends Construct {
         lambda.Runtime.NODEJS_16_X,
       ],
       code: lambda.Code.fromAsset(
-        path.join(__dirname, '../lambda-extension/dist/layer')
+        path.join(__dirname, '../extension/dist/layer')
       ),
     });
     this.ownContructs.push(this.extensionLayer);
