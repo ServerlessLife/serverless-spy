@@ -19,3 +19,7 @@ junit.xml
 tsconfig.tsbuildinfo
 /.eslintrc.json
 !.jsii
+!/lib/extension/dist/layer/nodejs/node_modules/
+/sst-esbuild/
+/scripts/
+/tsconfig.npm.json
