@@ -37,15 +37,44 @@ export class ServerlessSpy extends Construct {
   constructor(scope: Construct, id: string) {
     super(scope, id);
 
+    const extensionAssetLocation = path.join(
+      __dirname,
+      '../extension/dist/layer'
+    );
+
+    if (!fs.existsSync(extensionAssetLocation)) {
+      throw new Error(
+        `Folder with assets for extension does not exists ${extensionAssetLocation}`
+      );
+    }
+
+    const extensionAssetLocationWraper = path.join(
+      extensionAssetLocation,
+      'spy-wrapper'
+    );
+    if (!fs.existsSync(extensionAssetLocationWraper)) {
+      throw new Error(
+        `Wraper script for extension does not exists ${extensionAssetLocation}`
+      );
+    }
+
+    const extensionAssetLocationCode = path.join(
+      extensionAssetLocation,
+      'nodejs/node_modules/interceptor.js'
+    );
+    if (!fs.existsSync(extensionAssetLocationCode)) {
+      throw new Error(
+        `Code for extension does not exists ${extensionAssetLocationCode}`
+      );
+    }
+
     this.extensionLayer = new lambda.LayerVersion(this, 'Extension', {
       compatibleRuntimes: [
         lambda.Runtime.NODEJS_12_X,
         lambda.Runtime.NODEJS_14_X,
         lambda.Runtime.NODEJS_16_X,
       ],
-      code: lambda.Code.fromAsset(
-        path.join(__dirname, '../extension/dist/layer')
-      ),
+      code: lambda.Code.fromAsset(extensionAssetLocation),
     });
     this.ownContructs.push(this.extensionLayer);
 

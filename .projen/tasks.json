@@ -6,10 +6,7 @@
       "steps": [
         {
           "exec": "rm -rf lib"
-        },
-        {
-          "spawn": "test"
-        },
+        },       
         {
           "spawn": "pre-compile"
         },
