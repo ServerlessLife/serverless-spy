@@ -97,7 +97,7 @@ jobs:
       - name: Install Dependencies
         run: npm ci
       - name: Release
-        run: npx -p
+        run: npm publish
         env:
           NPM_DIST_TAG: latest
           NPM_REGISTRY: registry.npmjs.org
