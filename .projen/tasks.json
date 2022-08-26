@@ -5,6 +5,9 @@
       "description": "Full release build",
       "steps": [
         {
+          "spawn": "test"
+        },
+        {
           "spawn": "pre-compile"
         },
         {
@@ -12,9 +15,6 @@
         },
         {
           "spawn": "post-compile"
-        },
-        {
-          "spawn": "test"
         },
         {
           "spawn": "package"
@@ -178,7 +178,7 @@
       },
       "steps": [
         {
-          "exec": "rm -fr dist"
+          "exec": "rm -fr dist && rm -rf lib"
         },
         {
           "spawn": "bump"
