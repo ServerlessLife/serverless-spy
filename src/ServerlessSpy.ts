@@ -1,3 +1,4 @@
+import * as fs from 'fs';
 import * as path from 'path';
 import * as apiGwV2 from '@aws-cdk/aws-apigatewayv2-alpha';
 import * as apiGwV2Int from '@aws-cdk/aws-apigatewayv2-integrations-alpha';
@@ -62,7 +63,7 @@ export class ServerlessSpy extends Construct {
       timeout: Duration.seconds(5),
       runtime: lambda.Runtime.NODEJS_16_X,
       handler: 'handler',
-      entry: path.join(__dirname, '../functions/onConnect.ts'),
+      entry: getAssetLocation('functions/onConnect.ts'),
       environment: {
         TABLE_NAME: this.table.tableName,
       },
@@ -78,7 +79,7 @@ export class ServerlessSpy extends Construct {
         timeout: Duration.seconds(5),
         runtime: lambda.Runtime.NODEJS_16_X,
         handler: 'handler',
-        entry: path.join(__dirname, '../functions/onDisconnect.ts'),
+        entry: getAssetLocation('functions/onDisconnect.ts'),
         environment: {
           TABLE_NAME: this.table.tableName,
         },
@@ -213,7 +214,7 @@ export class ServerlessSpy extends Construct {
       timeout: Duration.seconds(5),
       runtime: lambda.Runtime.NODEJS_16_X,
       handler: 'handler',
-      entry: path.join(__dirname, '../functions/sendMessage.ts'),
+      entry: getAssetLocation('functions/sendMessage.ts'),
       environment: {
         TABLE_NAME: this.table.tableName,
       },
@@ -446,3 +447,19 @@ type FunctionSubscription = {
   function: lambdaNode.NodejsFunction;
   mapping: Record<string, string>;
 };
+
+function getAssetLocation(location: string) {
+  const loc = path.join(__dirname, '../' + location);
+
+  if (fs.existsSync(loc)) {
+    return loc;
+  }
+
+  const loc2 = path.join(__dirname, '../../' + location);
+
+  if (fs.existsSync(loc2)) {
+    return loc2;
+  }
+
+  throw new Error(`Location ${loc} and ${loc2} does not exists.`);
+}
