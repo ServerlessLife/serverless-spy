@@ -1,13 +1,13 @@
-import { DynamoDBSpyEvent } from 'serverless-spy-common/spyEvents/DynamoDBSpyEvent';
-import { EventBridgeRuleSpyEvent } from 'serverless-spy-common/spyEvents/EventBridgeRuleSpyEvent';
-import { EventBridgeSpyEvent } from 'serverless-spy-common/spyEvents/EventBridgeSpyEvent';
-import { FunctionConsoleSpyEvent } from 'serverless-spy-common/spyEvents/FunctionConsoleSpyEvent';
-import { FunctionRequestSpyEvent } from 'serverless-spy-common/spyEvents/FunctionRequestSpyEvent';
-import { FunctionResponseSpyEvent } from 'serverless-spy-common/spyEvents/FunctionResponseSpyEvent';
-import { S3SpyEvent } from 'serverless-spy-common/spyEvents/S3SpyEvent';
-import { SnsSubscriptionSpyEvent } from 'serverless-spy-common/spyEvents/SnsSubscriptionSpyEvent';
-import { SnsTopicSpyEvent } from 'serverless-spy-common/spyEvents/SnsTopicSpyEvent';
-import { SqsSpyEvent } from 'serverless-spy-common/spyEvents/SqsSpyEvent';
+import { DynamoDBSpyEvent } from './../common/spyEvents/DynamoDBSpyEvent';
+import { EventBridgeRuleSpyEvent } from './../common/spyEvents/EventBridgeRuleSpyEvent';
+import { EventBridgeSpyEvent } from './../common/spyEvents/EventBridgeSpyEvent';
+import { FunctionConsoleSpyEvent } from './../common/spyEvents/FunctionConsoleSpyEvent';
+import { FunctionRequestSpyEvent } from './../common/spyEvents/FunctionRequestSpyEvent';
+import { FunctionResponseSpyEvent } from './../common/spyEvents/FunctionResponseSpyEvent';
+import { S3SpyEvent } from './../common/spyEvents/S3SpyEvent';
+import { SnsSubscriptionSpyEvent } from './../common/spyEvents/SnsSubscriptionSpyEvent';
+import { SnsTopicSpyEvent } from './../common/spyEvents/SnsTopicSpyEvent';
+import { SqsSpyEvent } from './../common/spyEvents/SqsSpyEvent';
 
 import { WaitForParams } from './createServerlessSpyListener';
 import { PrettifyForDisplay } from './PrettifyForDisplay';

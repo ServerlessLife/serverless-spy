@@ -1,10 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { LambdaClient, InvokeCommand } from '@aws-sdk/client-lambda';
-import {
-  SpyListener,
-  createServerlessSpyListener,
-} from 'serverless-spy-listener';
+import { SpyListener, createServerlessSpyListener } from 'serverless-spy';
 import { SpyEvents } from './SpyEvents';
 
 jest.setTimeout(30000);

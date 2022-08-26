@@ -1,10 +1,9 @@
-/* eslint-disable no-prototype-builtins */
 import { Credentials } from '@aws-sdk/types';
-import { getWebSocketUrl } from 'serverless-spy-common/getWebSocketUrl';
-import { FunctionRequestSpyEvent } from 'serverless-spy-common/spyEvents/FunctionRequestSpyEvent';
-import { SpyEvent } from 'serverless-spy-common/spyEvents/SpyEvent';
-import { SpyMessage } from 'serverless-spy-common/spyEvents/SpyMessage';
 import WebSocket from 'ws';
+import { getWebSocketUrl } from '../common/getWebSocketUrl';
+import { FunctionRequestSpyEvent } from '../common/spyEvents/FunctionRequestSpyEvent';
+import { SpyEvent } from '../common/spyEvents/SpyEvent';
+import { SpyMessage } from '../common/spyEvents/SpyMessage';
 import { SpyListener } from './SpyListener';
 
 type ServerlessSpyListenerParams = {
