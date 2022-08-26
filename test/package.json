@@ -10,7 +10,8 @@
   "license": "ISC",
   "dependencies": {
     "@aws-sdk/client-lambda": "^3.148.0",
-    "aws-cdk-lib": "^2.37.1"
+    "aws-cdk-lib": "^2.37.1",
+    "ws": "^8.8.1"
   },
   "devDependencies": {
     "jest": "^28.1.3"
