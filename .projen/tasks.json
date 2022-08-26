@@ -168,7 +168,7 @@
       "description": "Create js language bindings",
       "steps": [
         {
-          "exec": "jsii-pacmak -v --target js"
+          "exec": "mv lib dist"
         }
       ]
     },
