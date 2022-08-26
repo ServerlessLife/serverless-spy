@@ -1,5 +1,5 @@
 import { Credentials } from '@aws-sdk/types';
-import WebSocket from 'ws';
+import { WebSocket } from 'ws';
 import { getWebSocketUrl } from '../common/getWebSocketUrl';
 import { FunctionRequestSpyEvent } from '../common/spyEvents/FunctionRequestSpyEvent';
 import { SpyEvent } from '../common/spyEvents/SpyEvent';
