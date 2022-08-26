@@ -108,8 +108,20 @@
           "exec": "cp -rlf temp/* lib/src"
         }, 
         {
+          "spawn": "bundle-extension"
+        }, 
+        {
           "exec": "rm -rf temp"
         } 
+      ]
+    },
+    "bundle-extension": {
+      "name": "bundle-extension",
+      "description": "Bundle extension",
+      "steps": [
+        {
+          "exec": "esbuild --bundle --platform=node --sourcemap lambda-extension/interceptor.ts --outdir=lib/lambda-extension/dist/layer/nodejs/node_modules; cp lambda-extension/spy-wrapper lib/lambda-extension/dist/layer"
+        }
       ]
     },
     "docgen": {

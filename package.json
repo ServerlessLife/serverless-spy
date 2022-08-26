@@ -30,8 +30,7 @@
     "lint": "eslint **/*.ts",
     "lint-fix": "eslint --fix './**/*.ts'",
     "pretty": "prettier --write '**/*.ts'",
-    "bundle-extension": "esbuild --bundle --platform=node --sourcemap lambda-extension/interceptor.ts --outdir=lambda-extension/dist/layer/nodejs/node_modules; cp lambda-extension/spy-wrapper lambda-extension/dist/layer",
-    "transpile": "scripts/run-task transpile"
+    "bundle-extension": "scripts/run-task bundle-extension"
   },
   "author": {
     "name": "Marko (ServerlessLife.com)",
