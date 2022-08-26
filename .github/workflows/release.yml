@@ -55,11 +55,15 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: 16
+      - name: list files 1
+        run: ls -R | grep ":$" | sed -e 's/:$//' -e 's/[^-][^\/]*\//--/g' -e 's/^/   /' -e 's/-/|/'
       - name: Download build artifacts
         uses: actions/download-artifact@v3
         with:
           name: build-artifact
           path: dist
+      - name: list files 2
+        run: ls -R | grep ":$" | sed -e 's/:$//' -e 's/[^-][^\/]*\//--/g' -e 's/^/   /' -e 's/-/|/'
       - name: Prepare Repository
         run: mv dist .repo
       - name: Collect GitHub Metadata
