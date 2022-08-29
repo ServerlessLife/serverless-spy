@@ -168,7 +168,7 @@
       "description": "Create js language bindings",
       "steps": [
         {
-          "exec": "mkdir -p dist/js && npm pack --pack-destination dist/js"
+          "exec": "jsii-pacmak -v --target js"
         }
       ]
     },
