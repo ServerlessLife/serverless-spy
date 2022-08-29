@@ -2,7 +2,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as apiGwV2 from '@aws-cdk/aws-apigatewayv2-alpha';
 import * as apiGwV2Int from '@aws-cdk/aws-apigatewayv2-integrations-alpha';
-import { Duration, Stack } from 'aws-cdk-lib';
+import { CfnOutput, Duration, Stack } from 'aws-cdk-lib';
 import * as agw from 'aws-cdk-lib/aws-apigatewayv2';
 import * as dynamoDb from 'aws-cdk-lib/aws-dynamodb';
 import * as events from 'aws-cdk-lib/aws-events';
@@ -16,6 +16,10 @@ import * as sns from 'aws-cdk-lib/aws-sns';
 import * as snsSubs from 'aws-cdk-lib/aws-sns-subscriptions';
 import * as sqs from 'aws-cdk-lib/aws-sqs';
 import { Construct, IConstruct } from 'constructs';
+
+export interface ServerlessSpyProps {
+  generateSpyEventsFileLocation: string;
+}
 
 export class ServerlessSpy extends Construct {
   private extensionLayer: lambda.LayerVersion;
@@ -32,9 +36,11 @@ export class ServerlessSpy extends Construct {
 
   private webSocketStage: apiGwV2.WebSocketStage;
 
+  public serviceKeys: string[] = [];
+
   wsUrl: string;
 
-  constructor(scope: Construct, id: string) {
+  constructor(scope: Construct, id: string, props?: ServerlessSpyProps) {
     super(scope, id);
 
     const extensionAssetLocation = path.join(
@@ -163,19 +169,32 @@ export class ServerlessSpy extends Construct {
       );
     }
 
-    // new CfnOutput(this, "API_URL", {
-    //   value: `wss://${this.webSocketApi.apiId}.execute-api.${
-    //     Stack.of(scope).region
-    //   }.amazonaws.com/${this.webSocketStage.stageName}`,
-    // });
-
     this.wsUrl = `wss://${this.webSocketApi.apiId}.execute-api.${
       Stack.of(this).region
     }.amazonaws.com/${this.webSocketStage.stageName}`;
 
+    new CfnOutput(Stack.of(this), 'API_URL', {
+      value: this.wsUrl,
+    });
+
     // new CfnOutput(this, "API_URL", {
     //   value: this.wsUrl,
     // });
+
+    if (props?.generateSpyEventsFileLocation) {
+      this.writeSpyEventsClass(props?.generateSpyEventsFileLocation);
+    }
+  }
+
+  private writeSpyEventsClass(fileLocation: string) {
+    //
+    const properties = this.serviceKeys
+      .map((sk) => `  ${sk.replace(/#/g, '')}: '${sk}' = '${sk}';\n`)
+      .join('');
+
+    const code = `/* eslint-disable */\nexport class ServerlessSpyEvents {\n${properties}}`;
+
+    fs.writeFileSync(fileLocation, code);
   }
 
   private iterateAllElements(parent: IConstruct) {
@@ -228,9 +247,10 @@ export class ServerlessSpy extends Construct {
 
     if (queue && func) {
       const queueName = this.getConstructName(queue);
-      this.functionSubscriptionMain.mapping[
-        queue.queueArn
-      ] = `Sqs#${queueName}`;
+
+      const serviceKey = `Sqs#${queueName}`;
+      this.functionSubscriptionMain.mapping[queue.queueArn] = serviceKey;
+      this.serviceKeys.push(serviceKey);
       func.addEnvironment('FLUENT_TEST_SUBSCRIBED_TO_SQS', 'true');
     }
   }
@@ -267,7 +287,10 @@ export class ServerlessSpy extends Construct {
     );
 
     const name = this.getConstructName(s3Bucket);
-    this.functionSubscriptionMain.mapping[s3Bucket.bucketArn] = `S3#${name}`;
+
+    const serviceKey = `S3#${name}`;
+    this.functionSubscriptionMain.mapping[s3Bucket.bucketArn] = serviceKey;
+    this.serviceKeys.push(serviceKey);
   }
 
   private interceptDynamodb(table: dynamoDb.Table) {
@@ -289,7 +312,9 @@ export class ServerlessSpy extends Construct {
 
     const name = this.getConstructName(table);
 
-    this.functionSubscriptionMain.mapping[table.tableArn] = `DynamoDB#${name}`;
+    const serviceKey = `DynamoDB#${name}`;
+    this.functionSubscriptionMain.mapping[table.tableArn] = serviceKey;
+    this.serviceKeys.push(serviceKey);
   }
 
   private interceptEventBusRule(rule: events.Rule) {
@@ -311,7 +336,9 @@ export class ServerlessSpy extends Construct {
 
     const bridgeName = this.getConstructName(eventBridge);
     const ruleName = this.getConstructName(rule);
-    functionSubscription.mapping.eventBridge = `EventBridgeRule#${bridgeName}#${ruleName}`;
+    const serviceKey = `EventBridgeRule#${bridgeName}#${ruleName}`;
+    functionSubscription.mapping.eventBridge = serviceKey;
+    this.serviceKeys.push(serviceKey);
   }
 
   private interceptEventBus(eventBus: events.EventBus) {
@@ -328,7 +355,9 @@ export class ServerlessSpy extends Construct {
     });
 
     this.ownContructs.push(rule);
-    functionSubscription.mapping.eventBridge = `EventBridge#${bridgeName}`;
+    const serviceKey = `EventBridge#${bridgeName}`;
+    functionSubscription.mapping.eventBridge = serviceKey;
+    this.serviceKeys.push(serviceKey);
   }
 
   private interceptSnsTopic(topic: sns.Topic) {
@@ -340,7 +369,9 @@ export class ServerlessSpy extends Construct {
       new snsSubs.LambdaSubscription(functionSubscription.function)
     );
     const topicName = this.getConstructName(topic);
-    functionSubscription.mapping[topic.topicArn] = `SnsTopic#${topicName}`;
+    const serviceKey = `SnsTopic#${topicName}`;
+    functionSubscription.mapping[topic.topicArn] = serviceKey;
+    this.serviceKeys.push(serviceKey);
     functionSubscription.subsribedTopics.push(topic);
   }
 
@@ -376,9 +407,9 @@ export class ServerlessSpy extends Construct {
     const targetName = this.getConstructName(subscription.node.scope);
 
     functionSubscription.subsribedTopics.push(topic);
-    functionSubscription.mapping[
-      topic.topicArn
-    ] = `SnsSubscription#${topicName}#${targetName}`;
+    const serviceKey = `SnsSubscription#${topicName}#${targetName}`;
+    functionSubscription.mapping[topic.topicArn] = serviceKey;
+    this.serviceKeys.push(serviceKey);
   }
 
   private provideFunctionForSubscription(
@@ -418,6 +449,11 @@ export class ServerlessSpy extends Construct {
       'FLUENT_TEST_SEND_FUNCTION_NAME',
       this.functionSubscriptionMain.function.functionName
     );
+
+    this.serviceKeys.push(`Function#${functionName}#Request`);
+    this.serviceKeys.push(`Function#${functionName}#Error`);
+    this.serviceKeys.push(`Function#${functionName}#Console`);
+    this.serviceKeys.push(`Function#${functionName}#Response`);
   }
 
   public getConstructName(construct: IConstruct) {
