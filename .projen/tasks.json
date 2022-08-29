@@ -17,10 +17,22 @@
           "spawn": "post-compile"
         },
         {
+          "spawn": "deploy-test-stacks"
+        },
+        {
           "spawn": "test"
         },
         {
           "spawn": "package"
+        }
+      ]
+    },
+    "deploy-test-stacks": {
+      "name": "deploy-test-stacks",
+      "description": "Deploy test CDK stacks for integration and e2e tests",
+      "steps": [
+        {
+          "exec": "npm run deploy --workspace=test/cdk"
         }
       ]
     },

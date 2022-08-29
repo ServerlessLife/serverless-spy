@@ -19,6 +19,7 @@
     "post-upgrade": "scripts/run-task post-upgrade",
     "pre-compile": "scripts/run-task pre-compile",
     "release": "scripts/run-task release",
+    "deploy-test-stacks": "scripts/run-task deploy-test-stacks",
     "test": "scripts/run-task test",
     "test:update": "scripts/run-task test:update",
     "test:watch": "scripts/run-task test:watch",
