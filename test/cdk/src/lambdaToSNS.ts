@@ -12,7 +12,7 @@ export class LambdaToSNSStack extends Stack {
 
     const topicNo1 = new sns.Topic(this, 'TopicNo1', {});
 
-    const functionTestA = new NodejsFunction(this, 'TestA', {
+    const functionLambdaToSNS = new NodejsFunction(this, 'LambdaToSNS', {
       memorySize: 512,
       timeout: Duration.seconds(5),
       runtime: lambda.Runtime.NODEJS_16_X,
@@ -22,7 +22,7 @@ export class LambdaToSNSStack extends Stack {
         SNS_TOPIC_ARN: topicNo1.topicArn,
       },
     });
-    topicNo1.grantPublish(functionTestA);
+    topicNo1.grantPublish(functionLambdaToSNS);
 
     const serverlessSpy = new ServerlessSpy(this, 'ServerlessSpy');
 
@@ -32,9 +32,9 @@ export class LambdaToSNSStack extends Stack {
 
     new CfnOutput(
       this,
-      `FunctionName${serverlessSpy.getConstructName(functionTestA)}`,
+      `FunctionName${serverlessSpy.getConstructName(functionLambdaToSNS)}`,
       {
-        value: functionTestA.functionName,
+        value: functionLambdaToSNS.functionName,
       }
     );
   }

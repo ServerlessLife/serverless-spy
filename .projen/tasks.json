@@ -17,7 +17,7 @@
           "spawn": "post-compile"
         },
         {
-          "spawn": "deploy-test-stacks"
+          "spawn": "deploy-stacks"
         },
         {
           "spawn": "test"
@@ -27,8 +27,20 @@
         }
       ]
     },
-    "deploy-test-stacks": {
-      "name": "deploy-test-stacks",
+    "deploy-test": {
+      "name": "deploy-test",
+      "description": "Deploy test CDK stacks and execute tests",
+      "steps": [
+        {
+          "spawn": "deploy-stacks"
+        },
+        {
+          "spawn": "test"
+        }
+      ]
+    },
+    "deploy-stacks": {
+      "name": "deploy-stacks",
       "description": "Deploy test CDK stacks for integration and e2e tests",
       "steps": [
         {
