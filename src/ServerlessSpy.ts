@@ -18,7 +18,7 @@ import * as sqs from 'aws-cdk-lib/aws-sqs';
 import { Construct, IConstruct } from 'constructs';
 
 export interface ServerlessSpyProps {
-  generateSpyEventsFileLocation: string;
+  readonly generateSpyEventsFileLocation: string;
 }
 
 export class ServerlessSpy extends Construct {
@@ -187,7 +187,8 @@ export class ServerlessSpy extends Construct {
   }
 
   private writeSpyEventsClass(fileLocation: string) {
-    //
+    fs.mkdirSync(path.dirname(fileLocation), { recursive: true });
+
     const properties = this.serviceKeys
       .map((sk) => `  ${sk.replace(/#/g, '')}: '${sk}' = '${sk}';\n`)
       .join('');

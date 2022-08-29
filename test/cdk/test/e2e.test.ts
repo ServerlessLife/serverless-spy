@@ -1,15 +1,15 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { LambdaClient, InvokeCommand } from '@aws-sdk/client-lambda';
-import { createServerlessSpyListener } from '../listener/createServerlessSpyListener';
-import { SpyListener } from '../listener/SpyListener';
-import { SpyEvents } from './SpyEvents';
+import { createServerlessSpyListener } from 'serverless-spy';
+import { SpyListener } from '../../../listener/SpyListener';
+import { ServerlessSpyEvents } from '../.cdkOut/ServerlessSpyEventsE2e';
 
 jest.setTimeout(30000);
 
 describe('Ingredient DAL', () => {
-  const exportLocation = path.join(__dirname, './cdk/cdkExports.json');
-  let serverlessSpyListener: SpyListener<SpyEvents>;
+  const exportLocation = path.join(__dirname, '../.cdkOut/cdkExports.json');
+  let serverlessSpyListener: SpyListener<ServerlessSpyEvents>;
 
   if (!fs.existsSync(exportLocation)) {
     throw new Error(`File ${exportLocation} doen not exists.`);
@@ -19,9 +19,10 @@ describe('Ingredient DAL', () => {
   ];
 
   beforeEach(async () => {
-    serverlessSpyListener = await createServerlessSpyListener<SpyEvents>({
-      serverlessSpyWsUrl: output.ServerlessSpyWsUrl,
-    });
+    serverlessSpyListener =
+      await createServerlessSpyListener<ServerlessSpyEvents>({
+        serverlessSpyWsUrl: output.ServerlessSpyWsUrl,
+      });
   });
 
   afterEach(async () => {

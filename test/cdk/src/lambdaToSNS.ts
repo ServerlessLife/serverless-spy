@@ -10,21 +10,24 @@ export class LambdaToSNSStack extends Stack {
   constructor(scope: Construct, id: string, props: StackProps = {}) {
     super(scope, id, props);
 
-    const topicNo1 = new sns.Topic(this, 'TopicNo1', {});
+    const topic = new sns.Topic(this, 'MyTopic', {});
 
     const functionLambdaToSNS = new NodejsFunction(this, 'LambdaToSNS', {
       memorySize: 512,
       timeout: Duration.seconds(5),
       runtime: lambda.Runtime.NODEJS_16_X,
       handler: 'handler',
-      entry: path.join(__dirname, '../functions/testA.ts'),
+      entry: path.join(__dirname, '../functions/toSNS.ts'),
       environment: {
-        SNS_TOPIC_ARN: topicNo1.topicArn,
+        SNS_TOPIC_ARN: topic.topicArn,
       },
     });
-    topicNo1.grantPublish(functionLambdaToSNS);
+    topic.grantPublish(functionLambdaToSNS);
 
-    const serverlessSpy = new ServerlessSpy(this, 'ServerlessSpy');
+    const serverlessSpy = new ServerlessSpy(this, 'ServerlessSpy', {
+      generateSpyEventsFileLocation:
+        '.cdkOut/ServerlessSpyEventsLambdaToSNS.ts',
+    });
 
     new CfnOutput(this, 'ServerlessSpyWsUrl', {
       value: serverlessSpy.wsUrl,

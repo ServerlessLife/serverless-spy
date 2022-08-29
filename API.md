@@ -9,13 +9,14 @@
 ```typescript
 import { ServerlessSpy } from 'serverless-spy'
 
-new ServerlessSpy(scope: Construct, id: string)
+new ServerlessSpy(scope: Construct, id: string, props?: ServerlessSpyProps)
 ```
 
 | **Name** | **Type** | **Description** |
 | --- | --- | --- |
 | <code><a href="#serverless-spy.ServerlessSpy.Initializer.parameter.scope">scope</a></code> | <code>constructs.Construct</code> | *No description.* |
 | <code><a href="#serverless-spy.ServerlessSpy.Initializer.parameter.id">id</a></code> | <code>string</code> | *No description.* |
+| <code><a href="#serverless-spy.ServerlessSpy.Initializer.parameter.props">props</a></code> | <code><a href="#serverless-spy.ServerlessSpyProps">ServerlessSpyProps</a></code> | *No description.* |
 
 ---
 
@@ -28,6 +29,12 @@ new ServerlessSpy(scope: Construct, id: string)
 ##### `id`<sup>Required</sup> <a name="id" id="serverless-spy.ServerlessSpy.Initializer.parameter.id"></a>
 
 - *Type:* string
+
+---
+
+##### `props`<sup>Optional</sup> <a name="props" id="serverless-spy.ServerlessSpy.Initializer.parameter.props"></a>
+
+- *Type:* <a href="#serverless-spy.ServerlessSpyProps">ServerlessSpyProps</a>
 
 ---
 
@@ -91,6 +98,7 @@ Any object.
 | **Name** | **Type** | **Description** |
 | --- | --- | --- |
 | <code><a href="#serverless-spy.ServerlessSpy.property.node">node</a></code> | <code>constructs.Node</code> | The tree node. |
+| <code><a href="#serverless-spy.ServerlessSpy.property.serviceKeys">serviceKeys</a></code> | <code>string[]</code> | *No description.* |
 | <code><a href="#serverless-spy.ServerlessSpy.property.wsUrl">wsUrl</a></code> | <code>string</code> | *No description.* |
 
 ---
@@ -107,6 +115,16 @@ The tree node.
 
 ---
 
+##### `serviceKeys`<sup>Required</sup> <a name="serviceKeys" id="serverless-spy.ServerlessSpy.property.serviceKeys"></a>
+
+```typescript
+public readonly serviceKeys: string[];
+```
+
+- *Type:* string[]
+
+---
+
 ##### `wsUrl`<sup>Required</sup> <a name="wsUrl" id="serverless-spy.ServerlessSpy.property.wsUrl"></a>
 
 ```typescript
@@ -118,6 +136,35 @@ public readonly wsUrl: string;
 ---
 
 
+## Structs <a name="Structs" id="Structs"></a>
+
+### ServerlessSpyProps <a name="ServerlessSpyProps" id="serverless-spy.ServerlessSpyProps"></a>
+
+#### Initializer <a name="Initializer" id="serverless-spy.ServerlessSpyProps.Initializer"></a>
+
+```typescript
+import { ServerlessSpyProps } from 'serverless-spy'
+
+const serverlessSpyProps: ServerlessSpyProps = { ... }
+```
+
+#### Properties <a name="Properties" id="Properties"></a>
+
+| **Name** | **Type** | **Description** |
+| --- | --- | --- |
+| <code><a href="#serverless-spy.ServerlessSpyProps.property.generateSpyEventsFileLocation">generateSpyEventsFileLocation</a></code> | <code>string</code> | *No description.* |
+
+---
+
+##### `generateSpyEventsFileLocation`<sup>Required</sup> <a name="generateSpyEventsFileLocation" id="serverless-spy.ServerlessSpyProps.property.generateSpyEventsFileLocation"></a>
+
+```typescript
+public readonly generateSpyEventsFileLocation: string;
+```
+
+- *Type:* string
+
+---
 
 
 

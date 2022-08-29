@@ -30,68 +30,68 @@ export type SpyListener<TSpyEvents> = {
     param?: PrettifyForDisplay<
       WaitForParams<PrettifyForDisplay<DynamoDBSpyEvent>>
     >
-  ) => DynamoDBSpyHandler<T>;
+  ) => Promise<DynamoDBSpyHandler<T>>;
 } & {
   [P in keyof FilterConditionally<TSpyEvents, `EventBridge#${any}`> &
     string as `waitFor${P}`]: <T = any>(
     param?: PrettifyForDisplay<
       WaitForParams<PrettifyForDisplay<EventBridgeSpyEvent<T>>>
     >
-  ) => EventBridgeSpyHandler<T>;
+  ) => Promise<EventBridgeSpyHandler<T>>;
 } & {
   [P in keyof FilterConditionally<TSpyEvents, `EventBridgeRule#${any}`> &
     string as `waitFor${P}`]: <T = any>(
     param?: PrettifyForDisplay<
       WaitForParams<PrettifyForDisplay<EventBridgeRuleSpyEvent<T>>>
     >
-  ) => EventBridgeRuleSpyHandler<T>;
+  ) => Promise<EventBridgeRuleSpyHandler<T>>;
 } & {
   [P in keyof FilterConditionally<TSpyEvents, `S3#${any}`> &
     string as `waitFor${P}`]: (
     param?: PrettifyForDisplay<WaitForParams<PrettifyForDisplay<S3SpyEvent>>>
-  ) => S3SpyHandler;
+  ) => Promise<S3SpyHandler>;
 } & {
   [P in keyof FilterConditionally<TSpyEvents, `SnsSubscription#${any}`> &
     string as `waitFor${P}`]: <T = any>(
     param?: PrettifyForDisplay<
       WaitForParams<PrettifyForDisplay<SnsSubscriptionSpyEvent<T>>>
     >
-  ) => SnsSubscriptionSpyHandler<T>;
+  ) => Promise<SnsSubscriptionSpyHandler<T>>;
 } & {
   [P in keyof FilterConditionally<TSpyEvents, `SnsTopic#${any}`> &
     string as `waitFor${P}`]: <T = any>(
     param?: PrettifyForDisplay<
       WaitForParams<PrettifyForDisplay<SnsTopicSpyEvent<T>>>
     >
-  ) => SnsTopicSpyHandler<T>;
+  ) => Promise<SnsTopicSpyHandler<T>>;
 } & {
   [P in keyof FilterConditionally<TSpyEvents, `Sqs#${any}`> &
     string as `waitFor${P}`]: <T = any>(
     param?: PrettifyForDisplay<
       WaitForParams<PrettifyForDisplay<SqsSpyEvent<T>>>
     >
-  ) => SqsSpyHandler<T>;
+  ) => Promise<SqsSpyHandler<T>>;
 } & {
   [P in keyof FilterConditionally<TSpyEvents, `Function#${any}#Request`> &
     string as `waitFor${P}`]: <T = any>(
     param?: PrettifyForDisplay<
       WaitForParams<PrettifyForDisplay<FunctionRequestSpyEvent<T>>>
     >
-  ) => FunctionRequestSpyHandler<T>;
+  ) => Promise<FunctionRequestSpyHandler<T>>;
 } & {
   [P in keyof FilterConditionally<TSpyEvents, `Function#${any}#Console`> &
     string as `waitFor${P}`]: <T = any>(
     param?: PrettifyForDisplay<
       WaitForParams<PrettifyForDisplay<FunctionConsoleSpyEvent<T>>>
     >
-  ) => FunctionConsoleSpyHandler<T>;
+  ) => Promise<FunctionConsoleSpyHandler<T>>;
 } & {
   [P in keyof FilterConditionally<TSpyEvents, `Function#${any}#Response`> &
     string as `waitFor${P}`]: <T = any>(
     param?: PrettifyForDisplay<
       WaitForParams<PrettifyForDisplay<FunctionResponseSpyEvent<T>>>
     > //      filter?: (event: FunctionResponseSpyEvent<T>) => boolean
-  ) => FunctionResponseSpyHandler<T>;
+  ) => Promise<FunctionResponseSpyHandler<T>>;
 } & {
   stop: () => void;
 };

@@ -144,7 +144,9 @@ export class E2eStack extends Stack {
     // console.log("FUNCTION NAME: " + logicalId);
 
     // --------------------- WEBSOCKET --------------------
-    const serverlessSpy = new ServerlessSpy(this, 'ServerlessSpy');
+    const serverlessSpy = new ServerlessSpy(this, 'ServerlessSpy', {
+      generateSpyEventsFileLocation: '.cdkOut/ServerlessSpyEventsE2e.ts',
+    });
 
     new CfnOutput(this, 'ServerlessSpyWsUrl', {
       value: serverlessSpy.wsUrl,

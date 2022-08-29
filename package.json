@@ -20,7 +20,7 @@
     "pre-compile": "scripts/run-task pre-compile",
     "release": "scripts/run-task release",
     "deploy-test": "scripts/run-task deploy-test",
-    "deploy-stacks": "scripts/run-task deploy-stacks",
+    "deploy": "scripts/run-task deploy",
     "test": "scripts/run-task test",
     "test:update": "scripts/run-task test:update",
     "test:watch": "scripts/run-task test:watch",
@@ -41,14 +41,18 @@
   },
   "devDependencies": {
     "@types/aws-lambda": "^8.10.102",
+    "@types/aws4": "^1.11.2",
     "@types/jest": "^27",
     "@types/node": "^14.18.26",
+    "@types/uuid": "^8.3.4",
+    "@types/ws": "^8.5.3",
     "@typescript-eslint/eslint-plugin": "^5.35.1",
     "@typescript-eslint/parser": "^5.35.1",
     "aws-cdk-lib": "2.37.1",
     "constructs": "10.0.5",
     "esbuild": "^0.15.5",
     "esbuild-jest": "^0.5.0",
+    "esbuild-runner": "^2.2.1",
     "eslint": "^8.23.0",
     "eslint-config-prettier": "^8.5.0",
     "eslint-import-resolver-node": "^0.3.6",
@@ -67,11 +71,10 @@
     "prettier": "^2.7.1",
     "projen": "^0.61.32",
     "standard-version": "^9",
+    "ts-jest": "^27",
     "ts-node": "^10.9.1",
     "typescript": "^4.8.2",
-    "@types/aws4": "^1.11.2",
-    "@types/ws": "^8.5.3",
-    "esbuild-runner": "^2.2.1"
+    "uuid": "^8.3.2"
   },
   "workspaces": [
     "test",
@@ -91,15 +94,15 @@
     "@aws-sdk/client-s3": "^3.159.0",
     "@aws-sdk/client-sns": "^3.159.0",
     "@aws-sdk/client-sqs": "^3.159.0",
+    "@aws-sdk/client-sts": "^3.159.0",
+    "@aws-sdk/credential-providers": "^3.159.0",
     "@aws-sdk/lib-dynamodb": "^3.159.0",
+    "@aws-sdk/types": "^3.159.0",
     "@aws-sdk/util-dynamodb": "^3.159.0",
     "@serverless-stack/node": "^1.9.4",
     "aws-lambda": "^1.0.7",
     "aws4": "^1.11.0",
-    "@aws-sdk/credential-providers": "^3.159.0",
-    "@aws-sdk/types": "^3.159.0",
-    "ws": "^8.8.1",
-    "@aws-sdk/client-sts": "^3.159.0"
+    "ws": "^8.8.1"
   },
   "keywords": [
     "cdk"

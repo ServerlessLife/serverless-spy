@@ -30,13 +30,13 @@ export async function createServerlessSpyListener<TSpyEvents>(
   });
 
   ws.on('open', () => {
-    console.log('connected ' + new Date().toISOString());
+    //console.log('connected ' + new Date().toISOString());
     connectionOpenResolve(undefined);
   });
   ws.on('message', (data) => {
     if (closed) return;
 
-    console.log(`From server: ${data}`);
+    //console.log(`From server: ${data}`);
 
     const message = JSON.parse(data.toString()) as SpyMessageStorage;
 
@@ -193,11 +193,11 @@ export async function createServerlessSpyListener<TSpyEvents>(
           message.functionContextAwsRequestId) ||
       !tracker.functionContextAwsRequestId;
 
-    if (tracker.functionContextAwsRequestId) {
-      console.log(
-        `${tracker.functionContextAwsRequestId} - ${message.functionContextAwsRequestId}`
-      );
-    }
+    // if (tracker.functionContextAwsRequestId) {
+    //   console.log(
+    //     `${tracker.functionContextAwsRequestId} - ${message.functionContextAwsRequestId}`
+    //   );
+    // }
 
     return matchCondition && matchRequestId;
   }
@@ -227,7 +227,11 @@ export async function createServerlessSpyListener<TSpyEvents>(
         tracker.finished = true;
         tracker.promiseReject(
           new Error(
-            `Timeout waiting for Serverless Spy message ${serviceKeyForFunction}`
+            `Timeout waiting for Serverless Spy message ${serviceKeyForFunction}. Received messages so far:\n ${JSON.stringify(
+              messages,
+              null,
+              2
+            )}`
           )
         );
       }, paramsW?.timoutMs || 10000);

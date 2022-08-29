@@ -28,7 +28,7 @@
       "serverless-spy": ["../../"]
     },
   },
-  "include": ["src/**/*.ts"],
+  "include": ["src/**/*.ts", "test/**/*.ts"],
   "exclude": ["cdk.out"],
   "ts-node": {
     "require": [
