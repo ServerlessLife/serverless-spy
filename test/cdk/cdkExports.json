@@ -1,6 +1,0 @@
-{
-  "serverless-spy-test-e2e": {
-    "FunctionNameTestA": "serverless-spy-test-e2e-TestA10A9AF62-9pdo2SBoJSTG",
-    "ServerlessSpyWsUrl": "wss://preh1xo1xh.execute-api.eu-west-1.amazonaws.com/prod"
-  }
-}

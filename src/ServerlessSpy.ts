@@ -188,8 +188,6 @@ export class ServerlessSpy extends Construct {
         continue;
       }
 
-      console.log('NODE', node.constructor.name);
-
       if (node instanceof lambda.Function) {
         this.interceptFunction(node);
       } else if (node instanceof sns.Topic) {

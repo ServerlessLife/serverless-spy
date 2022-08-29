@@ -15,7 +15,7 @@ describe('Ingredient DAL', () => {
     throw new Error(`File ${exportLocation} doen not exists.`);
   }
   const output = JSON.parse(fs.readFileSync(exportLocation).toString())[
-    'serverless-spy-test-e2e'
+    'ServerlessSpyE2e'
   ];
 
   beforeEach(async () => {

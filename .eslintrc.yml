@@ -73,7 +73,7 @@ rules:
   no-trailing-spaces:
     - error
   dot-notation:
-    - error
+    - off
   no-bitwise:
     - error
   '@typescript-eslint/member-ordering':
