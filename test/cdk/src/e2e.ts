@@ -1,5 +1,5 @@
 import * as path from 'path';
-import { Duration, Stack, StackProps, CfnOutput } from 'aws-cdk-lib';
+import { Duration, Stack, CfnOutput } from 'aws-cdk-lib';
 import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
 import * as events from 'aws-cdk-lib/aws-events';
 import * as targets from 'aws-cdk-lib/aws-events-targets';
@@ -15,9 +15,10 @@ import {
 import * as sqs from 'aws-cdk-lib/aws-sqs';
 import { Construct } from 'constructs';
 import { ServerlessSpy } from 'serverless-spy';
+import { GenerateSpyEventsFileProps } from './GenerateSpyEventsFileProps';
 
 export class E2eStack extends Stack {
-  constructor(scope: Construct, id: string, props: StackProps = {}) {
+  constructor(scope: Construct, id: string, props: GenerateSpyEventsFileProps) {
     super(scope, id, props);
 
     const s3Bucket = new s3.Bucket(this, 'logs');
@@ -145,11 +146,9 @@ export class E2eStack extends Stack {
 
     // --------------------- WEBSOCKET --------------------
     const serverlessSpy = new ServerlessSpy(this, 'ServerlessSpy', {
-      generateSpyEventsFileLocation: '.cdkOut/ServerlessSpyEventsE2e.ts',
-    });
-
-    new CfnOutput(this, 'ServerlessSpyWsUrl', {
-      value: serverlessSpy.wsUrl,
+      generateSpyEventsFileLocation: props.generateSpyEventsFile
+        ? '.cdkOut/ServerlessSpyEventsE2e.ts'
+        : undefined,
     });
 
     new CfnOutput(

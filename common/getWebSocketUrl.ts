@@ -8,8 +8,6 @@ export async function getWebSocketUrl(url: string, credentials?: Credentials) {
   const urlParsed = parseUrl(url);
   const hostParts = urlParsed!.host.split('.');
 
-  console.log('urlParsed', urlParsed);
-
   if (!credentials) {
     const credentialsProvider = fromNodeProviderChain();
     credentials = await credentialsProvider();
@@ -45,7 +43,6 @@ export async function getWebSocketUrl(url: string, credentials?: Credentials) {
   );
 
   const url2 = `wss://${WEBSOCKET_URL}${path}`;
-  console.log('path', url2);
   return url2;
 }
 

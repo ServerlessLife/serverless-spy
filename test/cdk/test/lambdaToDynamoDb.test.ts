@@ -1,16 +1,18 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { LambdaClient, InvokeCommand } from '@aws-sdk/client-lambda';
+import { App } from 'aws-cdk-lib';
+import { Template } from 'aws-cdk-lib/assertions';
 import { createServerlessSpyListener } from 'serverless-spy';
 import { v4 as uuidv4 } from 'uuid';
-//import { createServerlessSpyListener } from '../../../listener/createServerlessSpyListener';
-//import { createServerlessSpyListener } from '../../../listener/createServerlessSpyListener';
 import { SpyListener } from '../../../listener/SpyListener';
-import { ServerlessSpyEvents } from '../.cdkOut/ServerlessSpyEventsLambdaToSNS';
+import { ServerlessSpyEvents } from '../.cdkOut/ServerlessSpyEventsLambdaToDynamoDbStack';
+import { LambdaToDynamoDbStack } from '../src/lambdaToDynamoDbStack';
+import { TestData } from './TestData';
 
 jest.setTimeout(30000);
 
-describe('Lambda to SNS', () => {
+describe('Lambda to DynamoDB', () => {
   const exportLocation = path.join(__dirname, '../.cdkOut/cdkExports.json');
   let serverlessSpyListener: SpyListener<ServerlessSpyEvents>;
 
@@ -18,7 +20,7 @@ describe('Lambda to SNS', () => {
     throw new Error(`File ${exportLocation} doen not exists.`);
   }
   const output = JSON.parse(fs.readFileSync(exportLocation).toString())[
-    'ServerlessSpyLambdaToSNS'
+    'ServerlessSpyLambdaToDynamoDb'
   ];
 
   beforeEach(async () => {
@@ -32,17 +34,17 @@ describe('Lambda to SNS', () => {
     serverlessSpyListener.stop();
   });
 
-  test('basic test', async () => {
+  test('Basic test', async () => {
     const lambdaClient = new LambdaClient({});
 
     const id = uuidv4();
-    const data = <DataType>{
+    const data = <TestData>{
       id,
       message: 'Hello',
     };
 
     const command = new InvokeCommand({
-      FunctionName: output.FunctionNameLambdaToSNS,
+      FunctionName: output.FunctionNameMyLambda,
       InvocationType: 'RequestResponse',
       LogType: 'Tail',
       Payload: JSON.stringify(data) as any,
@@ -50,34 +52,32 @@ describe('Lambda to SNS', () => {
 
     await lambdaClient.send(command);
 
-    //await (
+    (
+      await (
+        await serverlessSpyListener.waitForFunctionMyLambdaRequest<TestData>({
+          condition: (d) => d.request.id === id,
+        })
+      )
+        .toMatchObject({ request: data })
+        .followedByResponse({})
+    ).toMatchObject({ response: data });
 
-    await (
-      await serverlessSpyListener.waitForFunctionLambdaToSNSRequest<DataType>({
-        condition: (d) => d.request.id === id,
+    (
+      await serverlessSpyListener.waitForDynamoDBMyTable<TestData>({
+        condition: (d) => d.keys.pk === id,
       })
-    )
-      .toMatchObject({ request: data })
-      .followedByResponse({});
-    //).toMatchObject({ response: data });
+    ).toMatchObject({
+      eventName: 'INSERT',
+      newImage: data,
+    });
+  });
 
-    // (
-    //   await serverlessSpyListener.waitForSnsTopicMyTopic<DataType>({
-    //     condition: (d) => d.message.id === id,
-    //   })
-    // ).toMatchObject({ message: data });
-
-    //console.log(a);
+  test('Snapshot', () => {
+    const app = new App();
+    const stack = new LambdaToDynamoDbStack(app, 'Test', {
+      generateSpyEventsFile: false,
+    });
+    const template = Template.fromStack(stack);
+    expect(template.toJSON()).toMatchSnapshot();
   });
 });
-
-// test('Snapshot', () => {
-//   const app = new App();
-//   const stack = new MyStack(app, 'TestStack');
-//   expect(Template.fromStack(stack)).toMatchSnapshot();
-// });
-
-type DataType = {
-  id: string;
-  message: string;
-};

@@ -95,14 +95,14 @@ export interface DynamoDBSpyHandler<TData = any>
 export interface EventBridgeRuleSpyHandler<TData = any>
   extends JestExpectWithSpyMethods<
     EventBridgeRuleSpyEvent<TData>,
-    DynamoDBSpyHandler<TData>
+    EventBridgeRuleSpyHandler<TData>
   > {
   getData: () => PrettifyForDisplay<EventBridgeRuleSpyEvent<TData>>;
 }
 export interface EventBridgeSpyHandler<TData = any>
   extends JestExpectWithSpyMethods<
     EventBridgeSpyEvent<TData>,
-    DynamoDBSpyHandler<TData>
+    EventBridgeSpyHandler<TData>
   > {
   getData: () => PrettifyForDisplay<EventBridgeSpyEvent<TData>>;
 }
@@ -164,27 +164,24 @@ export interface FunctionResponseSpyHandler<TData = any>
 }
 
 export interface S3SpyHandler
-  extends JestExpectWithSpyMethods<S3SpyEvent, DynamoDBSpyHandler> {
+  extends JestExpectWithSpyMethods<S3SpyEvent, S3SpyHandler> {
   getData: () => S3SpyEvent;
 }
 export interface SnsSubscriptionSpyHandler<TData = any>
   extends JestExpectWithSpyMethods<
     SnsSubscriptionSpyEvent<TData>,
-    DynamoDBSpyHandler<TData>
+    SnsSubscriptionSpyHandler<TData>
   > {
   getData: () => PrettifyForDisplay<SnsSubscriptionSpyEvent<TData>>;
 }
 export interface SnsTopicSpyHandler<TData = any>
   extends JestExpectWithSpyMethods<
     SnsTopicSpyEvent<TData>,
-    DynamoDBSpyHandler<TData>
+    SnsTopicSpyHandler<TData>
   > {
   getData: () => PrettifyForDisplay<SnsTopicSpyEvent<TData>>;
 }
 export interface SqsSpyHandler<TData = any>
-  extends JestExpectWithSpyMethods<
-    SqsSpyEvent<TData>,
-    DynamoDBSpyHandler<TData>
-  > {
+  extends JestExpectWithSpyMethods<SqsSpyEvent<TData>, SqsSpyHandler<TData>> {
   getData: () => PrettifyForDisplay<SqsSpyEvent<TData>>;
 }

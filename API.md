@@ -156,7 +156,7 @@ const serverlessSpyProps: ServerlessSpyProps = { ... }
 
 ---
 
-##### `generateSpyEventsFileLocation`<sup>Required</sup> <a name="generateSpyEventsFileLocation" id="serverless-spy.ServerlessSpyProps.property.generateSpyEventsFileLocation"></a>
+##### `generateSpyEventsFileLocation`<sup>Optional</sup> <a name="generateSpyEventsFileLocation" id="serverless-spy.ServerlessSpyProps.property.generateSpyEventsFileLocation"></a>
 
 ```typescript
 public readonly generateSpyEventsFileLocation: string;

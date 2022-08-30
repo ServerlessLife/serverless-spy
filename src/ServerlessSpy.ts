@@ -18,7 +18,7 @@ import * as sqs from 'aws-cdk-lib/aws-sqs';
 import { Construct, IConstruct } from 'constructs';
 
 export interface ServerlessSpyProps {
-  readonly generateSpyEventsFileLocation: string;
+  readonly generateSpyEventsFileLocation?: string;
 }
 
 export class ServerlessSpy extends Construct {
@@ -43,15 +43,24 @@ export class ServerlessSpy extends Construct {
   constructor(scope: Construct, id: string, props?: ServerlessSpyProps) {
     super(scope, id);
 
-    const extensionAssetLocation = path.join(
+    let extensionAssetLocation = path.join(
       __dirname,
       '../extension/dist/layer'
     );
 
+    const extensionAssetLocationAlt = path.join(
+      __dirname,
+      '../lib/extension/dist/layer'
+    );
+
     if (!fs.existsSync(extensionAssetLocation)) {
-      throw new Error(
-        `Folder with assets for extension does not exists ${extensionAssetLocation}`
-      );
+      if (!fs.existsSync(extensionAssetLocationAlt)) {
+        throw new Error(
+          `Folder with assets for extension does not exists at ${extensionAssetLocation} or at ${extensionAssetLocationAlt} `
+        );
+      } else {
+        extensionAssetLocation = extensionAssetLocationAlt;
+      }
     }
 
     const extensionAssetLocationWraper = path.join(
@@ -173,7 +182,7 @@ export class ServerlessSpy extends Construct {
       Stack.of(this).region
     }.amazonaws.com/${this.webSocketStage.stageName}`;
 
-    new CfnOutput(Stack.of(this), 'API_URL', {
+    new CfnOutput(Stack.of(this), 'ServerlessSpyWsUrl', {
       value: this.wsUrl,
     });
 
