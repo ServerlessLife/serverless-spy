@@ -61,12 +61,6 @@ describe('Lambda to SQS', () => {
         .toMatchObject({ request: data })
         .followedByResponse({})
     ).toMatchObject({ response: data });
-
-    // (
-    //   await serverlessSpyListener.waitFor<TestData>({
-    //     condition: (d) => d.message.id === id,
-    //   })
-    // ).toMatchObject({ message: data });
   });
 
   test('Snapshot', () => {

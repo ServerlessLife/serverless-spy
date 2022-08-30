@@ -3,6 +3,7 @@ import * as path from 'path';
 import { PublishCommand, SNSClient } from '@aws-sdk/client-sns';
 import { App } from 'aws-cdk-lib';
 import { Template } from 'aws-cdk-lib/assertions';
+import { SNSEvent } from 'aws-lambda';
 import { v4 as uuidv4 } from 'uuid';
 import { createServerlessSpyListener } from '../../../listener/createServerlessSpyListener';
 import { SpyListener } from '../../../listener/SpyListener';
@@ -48,29 +49,52 @@ describe('SNS to Lambda', () => {
     });
     await snsClient.send(params);
 
-    // (
-    //   await (
-    //     await serverlessSpyListener.waitForFunctionMyLambdaRequest<TestData>({
-    //       condition: (d) => d.request.id === id,
-    //     })
-    //   )
-    //     .toMatchObject({ request: data })
-    //     .followedByResponse({})
-    // ).toMatchObject({ response: data });
+    (
+      await serverlessSpyListener.waitForSnsTopicMyTopic<TestData>({
+        condition: (d) => d.message.id === id,
+      })
+    ).toMatchObject({ message: data });
 
-    // (
-    //   await serverlessSpyListener.waitForSnsTopicMyTopic<TestData>({
-    //     condition: (d) => d.message.id === id,
-    //   })
-    // ).toMatchObject({ message: data });
+    (
+      await serverlessSpyListener.waitForSnsSubscriptionMyTopicMyLambda<TestData>(
+        {
+          condition: (d) => d.message.id === id,
+        }
+      )
+    ).toMatchObject({ message: data });
 
-    // (
-    //   await serverlessSpyListener.waitForSnsSubscriptionMyTopicMyLambda<TestData>(
-    //     {
-    //       condition: (d) => d.message.id === id,
-    //     }
-    //   )
-    // ).toMatchObject({ message: data });
+    (
+      await (
+        await serverlessSpyListener.waitForFunctionMyLambdaRequest<SNSEvent>({
+          condition: (d) =>
+            !!d.request.Records.map(
+              (r) => JSON.parse(r.Sns.Message) as TestData
+            ).find((d) => d.id === data.id),
+        })
+      )
+        .toMatchObject({
+          request: {
+            Records: [
+              {
+                Sns: {
+                  Message: JSON.stringify(data),
+                },
+              },
+            ],
+          },
+        })
+        .followedByResponse({})
+    ).toMatchObject({
+      request: {
+        Records: [
+          {
+            Sns: {
+              Message: JSON.stringify(data),
+            },
+          },
+        ],
+      },
+    });
   });
 
   test('Snapshot', () => {
