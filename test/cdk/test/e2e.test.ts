@@ -1,7 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { LambdaClient, InvokeCommand } from '@aws-sdk/client-lambda';
-import { createServerlessSpyListener } from 'serverless-spy';
+import { createServerlessSpyListener } from '../../../listener/createServerlessSpyListener';
 import { SpyListener } from '../../../listener/SpyListener';
 import { ServerlessSpyEvents } from '../.cdkOut/ServerlessSpyEventsE2e';
 

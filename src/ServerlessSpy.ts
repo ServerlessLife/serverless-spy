@@ -202,7 +202,7 @@ export class ServerlessSpy extends Construct {
       .map((sk) => `  ${sk.replace(/#/g, '')}: '${sk}' = '${sk}';\n`)
       .join('');
 
-    const code = `/* eslint-disable */\nexport class ServerlessSpyEvents {\n${properties}}`;
+    const code = `/* eslint-disable */\nexport class ServerlessSpyEvents {\n${properties}}\n`;
 
     fs.writeFileSync(fileLocation, code);
   }

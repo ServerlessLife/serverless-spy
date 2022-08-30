@@ -7,8 +7,8 @@ import {
 import { App } from 'aws-cdk-lib';
 import { Template } from 'aws-cdk-lib/assertions';
 import { EventBridgeEvent } from 'aws-lambda';
-import { createServerlessSpyListener } from 'serverless-spy';
 import { v4 as uuidv4 } from 'uuid';
+import { createServerlessSpyListener } from '../../../listener/createServerlessSpyListener';
 import { SpyListener } from '../../../listener/SpyListener';
 import { ServerlessSpyEvents } from '../.cdkOut/ServerlessSpyEventsEventBridgeToLambda';
 import { EventBridgeToLambdaStack } from './../src/eventBridgeToLambdaStack';

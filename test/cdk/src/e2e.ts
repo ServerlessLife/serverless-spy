@@ -14,7 +14,7 @@ import {
 } from 'aws-cdk-lib/aws-sns-subscriptions';
 import * as sqs from 'aws-cdk-lib/aws-sqs';
 import { Construct } from 'constructs';
-import { ServerlessSpy } from 'serverless-spy';
+import { ServerlessSpy } from '../../../src/ServerlessSpy';
 import { GenerateSpyEventsFileProps } from './GenerateSpyEventsFileProps';
 
 export class E2eStack extends Stack {
