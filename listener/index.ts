@@ -1,2 +1,2 @@
 export * from './createServerlessSpyListener';
-export * from './SpyListener';
+export * from './ServerlessSpyListener';

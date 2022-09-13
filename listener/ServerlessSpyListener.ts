@@ -1,15 +1,13 @@
-import { DynamoDBSpyEvent } from './../common/spyEvents/DynamoDBSpyEvent';
-import { EventBridgeRuleSpyEvent } from './../common/spyEvents/EventBridgeRuleSpyEvent';
-import { EventBridgeSpyEvent } from './../common/spyEvents/EventBridgeSpyEvent';
-import { FunctionConsoleSpyEvent } from './../common/spyEvents/FunctionConsoleSpyEvent';
-import { FunctionRequestSpyEvent } from './../common/spyEvents/FunctionRequestSpyEvent';
-import { FunctionResponseSpyEvent } from './../common/spyEvents/FunctionResponseSpyEvent';
-import { S3SpyEvent } from './../common/spyEvents/S3SpyEvent';
-import { SnsSubscriptionSpyEvent } from './../common/spyEvents/SnsSubscriptionSpyEvent';
-import { SnsTopicSpyEvent } from './../common/spyEvents/SnsTopicSpyEvent';
-import { SqsSpyEvent } from './../common/spyEvents/SqsSpyEvent';
-
-import { WaitForParams } from './createServerlessSpyListener';
+import { DynamoDBSpyEvent } from '../common/spyEvents/DynamoDBSpyEvent';
+import { EventBridgeRuleSpyEvent } from '../common/spyEvents/EventBridgeRuleSpyEvent';
+import { EventBridgeSpyEvent } from '../common/spyEvents/EventBridgeSpyEvent';
+import { FunctionConsoleSpyEvent } from '../common/spyEvents/FunctionConsoleSpyEvent';
+import { FunctionRequestSpyEvent } from '../common/spyEvents/FunctionRequestSpyEvent';
+import { FunctionResponseSpyEvent } from '../common/spyEvents/FunctionResponseSpyEvent';
+import { S3SpyEvent } from '../common/spyEvents/S3SpyEvent';
+import { SnsSubscriptionSpyEvent } from '../common/spyEvents/SnsSubscriptionSpyEvent';
+import { SnsTopicSpyEvent } from '../common/spyEvents/SnsTopicSpyEvent';
+import { SqsSpyEvent } from '../common/spyEvents/SqsSpyEvent';
 import { PrettifyForDisplay } from './PrettifyForDisplay';
 import {
   DynamoDBSpyHandler,
@@ -23,8 +21,9 @@ import {
   FunctionConsoleSpyHandler,
   FunctionResponseSpyHandler,
 } from './SpyHandlers.ts';
+import { WaitForParams } from './WaitForParams';
 
-export type SpyListener<TSpyEvents> = {
+export type ServerlessSpyListener<TSpyEvents> = {
   [P in keyof FilterConditionally<TSpyEvents, `DynamoDB#${any}`> &
     string as `waitFor${P}`]: <T = any>(
     param?: PrettifyForDisplay<

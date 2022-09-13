@@ -5,7 +5,7 @@ import { App } from 'aws-cdk-lib';
 import { Template } from 'aws-cdk-lib/assertions';
 import { v4 as uuidv4 } from 'uuid';
 import { createServerlessSpyListener } from '../../../listener/createServerlessSpyListener';
-import { SpyListener } from '../../../listener/SpyListener';
+import { ServerlessSpyListener } from '../../../listener/ServerlessSpyListener';
 import { ServerlessSpyEvents } from '../.cdkOut/ServerlessSpyEventsLambdaToSns';
 import { LambdaToSnsStack } from '../src/lambdaToSnsStack';
 import { TestData } from './TestData';
@@ -14,7 +14,7 @@ jest.setTimeout(30000);
 
 describe('Lambda to SNS', () => {
   const exportLocation = path.join(__dirname, '../.cdkOut/cdkExports.json');
-  let serverlessSpyListener: SpyListener<ServerlessSpyEvents>;
+  let serverlessSpyListener: ServerlessSpyListener<ServerlessSpyEvents>;
 
   if (!fs.existsSync(exportLocation)) {
     throw new Error(`File ${exportLocation} doen not exists.`);
