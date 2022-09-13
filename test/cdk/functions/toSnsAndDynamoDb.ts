@@ -10,8 +10,6 @@ const snsClient = new SNSClient({});
 const ddbDocClient = DynamoDBDocumentClient.from(new DynamoDBClient({}));
 
 export const handler = async (event: any) => {
-  console.log('RECEIVED EVENT:', JSON.stringify(event));
-
   const params = new PublishCommand({
     Message: JSON.stringify(event),
     TopicArn: process.env.SNS_TOPIC_ARN,
@@ -25,13 +23,12 @@ export const handler = async (event: any) => {
   const putCommand = new PutCommand({
     TableName: process.env.DYNAMODB_TABLE_NAME!,
     Item: {
-      pk: Math.floor(Math.random() * 1000000000).toString(),
+      pk: event.id,
       ...event,
     },
   });
 
   await ddbDocClient.send(putCommand);
 
-  // return { message: "Hello " + event.key1 };
   return event;
 };

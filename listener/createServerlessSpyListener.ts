@@ -14,6 +14,8 @@ type ServerlessSpyListenerParams = {
 export async function createServerlessSpyListener<TSpyEvents>(
   params: ServerlessSpyListenerParams
 ) {
+  //console.log('WS URL', params.serverlessSpyWsUrl);
+
   const urlSigned = await getWebSocketUrl(
     params.serverlessSpyWsUrl,
     params.credentials
@@ -36,7 +38,7 @@ export async function createServerlessSpyListener<TSpyEvents>(
   ws.on('message', (data) => {
     if (closed) return;
 
-    //console.log(`From server: ${data}`);
+    //console.log(`Spy event: ${data}`);
 
     const message = JSON.parse(data.toString()) as SpyMessageStorage;
 
@@ -53,7 +55,7 @@ export async function createServerlessSpyListener<TSpyEvents>(
   });
   ws.on('close', () => {
     closed = true;
-    // console.log("disconnected " + new Date().toISOString());
+    //console.log('disconnected ' + new Date().toISOString());
   });
 
   const trackerMatchMessage = (
@@ -102,9 +104,8 @@ export async function createServerlessSpyListener<TSpyEvents>(
           spyAndJestMatchers.followedByResponse = (paramsW: WaitForParams) => {
             return createWaitForXXXFunc(
               serviceKeyForFunctionResponse,
-              paramsW,
               (message.data as FunctionRequestSpyEvent).context.awsRequestId
-            )();
+            )(paramsW);
           };
         }
 
@@ -156,6 +157,7 @@ export async function createServerlessSpyListener<TSpyEvents>(
   const spyListener = {} as SpyListener<TSpyEvents>;
 
   spyListener.stop = () => {
+    //console.log('stop ' + new Date().toISOString());
     closed = true;
     ws.close();
   };
@@ -168,12 +170,11 @@ export async function createServerlessSpyListener<TSpyEvents>(
         typeof objectKey === 'string' &&
         objectKey.startsWith(functionPrefix)
       ) {
-        const paramsW = arguments[0] as WaitForParams;
         const serviceKeyForFunction = objectKey.substring(
           functionPrefix.length
         );
 
-        return createWaitForXXXFunc(serviceKeyForFunction, paramsW);
+        return createWaitForXXXFunc(serviceKeyForFunction);
       }
     },
   });
@@ -199,12 +200,22 @@ export async function createServerlessSpyListener<TSpyEvents>(
     //   );
     // }
 
-    return matchCondition && matchRequestId;
+    if (matchCondition && matchRequestId) {
+      return true;
+    } else {
+      if (
+        !matchCondition &&
+        matchRequestId &&
+        !tracker.possibleSpyMessageDataForDebugging
+      ) {
+        tracker.possibleSpyMessageDataForDebugging = message.data;
+      }
+      return false;
+    }
   }
 
   function createWaitForXXXFunc(
     serviceKeyForFunction: string,
-    paramsW: WaitForParams<SpyEvent>,
     functionContextAwsRequestId?: string
   ) {
     let tracker: Tracker;
@@ -219,20 +230,32 @@ export async function createServerlessSpyListener<TSpyEvents>(
       };
     });
 
-    return function waitForXXXFunc() {
+    return function waitForXXXFunc(paramsW?: WaitForParams<SpyEvent>) {
       tracker.condition = paramsW?.condition;
 
       const timer = setTimeout(() => {
         if (tracker.finished) return;
         tracker.finished = true;
+        let message = `Timeout waiting for Serverless Spy message ${serviceKeyForFunction}.`;
+
+        if (tracker.possibleSpyMessageDataForDebugging) {
+          message += ` Similar matching spy event data: ${JSON.stringify(
+            tracker.possibleSpyMessageDataForDebugging,
+            null,
+            2
+          )}`;
+        }
+
         tracker.promiseReject(
-          new Error(
-            `Timeout waiting for Serverless Spy message ${serviceKeyForFunction}. Received messages so far:\n ${JSON.stringify(
-              messages,
-              null,
-              2
-            )}`
-          )
+          new Error(message)
+
+          // new Error(
+          //   `Timeout waiting for Serverless Spy message ${serviceKeyForFunction}. Received messages so far:\n ${JSON.stringify(
+          //     messages,
+          //     null,
+          //     2
+          //   )}`
+          // )
         );
       }, paramsW?.timoutMs || 10000);
 
@@ -263,6 +286,7 @@ type Tracker = {
   condition?: (data: any) => boolean;
   timoutMs?: number;
   functionContextAwsRequestId?: string;
+  possibleSpyMessageDataForDebugging?: any;
 };
 
 type SpyMessageStorage = SpyMessage & {

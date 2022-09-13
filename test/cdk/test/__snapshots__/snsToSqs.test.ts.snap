@@ -1,13 +1,8 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Lambda to S3 Snapshot 1`] = `
+exports[`SNS to SQS Snapshot 1`] = `
 Object {
   "Outputs": Object {
-    "FunctionNameMyLambda": Object {
-      "Value": Object {
-        "Ref": "MyLambdaCCE802FB",
-      },
-    },
     "ServerlessSpyWsUrl": Object {
       "Value": Object {
         "Fn::Join": Array [
@@ -26,6 +21,11 @@ Object {
         ],
       },
     },
+    "SnsTopicArnMyTopic": Object {
+      "Value": Object {
+        "Ref": "MyTopic86869434",
+      },
+    },
   },
   "Parameters": Object {
     "BootstrapVersion": Object {
@@ -35,239 +35,21 @@ Object {
     },
   },
   "Resources": Object {
-    "BucketNotificationsHandler050a0587b7544547bf325f094a3db8347ECC3691": Object {
-      "DependsOn": Array [
-        "BucketNotificationsHandler050a0587b7544547bf325f094a3db834RoleDefaultPolicy2CF63D36",
-        "BucketNotificationsHandler050a0587b7544547bf325f094a3db834RoleB6FB88EC",
-      ],
-      "Properties": Object {
-        "Code": Object {
-          "ZipFile": "import boto3  # type: ignore
-import json
-import logging
-import urllib.request
-
-s3 = boto3.client(\\"s3\\")
-
-EVENTBRIDGE_CONFIGURATION = 'EventBridgeConfiguration'
-
-CONFIGURATION_TYPES = [\\"TopicConfigurations\\", \\"QueueConfigurations\\", \\"LambdaFunctionConfigurations\\"]
-
-def handler(event: dict, context):
-  response_status = \\"SUCCESS\\"
-  error_message = \\"\\"
-  try:
-    props = event[\\"ResourceProperties\\"]
-    bucket = props[\\"BucketName\\"]
-    notification_configuration = props[\\"NotificationConfiguration\\"]
-    request_type = event[\\"RequestType\\"]
-    managed = props.get('Managed', 'true').lower() == 'true'
-    stack_id = event['StackId']
-
-    if managed:
-      config = handle_managed(request_type, notification_configuration)
-    else:
-      config = handle_unmanaged(bucket, stack_id, request_type, notification_configuration)
-
-    put_bucket_notification_configuration(bucket, config)
-  except Exception as e:
-    logging.exception(\\"Failed to put bucket notification configuration\\")
-    response_status = \\"FAILED\\"
-    error_message = f\\"Error: {str(e)}. \\"
-  finally:
-    submit_response(event, context, response_status, error_message)
-
-def handle_managed(request_type, notification_configuration):
-  if request_type == 'Delete':
-    return {}
-  return notification_configuration
-
-def handle_unmanaged(bucket, stack_id, request_type, notification_configuration):
-  external_notifications = find_external_notifications(bucket, stack_id)
-
-  if request_type == 'Delete':
-    return external_notifications
-
-  def with_id(notification):
-    notification['Id'] = f\\"{stack_id}-{hash(json.dumps(notification, sort_keys=True))}\\"
-    return notification
-
-  notifications = {}
-  for t in CONFIGURATION_TYPES:
-    external = external_notifications.get(t, [])
-    incoming = [with_id(n) for n in notification_configuration.get(t, [])]
-    notifications[t] = external + incoming
-
-  if EVENTBRIDGE_CONFIGURATION in notification_configuration:
-    notifications[EVENTBRIDGE_CONFIGURATION] = notification_configuration[EVENTBRIDGE_CONFIGURATION]
-  elif EVENTBRIDGE_CONFIGURATION in external_notifications:
-    notifications[EVENTBRIDGE_CONFIGURATION] = external_notifications[EVENTBRIDGE_CONFIGURATION]
-
-  return notifications
-
-def find_external_notifications(bucket, stack_id):
-  existing_notifications = get_bucket_notification_configuration(bucket)
-  external_notifications = {}
-  for t in CONFIGURATION_TYPES:
-    external_notifications[t] = [n for n in existing_notifications.get(t, []) if not n['Id'].startswith(f\\"{stack_id}-\\")]
-
-  if EVENTBRIDGE_CONFIGURATION in existing_notifications:
-    external_notifications[EVENTBRIDGE_CONFIGURATION] = existing_notifications[EVENTBRIDGE_CONFIGURATION]
-
-  return external_notifications
-
-def get_bucket_notification_configuration(bucket):
-  return s3.get_bucket_notification_configuration(Bucket=bucket)
-
-def put_bucket_notification_configuration(bucket, notification_configuration):
-  s3.put_bucket_notification_configuration(Bucket=bucket, NotificationConfiguration=notification_configuration)
-
-def submit_response(event: dict, context, response_status: str, error_message: str):
-  response_body = json.dumps(
-    {
-      \\"Status\\": response_status,
-      \\"Reason\\": f\\"{error_message}See the details in CloudWatch Log Stream: {context.log_stream_name}\\",
-      \\"PhysicalResourceId\\": event.get(\\"PhysicalResourceId\\") or event[\\"LogicalResourceId\\"],
-      \\"StackId\\": event[\\"StackId\\"],
-      \\"RequestId\\": event[\\"RequestId\\"],
-      \\"LogicalResourceId\\": event[\\"LogicalResourceId\\"],
-      \\"NoEcho\\": False,
-    }
-  ).encode(\\"utf-8\\")
-  headers = {\\"content-type\\": \\"\\", \\"content-length\\": str(len(response_body))}
-  try:
-    req = urllib.request.Request(url=event[\\"ResponseURL\\"], headers=headers, data=response_body, method=\\"PUT\\")
-    with urllib.request.urlopen(req) as response:
-      print(response.read().decode(\\"utf-8\\"))
-    print(\\"Status code: \\" + response.reason)
-  except Exception as e:
-      print(\\"send(..) failed executing request.urlopen(..): \\" + str(e))
-",
-        },
-        "Description": "AWS CloudFormation handler for \\"Custom::S3BucketNotifications\\" resources (@aws-cdk/aws-s3)",
-        "Handler": "index.handler",
-        "Role": Object {
-          "Fn::GetAtt": Array [
-            "BucketNotificationsHandler050a0587b7544547bf325f094a3db834RoleB6FB88EC",
-            "Arn",
-          ],
-        },
-        "Runtime": "python3.7",
-        "Timeout": 300,
-      },
-      "Type": "AWS::Lambda::Function",
-    },
-    "BucketNotificationsHandler050a0587b7544547bf325f094a3db834RoleB6FB88EC": Object {
-      "Properties": Object {
-        "AssumeRolePolicyDocument": Object {
-          "Statement": Array [
-            Object {
-              "Action": "sts:AssumeRole",
-              "Effect": "Allow",
-              "Principal": Object {
-                "Service": "lambda.amazonaws.com",
-              },
-            },
-          ],
-          "Version": "2012-10-17",
-        },
-        "ManagedPolicyArns": Array [
-          Object {
-            "Fn::Join": Array [
-              "",
-              Array [
-                "arn:",
-                Object {
-                  "Ref": "AWS::Partition",
-                },
-                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
-              ],
-            ],
-          },
-        ],
-      },
-      "Type": "AWS::IAM::Role",
-    },
-    "BucketNotificationsHandler050a0587b7544547bf325f094a3db834RoleDefaultPolicy2CF63D36": Object {
-      "Properties": Object {
-        "PolicyDocument": Object {
-          "Statement": Array [
-            Object {
-              "Action": "s3:PutBucketNotification",
-              "Effect": "Allow",
-              "Resource": "*",
-            },
-          ],
-          "Version": "2012-10-17",
-        },
-        "PolicyName": "BucketNotificationsHandler050a0587b7544547bf325f094a3db834RoleDefaultPolicy2CF63D36",
-        "Roles": Array [
-          Object {
-            "Ref": "BucketNotificationsHandler050a0587b7544547bf325f094a3db834RoleB6FB88EC",
-          },
-        ],
-      },
-      "Type": "AWS::IAM::Policy",
-    },
-    "MyBucketAllowBucketNotificationsToTestServerlessSpySubscription037770329D87F83A7": Object {
+    "MyLambdaAllowInvokeTestMyTopic06942AEA77ADE5E7": Object {
       "Properties": Object {
         "Action": "lambda:InvokeFunction",
         "FunctionName": Object {
           "Fn::GetAtt": Array [
-            "ServerlessSpySubscription0036DF4AB",
+            "MyLambdaCCE802FB",
             "Arn",
           ],
         },
-        "Principal": "s3.amazonaws.com",
-        "SourceAccount": Object {
-          "Ref": "AWS::AccountId",
-        },
+        "Principal": "sns.amazonaws.com",
         "SourceArn": Object {
-          "Fn::GetAtt": Array [
-            "MyBucketF68F3FF0",
-            "Arn",
-          ],
+          "Ref": "MyTopic86869434",
         },
       },
       "Type": "AWS::Lambda::Permission",
-    },
-    "MyBucketF68F3FF0": Object {
-      "DeletionPolicy": "Retain",
-      "Type": "AWS::S3::Bucket",
-      "UpdateReplacePolicy": "Retain",
-    },
-    "MyBucketNotifications46AC0CD2": Object {
-      "DependsOn": Array [
-        "MyBucketAllowBucketNotificationsToTestServerlessSpySubscription037770329D87F83A7",
-      ],
-      "Properties": Object {
-        "BucketName": Object {
-          "Ref": "MyBucketF68F3FF0",
-        },
-        "Managed": true,
-        "NotificationConfiguration": Object {
-          "LambdaFunctionConfigurations": Array [
-            Object {
-              "Events": Array [
-                "s3:ObjectCreated:Put",
-              ],
-              "LambdaFunctionArn": Object {
-                "Fn::GetAtt": Array [
-                  "ServerlessSpySubscription0036DF4AB",
-                  "Arn",
-                ],
-              },
-            },
-          ],
-        },
-        "ServiceToken": Object {
-          "Fn::GetAtt": Array [
-            "BucketNotificationsHandler050a0587b7544547bf325f094a3db8347ECC3691",
-            "Arn",
-          ],
-        },
-      },
-      "Type": "Custom::S3BucketNotifications",
     },
     "MyLambdaCCE802FB": Object {
       "DependsOn": Array [
@@ -279,7 +61,7 @@ def submit_response(event: dict, context, response_status: str, error_message: s
           "S3Bucket": Object {
             "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
           },
-          "S3Key": "35eb79aeaf3ae556e7ef363b70c0ea5d448dc5de67a01e538c361e84cf251134.zip",
+          "S3Key": "798d95ca5ea9167fe4c020efbb7df9d7998800b0911757a1ea86cfe4b8fc2c2f.zip",
         },
         "Environment": Object {
           "Variables": Object {
@@ -289,9 +71,6 @@ def submit_response(event: dict, context, response_status: str, error_message: s
               "Ref": "ServerlessSpySubscription0036DF4AB",
             },
             "FUNCTION_NAME": "MyLambda",
-            "S3_BUCKET_NAME": Object {
-              "Ref": "MyBucketF68F3FF0",
-            },
           },
         },
         "Handler": "index.handler",
@@ -311,6 +90,21 @@ def submit_response(event: dict, context, response_status: str, error_message: s
         "Timeout": 5,
       },
       "Type": "AWS::Lambda::Function",
+    },
+    "MyLambdaMyTopicA81E02FD": Object {
+      "Properties": Object {
+        "Endpoint": Object {
+          "Fn::GetAtt": Array [
+            "MyLambdaCCE802FB",
+            "Arn",
+          ],
+        },
+        "Protocol": "lambda",
+        "TopicArn": Object {
+          "Ref": "MyTopic86869434",
+        },
+      },
+      "Type": "AWS::SNS::Subscription",
     },
     "MyLambdaServiceRole4539ECB6": Object {
       "Properties": Object {
@@ -348,40 +142,6 @@ def submit_response(event: dict, context, response_status: str, error_message: s
         "PolicyDocument": Object {
           "Statement": Array [
             Object {
-              "Action": Array [
-                "s3:DeleteObject*",
-                "s3:PutObject",
-                "s3:PutObjectLegalHold",
-                "s3:PutObjectRetention",
-                "s3:PutObjectTagging",
-                "s3:PutObjectVersionTagging",
-                "s3:Abort*",
-              ],
-              "Effect": "Allow",
-              "Resource": Array [
-                Object {
-                  "Fn::GetAtt": Array [
-                    "MyBucketF68F3FF0",
-                    "Arn",
-                  ],
-                },
-                Object {
-                  "Fn::Join": Array [
-                    "",
-                    Array [
-                      Object {
-                        "Fn::GetAtt": Array [
-                          "MyBucketF68F3FF0",
-                          "Arn",
-                        ],
-                      },
-                      "/*",
-                    ],
-                  ],
-                },
-              ],
-            },
-            Object {
               "Action": "lambda:InvokeFunction",
               "Effect": "Allow",
               "Resource": Array [
@@ -418,6 +178,9 @@ def submit_response(event: dict, context, response_status: str, error_message: s
         ],
       },
       "Type": "AWS::IAM::Policy",
+    },
+    "MyTopic86869434": Object {
+      "Type": "AWS::SNS::Topic",
     },
     "ServerlessSpyApiGwWebSocketB4986709": Object {
       "Properties": Object {
@@ -946,12 +709,9 @@ def submit_response(event: dict, context, response_status: str, error_message: s
                 Array [
                   "{\\"",
                   Object {
-                    "Fn::GetAtt": Array [
-                      "MyBucketF68F3FF0",
-                      "Arn",
-                    ],
+                    "Ref": "MyTopic86869434",
                   },
-                  "\\":\\"S3#MyBucket\\"}",
+                  "\\":\\"SnsTopic#MyTopic\\"}",
                 ],
               ],
             },
@@ -988,6 +748,37 @@ def submit_response(event: dict, context, response_status: str, error_message: s
         "Timeout": 5,
       },
       "Type": "AWS::Lambda::Function",
+    },
+    "ServerlessSpySubscription0AllowInvokeTestMyTopic06942AEAB4AEE620": Object {
+      "Properties": Object {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": Object {
+          "Fn::GetAtt": Array [
+            "ServerlessSpySubscription0036DF4AB",
+            "Arn",
+          ],
+        },
+        "Principal": "sns.amazonaws.com",
+        "SourceArn": Object {
+          "Ref": "MyTopic86869434",
+        },
+      },
+      "Type": "AWS::Lambda::Permission",
+    },
+    "ServerlessSpySubscription0MyTopic191FC9F5": Object {
+      "Properties": Object {
+        "Endpoint": Object {
+          "Fn::GetAtt": Array [
+            "ServerlessSpySubscription0036DF4AB",
+            "Arn",
+          ],
+        },
+        "Protocol": "lambda",
+        "TopicArn": Object {
+          "Ref": "MyTopic86869434",
+        },
+      },
+      "Type": "AWS::SNS::Subscription",
     },
     "ServerlessSpySubscription0ServiceRoleDefaultPolicyD8FA77F4": Object {
       "Properties": Object {
@@ -1108,6 +899,218 @@ def submit_response(event: dict, context, response_status: str, error_message: s
         ],
       },
       "Type": "AWS::IAM::Role",
+    },
+    "ServerlessSpySubscription13C6B2B7D": Object {
+      "DependsOn": Array [
+        "ServerlessSpySubscription1ServiceRoleDefaultPolicyB2E063F5",
+        "ServerlessSpySubscription1ServiceRoleCB639294",
+      ],
+      "Properties": Object {
+        "Code": Object {
+          "S3Bucket": Object {
+            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
+          },
+          "S3Key": "6b1921d436eb9b1a845ad1bb6632f329900758140b4fd16071befa4fd195cc19.zip",
+        },
+        "Environment": Object {
+          "Variables": Object {
+            "AWS_NODEJS_CONNECTION_REUSE_ENABLED": "1",
+            "INFRA_MAPPING": Object {
+              "Fn::Join": Array [
+                "",
+                Array [
+                  "{\\"",
+                  Object {
+                    "Ref": "MyTopic86869434",
+                  },
+                  "\\":\\"SnsSubscription#MyTopic#MyLambda\\"}",
+                ],
+              ],
+            },
+            "TABLE_NAME": Object {
+              "Ref": "ServerlessSpyWebSocketB4D8CE14",
+            },
+            "WS_ENDPOINT": Object {
+              "Fn::Join": Array [
+                "",
+                Array [
+                  "https://",
+                  Object {
+                    "Ref": "ServerlessSpyApiGwWebSocketB4986709",
+                  },
+                  ".execute-api.",
+                  Object {
+                    "Ref": "AWS::Region",
+                  },
+                  ".amazonaws.com/prod",
+                ],
+              ],
+            },
+          },
+        },
+        "Handler": "index.handler",
+        "MemorySize": 512,
+        "Role": Object {
+          "Fn::GetAtt": Array [
+            "ServerlessSpySubscription1ServiceRoleCB639294",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs16.x",
+        "Timeout": 5,
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "ServerlessSpySubscription1AllowInvokeTestMyTopic06942AEAED481931": Object {
+      "Properties": Object {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": Object {
+          "Fn::GetAtt": Array [
+            "ServerlessSpySubscription13C6B2B7D",
+            "Arn",
+          ],
+        },
+        "Principal": "sns.amazonaws.com",
+        "SourceArn": Object {
+          "Ref": "MyTopic86869434",
+        },
+      },
+      "Type": "AWS::Lambda::Permission",
+    },
+    "ServerlessSpySubscription1MyTopic98E4131B": Object {
+      "Properties": Object {
+        "Endpoint": Object {
+          "Fn::GetAtt": Array [
+            "ServerlessSpySubscription13C6B2B7D",
+            "Arn",
+          ],
+        },
+        "Protocol": "lambda",
+        "TopicArn": Object {
+          "Ref": "MyTopic86869434",
+        },
+      },
+      "Type": "AWS::SNS::Subscription",
+    },
+    "ServerlessSpySubscription1ServiceRoleCB639294": Object {
+      "Properties": Object {
+        "AssumeRolePolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": Object {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": Array [
+          Object {
+            "Fn::Join": Array [
+              "",
+              Array [
+                "arn:",
+                Object {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "ServerlessSpySubscription1ServiceRoleDefaultPolicyB2E063F5": Object {
+      "Properties": Object {
+        "PolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": Array [
+                "dynamodb:BatchWriteItem",
+                "dynamodb:PutItem",
+                "dynamodb:UpdateItem",
+                "dynamodb:DeleteItem",
+                "dynamodb:DescribeTable",
+              ],
+              "Effect": "Allow",
+              "Resource": Array [
+                Object {
+                  "Fn::GetAtt": Array [
+                    "ServerlessSpyWebSocketB4D8CE14",
+                    "Arn",
+                  ],
+                },
+                Object {
+                  "Ref": "AWS::NoValue",
+                },
+              ],
+            },
+            Object {
+              "Action": Array [
+                "dynamodb:BatchGetItem",
+                "dynamodb:GetRecords",
+                "dynamodb:GetShardIterator",
+                "dynamodb:Query",
+                "dynamodb:GetItem",
+                "dynamodb:Scan",
+                "dynamodb:ConditionCheckItem",
+                "dynamodb:DescribeTable",
+              ],
+              "Effect": "Allow",
+              "Resource": Array [
+                Object {
+                  "Fn::GetAtt": Array [
+                    "ServerlessSpyWebSocketB4D8CE14",
+                    "Arn",
+                  ],
+                },
+                Object {
+                  "Ref": "AWS::NoValue",
+                },
+              ],
+            },
+            Object {
+              "Action": "execute-api:ManageConnections",
+              "Effect": "Allow",
+              "Resource": Object {
+                "Fn::Join": Array [
+                  "",
+                  Array [
+                    "arn:",
+                    Object {
+                      "Ref": "AWS::Partition",
+                    },
+                    ":execute-api:",
+                    Object {
+                      "Ref": "AWS::Region",
+                    },
+                    ":",
+                    Object {
+                      "Ref": "AWS::AccountId",
+                    },
+                    ":",
+                    Object {
+                      "Ref": "ServerlessSpyApiGwWebSocketB4986709",
+                    },
+                    "/*/*/@connections/*",
+                  ],
+                ],
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "ServerlessSpySubscription1ServiceRoleDefaultPolicyB2E063F5",
+        "Roles": Array [
+          Object {
+            "Ref": "ServerlessSpySubscription1ServiceRoleCB639294",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
     },
     "ServerlessSpyWebSocketB4D8CE14": Object {
       "DeletionPolicy": "Retain",

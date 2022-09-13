@@ -1,12 +1,14 @@
 import { App } from 'aws-cdk-lib';
 import { E2eStack } from './e2e';
 import { EventBridgeToLambdaStack } from './eventBridgeToLambdaStack';
+import { LambdaStack } from './lambdaStack';
 import { LambdaToDynamoDbStack } from './lambdaToDynamoDbStack';
 import { LambdaToEventBridgeStack } from './lambdaToEventBridgeStack';
 import { LambdaToS3Stack } from './lambdaToS3Stack';
 import { LambdaToSnsStack } from './lambdaToSnsStack';
 import { LambdaToSqsStack } from './lambdaToSqsStack';
 import { SnsToLambdaStack } from './snsToLambdaStack';
+import { SnsToSqsStack } from './snsToSqs';
 import { SqsToLambdaStack } from './sqsToLambdaStack';
 
 const testEnv = {
@@ -21,6 +23,10 @@ new E2eStack(app, 'ServerlessSpyE2e', {
   generateSpyEventsFile: true,
 });
 new EventBridgeToLambdaStack(app, 'ServerlessSpyEventBridgeToLambda', {
+  env: testEnv,
+  generateSpyEventsFile: true,
+});
+new LambdaStack(app, 'ServerlessSpyLambda', {
   env: testEnv,
   generateSpyEventsFile: true,
 });
@@ -45,6 +51,10 @@ new LambdaToSqsStack(app, 'ServerlessSpyLambdaToSqs', {
   generateSpyEventsFile: true,
 });
 new SnsToLambdaStack(app, 'ServerlessSpySnsToLambda', {
+  env: testEnv,
+  generateSpyEventsFile: true,
+});
+new SnsToSqsStack(app, 'ServerlessSpySnsToSqs', {
   env: testEnv,
   generateSpyEventsFile: true,
 });

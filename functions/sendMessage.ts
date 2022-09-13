@@ -62,6 +62,11 @@ export const handler = async (event: any, context: any) => {
   }
   connections = connectionData.Items;
 
+  console.log(
+    `connections at ${new Date().toISOString()}`,
+    JSON.stringify(connections)
+  );
+
   const postDataPromises: Promise<any>[] = [];
 
   if (event?.Records && event.Records[0]?.Sns) {

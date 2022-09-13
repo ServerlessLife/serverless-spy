@@ -3,6 +3,7 @@ import * as path from 'path';
 import { SendMessageCommand, SQSClient } from '@aws-sdk/client-sqs';
 import { App } from 'aws-cdk-lib';
 import { Template } from 'aws-cdk-lib/assertions';
+import { SQSEvent } from 'aws-lambda';
 import { v4 as uuidv4 } from 'uuid';
 import { createServerlessSpyListener } from '../../../listener/createServerlessSpyListener';
 import { SpyListener } from '../../../listener/SpyListener';
@@ -10,7 +11,7 @@ import { ServerlessSpyEvents } from '../.cdkOut/ServerlessSpyEventsSqsToLambda';
 import { SqsToLambdaStack } from '../src/sqsToLambdaStack';
 import { TestData } from './TestData';
 
-jest.setTimeout(30000);
+jest.setTimeout(60000);
 
 describe('SQS to Lambda', () => {
   const exportLocation = path.join(__dirname, '../.cdkOut/cdkExports.json');
@@ -43,27 +44,45 @@ describe('SQS to Lambda', () => {
 
     const sqsClient = new SQSClient({});
     const sendMessageCommand = new SendMessageCommand({
-      DelaySeconds: 10,
       MessageBody: JSON.stringify(data),
       QueueUrl: output.QueueUrlMyQueue,
     });
     await sqsClient.send(sendMessageCommand);
 
-    // (
-    //   await (
-    //     await serverlessSpyListener.waitForFunctionMyLambdaRequest<TestData>({
-    //       condition: (d) => d.request.id === id,
-    //     })
-    //   )
-    //     .toMatchObject({ request: data })
-    //     .followedByResponse({})
-    // ).toMatchObject({ response: data });
+    (
+      await serverlessSpyListener.waitForSqsMyQueue<TestData>({
+        condition: (d) => d.body.id === id,
+      })
+    ).toMatchObject({ body: data });
 
-    // (
-    //   await serverlessSpyListener.waitForSqsMyQueue<TestData>({
-    //     condition: (d) => d.body.id === id,
-    //   })
-    // ).toMatchObject({ body: data });
+    (
+      await (
+        await serverlessSpyListener.waitForFunctionMyLambdaRequest<SQSEvent>({
+          condition: (d) =>
+            !!d.request.Records.map((r) => JSON.parse(r.body) as TestData).find(
+              (d) => d.id === data.id
+            ),
+        })
+      )
+        .toMatchObject({
+          request: {
+            Records: expect.arrayContaining([
+              expect.objectContaining({
+                body: JSON.stringify(data),
+              }),
+            ]),
+          },
+        })
+        .followedByResponse({})
+    ).toMatchObject({
+      request: {
+        Records: expect.arrayContaining([
+          expect.objectContaining({
+            body: JSON.stringify(data),
+          }),
+        ]),
+      },
+    });
   });
 
   test('Snapshot', () => {

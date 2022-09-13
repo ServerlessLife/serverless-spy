@@ -1,13 +1,19 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { LambdaClient, InvokeCommand } from '@aws-sdk/client-lambda';
+import { App } from 'aws-cdk-lib';
+import { Template } from 'aws-cdk-lib/assertions';
+import { SNSEvent, SQSEvent, EventBridgeEvent, SNSMessage } from 'aws-lambda';
+import { v4 as uuidv4 } from 'uuid';
 import { createServerlessSpyListener } from '../../../listener/createServerlessSpyListener';
 import { SpyListener } from '../../../listener/SpyListener';
 import { ServerlessSpyEvents } from '../.cdkOut/ServerlessSpyEventsE2e';
+import { E2eStack } from '../src/e2e';
+import { TestData } from './TestData';
 
 jest.setTimeout(30000);
 
-describe('Ingredient DAL', () => {
+describe('E2e', () => {
   const exportLocation = path.join(__dirname, '../.cdkOut/cdkExports.json');
   let serverlessSpyListener: SpyListener<ServerlessSpyEvents>;
 
@@ -29,106 +35,157 @@ describe('Ingredient DAL', () => {
     serverlessSpyListener.stop();
   });
 
-  test('two plus two is four', async () => {
-    // expect(2 + 2).toBe(4);
-
+  test('Basic test', async () => {
     const lambdaClient = new LambdaClient({});
 
-    const data = <DataType>{
-      key1: 'value1',
-      key2: 'value2',
-      key3: 'value3',
+    const id = uuidv4();
+    const data = <TestData>{
+      id,
+      message: 'Hello',
     };
 
     const command = new InvokeCommand({
-      FunctionName: output.FunctionNameTestA,
-      // FunctionName: "dev-smooth-test-SmoothTest-TestA10A9AF62-TOBalsgDLBhU",
+      FunctionName: output.FunctionNameToSnsAndDynamoDb,
       InvocationType: 'RequestResponse',
       LogType: 'Tail',
       Payload: JSON.stringify(data) as any,
     });
 
-    const r = await lambdaClient.send(command);
-    JSON.parse(Buffer.from(r.Payload!).toString());
+    await lambdaClient.send(command);
 
-    // expect(data).toMatchObject;
-
-    // await expect(serverlessSpyListener).toReceiveEvent(
-    //   "Function#TestA#Request"
-    // );
-
-    /*
+    // ---> function ToSnsAndDynamoDb
     (
-      await (
-        await (
-          await serverlessSpyListener.waitForFunctionTestARequest<DataType>(
-            (data) => data.request.key1 === "value1"
-          )
-        )
-          .toMatchObject(data)
-          .follwedByConsoleLog()
+      await serverlessSpyListener.waitForFunctionToSnsAndDynamoDbRequest<TestData>(
+        {
+          condition: (d) => d.request.id === id,
+        }
       )
-        .toMatchObject(data)
-        .follwedByResponse()
-    ).toMatchObject(data);
-    */
+    ).toMatchObject({ request: data });
 
-    // @ts-ignore
-
-    const f = (
-      await serverlessSpyListener.waitForFunctionTestARequest<DataType>()
-    ).getData();
-    console.log('req', f.request.key1);
-
-    const waitForRequest = (
-      await serverlessSpyListener.waitForFunctionTestARequest<DataType>()
-    )
-      .toMatchObject({
-        request: { key1: 'value1' },
+    // function ToSnsAndDynamoDb ---> SNS MyTopicNo1
+    (
+      await serverlessSpyListener.waitForSnsTopicMyTopicNo1<TestData>({
+        condition: (d) => d.message.id === id,
       })
-      .toMatchObject({ request: { key2: 'value2' } })
-      .toMatchObject({ request: { key3: 'value3' } });
+    ).toMatchObject({ message: data });
 
-    const req = waitForRequest.getData();
-    console.log('req', req.request.key1);
-
-    const resp = (
-      await waitForRequest.followedByResponse<DataType>({
-        condition: (d) => {
-          return d.response.key1 === 'value1';
-        },
+    // SNS MyTopicNo1 ---> SQS MyQueueNo1
+    (
+      await serverlessSpyListener.waitForSqsMyQueueNo1({
+        condition: (d) => JSON.parse(d.body.Message).id === id,
       })
-    )
-      .toMatchObject({ response: { key2: 'value2' } })
-      .getData();
-
-    console.log('resp', resp.response.key1);
-
-    await serverlessSpyListener.waitForDynamoDBDDBTable<DataType>({
-      condition: (d) => d.newImage.key1 === 'value1',
+    ).toMatchObject({
+      body: {
+        Message: JSON.stringify(data),
+      },
     });
 
-    const x = (
-      await serverlessSpyListener.waitForDynamoDBDDBTable<DataType>({
-        condition: (d) => d.newImage.key1 === 'value1',
-      })
-    )
-      .toMatchObject({ newImage: { key2: 'value2' } })
-      .getData();
-    console.log('x', x.newImage.key1);
+    //SQS MyQueueNo1 ---> function ReceiveSqs
+    await serverlessSpyListener.waitForFunctionReceiveSqsRequest<SQSEvent>({
+      condition: (d) => {
+        return !!d.request.Records.map((r) => JSON.parse(r.body) as SNSMessage)
+          .flat()
+          .map((r) => JSON.parse(r.Message) as TestData)
+          .find((d) => d.id === data.id);
+      },
+    });
 
-    // const d = (
-    //   await serverlessSpyListener.waitForDynamoDBDDBTable<DataType>({
-    //     condition: (d) => d.data.newImage.data.key1 === "value1",
-    //     timoutMs: 10000,
-    //   })
-    // ).getData(); //toMatchObject({ newImage: { data: { key1: "value1" } } });
-    // console.log(d.newImage.key1);
+    // function ToSnsAndDynamoDb ---> to DynamoDB MyTable
+    (
+      await serverlessSpyListener.waitForDynamoDBMyTable<TestData>({
+        condition: (d) => d.keys.pk === id,
+      })
+    ).toMatchObject({
+      eventName: 'INSERT',
+      newImage: data,
+    });
+
+    // SNS MyTopicNo1 ---> function FromSnsToSqsAndS3
+    (
+      await serverlessSpyListener.waitForFunctionFromSnsToSqsAndS3Request<SNSEvent>(
+        {
+          condition: (d) =>
+            !!d.request.Records.map(
+              (r) => JSON.parse(r.Sns.Message) as TestData
+            ).find((d) => d.id === data.id),
+        }
+      )
+    ).toMatchObject({
+      request: {
+        Records: [
+          {
+            Sns: {
+              Message: JSON.stringify(data),
+            },
+          },
+        ],
+      },
+    });
+
+    //function FromSnsToSqsAndS3 ---> to SQS QueueNo2
+    (
+      await serverlessSpyListener.waitForSqsMyQueueNo2<TestData>({
+        condition: (d) => d.body.id === id,
+      })
+    ).toMatchObject({ body: data });
+
+    //function FromSnsToSqsAndS3 ---> to S3
+    await serverlessSpyListener.waitForS3MyBucket({
+      condition: (d) => d.key === `${id}.json`,
+    });
+
+    //SQS QueueNo2 ---> function FromSqsToEventBridge
+    (
+      await serverlessSpyListener.waitForFunctionFromSqsToEventBridgeRequest<SQSEvent>(
+        {
+          condition: (d) =>
+            !!d.request.Records.map((r) => JSON.parse(r.body) as TestData).find(
+              (d) => d.id === data.id
+            ),
+        }
+      )
+    ).toMatchObject({
+      request: {
+        Records: expect.arrayContaining([
+          expect.objectContaining({
+            body: JSON.stringify(data),
+          }),
+        ]),
+      },
+    });
+
+    //function FromSqsToEventBridge ---> to EventBridge MyEventBus
+    await serverlessSpyListener.waitForEventBridgeMyEventBus<TestData>({
+      condition: (d) => d.detail.id === data.id,
+    });
+
+    // EventBridge MyEventBus
+    await serverlessSpyListener.waitForEventBridgeRuleMyEventBusMyEventBridge<TestData>(
+      {
+        condition: (d) => d.detail.id === data.id,
+      }
+    );
+
+    //EventBridge MyEventBus ---> function ReceiveEventBridge
+    (
+      await serverlessSpyListener.waitForFunctionReceiveEventBridgeRequest<
+        EventBridgeEvent<'test', TestData>
+      >({
+        condition: (d) => d.request.detail.id === data.id,
+      })
+    ).toMatchObject({
+      request: {
+        detail: data,
+      },
+    });
+  });
+
+  test('Snapshot', () => {
+    const app = new App();
+    const stack = new E2eStack(app, 'Test', {
+      generateSpyEventsFile: false,
+    });
+    const template = Template.fromStack(stack);
+    expect(template.toJSON()).toMatchSnapshot();
   });
 });
-
-type DataType = {
-  key1: string;
-  key2: string;
-  key3: string;
-};

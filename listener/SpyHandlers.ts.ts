@@ -127,7 +127,7 @@ export interface FunctionBaseSpyHandler<TData = any>
     //     PrettifyForDisplay<FunctionResponseSpyEvent<TData, TDataResponse>>
     //   >
     // >
-    param: {
+    param?: {
       condition?: (event: {
         spyEventType: 'FunctionResponse';
         request: TData;

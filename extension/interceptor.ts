@@ -125,6 +125,8 @@ async function sendLambdaSpyEvent(
 }
 
 async function sendRawSpyEvent(data: any) {
+  console.log('EXTENSION SPY EVENT:', JSON.stringify(data));
+
   const command = new InvokeCommand({
     FunctionName: fluentTestSendFunctionName,
     InvocationType: 'RequestResponse',

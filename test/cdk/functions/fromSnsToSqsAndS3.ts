@@ -6,14 +6,10 @@ const s3Client = new S3Client({});
 const sqsClient = new SQSClient({});
 
 export const handler = async (event: SNSEvent) => {
-  console.log('RECEIVED EVENT:', JSON.stringify(event));
-
   const message = JSON.parse(event.Records[0].Sns.Message);
 
-  console.log('sqs start');
   try {
     const sendMessageCommand = new SendMessageCommand({
-      DelaySeconds: 10,
       MessageAttributes: {
         Title: {
           DataType: 'String',
@@ -42,7 +38,7 @@ export const handler = async (event: SNSEvent) => {
     Bucket: process.env.S3_BUCKET_NAME,
     // Specify the name of the new object. For example, 'index.html'.
     // To create a directory for the object, use '/'. For example, 'myApp/package.json'.
-    Key: `${Math.floor(Math.random() * 1000000000)}.js`,
+    Key: `${message.id}.json`,
     // Content of the new object.
     Body: JSON.stringify(message),
   };

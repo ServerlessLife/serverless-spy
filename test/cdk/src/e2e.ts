@@ -21,14 +21,15 @@ export class E2eStack extends Stack {
   constructor(scope: Construct, id: string, props: GenerateSpyEventsFileProps) {
     super(scope, id, props);
 
-    const s3Bucket = new s3.Bucket(this, 'logs');
+    const s3Bucket = new s3.Bucket(this, 'MyBucket');
 
-    const queueNo1 = new sqs.Queue(this, 'QueueNo1');
+    const queueNo1 = new sqs.Queue(this, 'MyQueueNo1');
 
-    const queueNo2 = new sqs.Queue(this, 'QueueNo2');
+    const queueNo2 = new sqs.Queue(this, 'MyQueueNo2');
 
-    const topicNo1 = new sns.Topic(this, 'TopicNo1', {});
+    const topicNo1 = new sns.Topic(this, 'MyTopicNo1', {});
 
+    // TODO - integrate SST
     // new SstFunction(this, 'SstLambda1', {
     //   handler: 'functions/testSst1.handler',
     //   bundle: {
@@ -53,47 +54,53 @@ export class E2eStack extends Stack {
     //   handler: 'functions/testSst2.handler',
     // });
 
-    const bus = new events.EventBus(this, 'bus');
+    const bus = new events.EventBus(this, 'MyEventBus');
 
     topicNo1.addSubscription(new SqsSubscription(queueNo1));
 
-    const dynamoDb = new dynamodb.Table(this, 'DDBTable', {
+    const dynamoDb = new dynamodb.Table(this, 'MyTable', {
       partitionKey: { name: 'pk', type: dynamodb.AttributeType.STRING },
       billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
-      // stream: StreamViewType.NEW_AND_OLD_IMAGES,
     });
 
-    const functionTestA = new NodejsFunction(this, 'TestA', {
-      memorySize: 512,
-      timeout: Duration.seconds(5),
-      runtime: lambda.Runtime.NODEJS_16_X,
-      handler: 'handler',
-      entry: path.join(__dirname, '../functions/testA.ts'),
-      environment: {
-        SNS_TOPIC_ARN: topicNo1.topicArn,
-        DYNAMODB_TABLE_NAME: dynamoDb.tableName,
-      },
-    });
-    topicNo1.grantPublish(functionTestA);
-    dynamoDb.grantWriteData(functionTestA);
+    const functionToSnsAndDynamoDb = new NodejsFunction(
+      this,
+      'ToSnsAndDynamoDb',
+      {
+        memorySize: 512,
+        timeout: Duration.seconds(5),
+        runtime: lambda.Runtime.NODEJS_16_X,
+        handler: 'handler',
+        entry: path.join(__dirname, '../functions/toSnsAndDynamoDb.ts'),
+        environment: {
+          SNS_TOPIC_ARN: topicNo1.topicArn,
+          DYNAMODB_TABLE_NAME: dynamoDb.tableName,
+        },
+      }
+    );
+    topicNo1.grantPublish(functionToSnsAndDynamoDb);
+    dynamoDb.grantWriteData(functionToSnsAndDynamoDb);
 
-    const functionTestB = new NodejsFunction(this, 'TestB', {
-      memorySize: 512,
-      timeout: Duration.seconds(5),
-      runtime: lambda.Runtime.NODEJS_16_X,
-      handler: 'handler',
-      entry: path.join(__dirname, '../functions/testB.ts'),
-      environment: {
-        // SNS: topic
-        S3_BUCKET_NAME: s3Bucket.bucketName,
-        SQS_URL: queueNo2.queueUrl,
-      },
-    });
-    s3Bucket.grantWrite(functionTestB);
-    queueNo2.grantSendMessages(functionTestB);
+    const functionFromSnsToSqsAndS3 = new NodejsFunction(
+      this,
+      'FromSnsToSqsAndS3',
+      {
+        memorySize: 512,
+        timeout: Duration.seconds(5),
+        runtime: lambda.Runtime.NODEJS_16_X,
+        handler: 'handler',
+        entry: path.join(__dirname, '../functions/fromSnsToSqsAndS3.ts'),
+        environment: {
+          S3_BUCKET_NAME: s3Bucket.bucketName,
+          SQS_URL: queueNo2.queueUrl,
+        },
+      }
+    );
+    s3Bucket.grantWrite(functionFromSnsToSqsAndS3);
+    queueNo2.grantSendMessages(functionFromSnsToSqsAndS3);
 
     topicNo1.addSubscription(
-      new LambdaSubscription(functionTestB, {
+      new LambdaSubscription(functionFromSnsToSqsAndS3, {
         filterPolicy: {
           test: sns.SubscriptionFilter.stringFilter({
             allowlist: ['test'],
@@ -102,49 +109,50 @@ export class E2eStack extends Stack {
       })
     );
 
-    const functionTestC = new NodejsFunction(this, 'TestC', {
+    const functionFromSqsToEventBridge = new NodejsFunction(
+      this,
+      'FromSqsToEventBridge',
+      {
+        memorySize: 512,
+        timeout: Duration.seconds(5),
+        runtime: lambda.Runtime.NODEJS_16_X,
+        handler: 'handler',
+        entry: path.join(__dirname, '../functions/fromSqsToEventBridge.ts'),
+        environment: {
+          EB_NAME: bus.eventBusName,
+        },
+      }
+    );
+    functionFromSqsToEventBridge.addEventSource(new SqsEventSource(queueNo2));
+    bus.grantPutEventsTo(functionFromSqsToEventBridge);
+
+    const functionReceiveSqs = new NodejsFunction(this, 'ReceiveSqs', {
       memorySize: 512,
       timeout: Duration.seconds(5),
       runtime: lambda.Runtime.NODEJS_16_X,
       handler: 'handler',
-      entry: path.join(__dirname, '../functions/testC.ts'),
-      environment: {
-        EB_NAME: bus.eventBusName,
-      },
+      entry: path.join(__dirname, '../functions/dummy.ts'),
     });
-    functionTestC.addEventSource(new SqsEventSource(queueNo2));
-    bus.grantPutEventsTo(functionTestC);
+    functionReceiveSqs.addEventSource(new SqsEventSource(queueNo1));
 
-    const functionTestD = new NodejsFunction(this, 'TestD', {
-      memorySize: 512,
-      timeout: Duration.seconds(5),
-      runtime: lambda.Runtime.NODEJS_16_X,
-      handler: 'handler',
-      entry: path.join(__dirname, '../functions/testD.ts'),
-    });
-    functionTestD.addEventSource(new SqsEventSource(queueNo1));
+    const functionReceiveEventBridge = new NodejsFunction(
+      this,
+      'ReceiveEventBridge',
+      {
+        memorySize: 512,
+        timeout: Duration.seconds(5),
+        runtime: lambda.Runtime.NODEJS_16_X,
+        handler: 'handler',
+        entry: path.join(__dirname, '../functions/dummy.ts'),
+      }
+    );
 
-    const functionTestE = new NodejsFunction(this, 'TestE', {
-      memorySize: 512,
-      timeout: Duration.seconds(5),
-      runtime: lambda.Runtime.NODEJS_16_X,
-      handler: 'handler',
-      entry: path.join(__dirname, '../functions/testE.ts'),
-    });
-
-    new events.Rule(this, 'busRule', {
+    new events.Rule(this, 'MyEventBridge', {
       eventBus: bus,
       eventPattern: { version: ['0'] },
-      targets: [new targets.LambdaFunction(functionTestE)],
+      targets: [new targets.LambdaFunction(functionReceiveEventBridge)],
     });
 
-    // console.log("queueNo2", queueNo2);
-    // console.log("functonTestC", functonTestC);
-
-    // const logicalId = stack.getLogicalId(functonTest.node.defaultChild as any);
-    // console.log("FUNCTION NAME: " + logicalId);
-
-    // --------------------- WEBSOCKET --------------------
     const serverlessSpy = new ServerlessSpy(this, 'ServerlessSpy', {
       generateSpyEventsFileLocation: props.generateSpyEventsFile
         ? '.cdkOut/ServerlessSpyEventsE2e.ts'
@@ -153,11 +161,10 @@ export class E2eStack extends Stack {
 
     new CfnOutput(
       this,
-      `FunctionName${serverlessSpy.getConstructName(functionTestA)}`,
+      `FunctionName${serverlessSpy.getConstructName(functionToSnsAndDynamoDb)}`,
       {
-        value: functionTestA.functionName,
+        value: functionToSnsAndDynamoDb.functionName,
       }
     );
-    // define resources here...
   }
 }
