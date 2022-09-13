@@ -16,6 +16,7 @@ import * as sns from 'aws-cdk-lib/aws-sns';
 import * as snsSubs from 'aws-cdk-lib/aws-sns-subscriptions';
 import * as sqs from 'aws-cdk-lib/aws-sqs';
 import { Construct, IConstruct } from 'constructs';
+import { envVariableNames } from './common/envVariableNames';
 
 export interface ServerlessSpyProps {
   readonly generateSpyEventsFileLocation?: string;
@@ -23,65 +24,17 @@ export interface ServerlessSpyProps {
 
 export class ServerlessSpy extends Construct {
   private extensionLayer: lambda.LayerVersion;
-
   private table: dynamoDb.Table;
-
   private webSocketApi: apiGwV2.WebSocketApi;
-
   private ownContructs: IConstruct[] = [];
-
   private functionSubscriptionPool: FunctionSubscription[] = [];
-
   private functionSubscriptionMain: FunctionSubscription;
-
   private webSocketStage: apiGwV2.WebSocketStage;
-
   public serviceKeys: string[] = [];
-
   wsUrl: string;
 
   constructor(scope: Construct, id: string, props?: ServerlessSpyProps) {
     super(scope, id);
-
-    let extensionAssetLocation = path.join(
-      __dirname,
-      '../extension/dist/layer'
-    );
-
-    const extensionAssetLocationAlt = path.join(
-      __dirname,
-      '../lib/extension/dist/layer'
-    );
-
-    if (!fs.existsSync(extensionAssetLocation)) {
-      if (!fs.existsSync(extensionAssetLocationAlt)) {
-        throw new Error(
-          `Folder with assets for extension does not exists at ${extensionAssetLocation} or at ${extensionAssetLocationAlt} `
-        );
-      } else {
-        extensionAssetLocation = extensionAssetLocationAlt;
-      }
-    }
-
-    const extensionAssetLocationWraper = path.join(
-      extensionAssetLocation,
-      'spy-wrapper'
-    );
-    if (!fs.existsSync(extensionAssetLocationWraper)) {
-      throw new Error(
-        `Wraper script for extension does not exists ${extensionAssetLocation}`
-      );
-    }
-
-    const extensionAssetLocationCode = path.join(
-      extensionAssetLocation,
-      'nodejs/node_modules/interceptor.js'
-    );
-    if (!fs.existsSync(extensionAssetLocationCode)) {
-      throw new Error(
-        `Code for extension does not exists ${extensionAssetLocationCode}`
-      );
-    }
 
     this.extensionLayer = new lambda.LayerVersion(this, 'Extension', {
       compatibleRuntimes: [
@@ -89,7 +42,7 @@ export class ServerlessSpy extends Construct {
         lambda.Runtime.NODEJS_14_X,
         lambda.Runtime.NODEJS_16_X,
       ],
-      code: lambda.Code.fromAsset(extensionAssetLocation),
+      code: lambda.Code.fromAsset(this.getExtensionAssetLocation()),
     });
     this.ownContructs.push(this.extensionLayer);
 
@@ -171,9 +124,10 @@ export class ServerlessSpy extends Construct {
 
     this.iterateAllElements(Stack.of(this));
 
+    //set mapping property for all functions we created
     for (const func of this.functionSubscriptionPool) {
       func.function.addEnvironment(
-        'INFRA_MAPPING',
+        envVariableNames.INFRA_MAPPING,
         JSON.stringify(func.mapping)
       );
     }
@@ -186,15 +140,58 @@ export class ServerlessSpy extends Construct {
       value: this.wsUrl,
     });
 
-    // new CfnOutput(this, "API_URL", {
-    //   value: this.wsUrl,
-    // });
-
     if (props?.generateSpyEventsFileLocation) {
       this.writeSpyEventsClass(props?.generateSpyEventsFileLocation);
     }
   }
 
+  private getExtensionAssetLocation() {
+    let extensionAssetLocation = path.join(
+      __dirname,
+      '../extension/dist/layer'
+    );
+
+    const extensionAssetLocationAlt = path.join(
+      __dirname,
+      '../lib/extension/dist/layer'
+    );
+
+    if (!fs.existsSync(extensionAssetLocation)) {
+      if (!fs.existsSync(extensionAssetLocationAlt)) {
+        throw new Error(
+          `Folder with assets for extension does not exists at ${extensionAssetLocation} or at ${extensionAssetLocationAlt} `
+        );
+      } else {
+        extensionAssetLocation = extensionAssetLocationAlt;
+      }
+    }
+
+    const extensionAssetLocationWraper = path.join(
+      extensionAssetLocation,
+      'spy-wrapper'
+    );
+    if (!fs.existsSync(extensionAssetLocationWraper)) {
+      throw new Error(
+        `Wraper script for extension does not exists ${extensionAssetLocation}`
+      );
+    }
+
+    const extensionAssetLocationCode = path.join(
+      extensionAssetLocation,
+      'nodejs/node_modules/interceptor.js'
+    );
+    if (!fs.existsSync(extensionAssetLocationCode)) {
+      throw new Error(
+        `Code for extension does not exists ${extensionAssetLocationCode}`
+      );
+    }
+    return extensionAssetLocation;
+  }
+
+  /**
+   * Write SpyEvents class, which helps with writing the code for tests.
+   * @param fileLocation
+   */
   private writeSpyEventsClass(fileLocation: string) {
     fs.mkdirSync(path.dirname(fileLocation), { recursive: true });
 
@@ -218,31 +215,29 @@ export class ServerlessSpy extends Construct {
       }
 
       if (node instanceof lambda.Function) {
-        this.interceptFunction(node);
+        this.spyFunction(node);
       } else if (node instanceof sns.Topic) {
         console.log('interceptSnsTopic');
-        this.interceptSnsTopic(node);
+        this.spySnsTopic(node);
       } else if (node instanceof sns.Subscription) {
-        this.interceptSnsSubscription(node);
+        this.spySnsSubscription(node);
       } else if (node instanceof s3.Bucket) {
-        this.interceptS3(node);
+        this.spyS3(node);
       } else if (node instanceof dynamoDb.Table) {
-        this.interceptDynamodb(node);
+        this.spyDynamodb(node);
       } else if (node instanceof events.EventBus) {
-        this.interceptEventBus(node);
+        this.spyEventBus(node);
       } else if (node instanceof events.Rule) {
-        this.interceptEventBusRule(node);
+        this.spyEventBusRule(node);
       } else if (node instanceof lambda.CfnEventSourceMapping) {
-        this.interceptSqs(node);
-      } else {
-        // console.log('NO MATCH', node);
+        this.spySqs(node);
       }
 
       this.iterateAllElements(node);
     }
   }
 
-  private interceptSqs(node: lambda.CfnEventSourceMapping) {
+  private spySqs(node: lambda.CfnEventSourceMapping) {
     const queue = this.findElement<sqs.Queue>(
       (n: IConstruct) =>
         n instanceof sqs.Queue &&
@@ -261,7 +256,10 @@ export class ServerlessSpy extends Construct {
       const serviceKey = `Sqs#${queueName}`;
       this.functionSubscriptionMain.mapping[queue.queueArn] = serviceKey;
       this.serviceKeys.push(serviceKey);
-      func.addEnvironment('FLUENT_TEST_SUBSCRIBED_TO_SQS', 'true');
+      func.addEnvironment(
+        envVariableNames.FLUENT_TEST_SUBSCRIBED_TO_SQS,
+        'true'
+      );
     }
   }
 
@@ -280,7 +278,7 @@ export class ServerlessSpy extends Construct {
     this.table.grantWriteData(func);
     this.table.grantReadData(func);
     func.addEnvironment(
-      'WS_ENDPOINT',
+      envVariableNames.WS_ENDPOINT,
       `https://${this.webSocketApi.apiId}.execute-api.${
         Stack.of(this).region
       }.amazonaws.com/${this.webSocketStage.stageName}`
@@ -290,7 +288,7 @@ export class ServerlessSpy extends Construct {
     return func;
   }
 
-  private interceptS3(s3Bucket: s3.Bucket) {
+  private spyS3(s3Bucket: s3.Bucket) {
     s3Bucket.addEventNotification(
       s3.EventType.OBJECT_CREATED_PUT,
       new s3notif.LambdaDestination(this.functionSubscriptionMain.function)
@@ -303,7 +301,7 @@ export class ServerlessSpy extends Construct {
     this.serviceKeys.push(serviceKey);
   }
 
-  private interceptDynamodb(table: dynamoDb.Table) {
+  private spyDynamodb(table: dynamoDb.Table) {
     // enable DynamoDB streams with a hack
     (table.node.defaultChild as dynamoDb.CfnTable).streamSpecification = {
       streamViewType: dynamoDb.StreamViewType.NEW_AND_OLD_IMAGES,
@@ -327,7 +325,7 @@ export class ServerlessSpy extends Construct {
     this.serviceKeys.push(serviceKey);
   }
 
-  private interceptEventBusRule(rule: events.Rule) {
+  private spyEventBusRule(rule: events.Rule) {
     const { eventBusName } = rule.node.defaultChild as events.CfnRule;
     const eventBridge = this.getEventBridge(
       (rule.node.defaultChild as any).eventBusName
@@ -351,7 +349,7 @@ export class ServerlessSpy extends Construct {
     this.serviceKeys.push(serviceKey);
   }
 
-  private interceptEventBus(eventBus: events.EventBus) {
+  private spyEventBus(eventBus: events.EventBus) {
     const functionSubscription = this.provideFunctionForSubscription(
       (s) => !s.usedForEventBridge
     );
@@ -370,7 +368,7 @@ export class ServerlessSpy extends Construct {
     this.serviceKeys.push(serviceKey);
   }
 
-  private interceptSnsTopic(topic: sns.Topic) {
+  private spySnsTopic(topic: sns.Topic) {
     const functionSubscription = this.provideFunctionForSubscription(
       (s) => !s.subsribedTopics.includes(topic)
     );
@@ -385,7 +383,7 @@ export class ServerlessSpy extends Construct {
     functionSubscription.subsribedTopics.push(topic);
   }
 
-  private interceptSnsSubscription(subscription: sns.Subscription) {
+  private spySnsSubscription(subscription: sns.Subscription) {
     if (!subscription.node.scope) {
       return;
     }
@@ -447,16 +445,16 @@ export class ServerlessSpy extends Construct {
     return functionSubscription;
   }
 
-  private interceptFunction(func: lambda.Function) {
+  private spyFunction(func: lambda.Function) {
     func.addLayers(this.extensionLayer);
     this.functionSubscriptionMain.function.grantInvoke(func);
 
     const functionName = this.getConstructName(func);
 
-    func.addEnvironment('FUNCTION_NAME', functionName);
+    func.addEnvironment(envVariableNames.FUNCTION_NAME, functionName);
     func.addEnvironment('AWS_LAMBDA_EXEC_WRAPPER', '/opt/spy-wrapper');
     func.addEnvironment(
-      'FLUENT_TEST_SEND_FUNCTION_NAME',
+      envVariableNames.FLUENT_TEST_SEND_FUNCTION_NAME,
       this.functionSubscriptionMain.function.functionName
     );
 
@@ -514,13 +512,6 @@ export class ServerlessSpy extends Construct {
   }
 }
 
-type FunctionSubscription = {
-  subsribedTopics: sns.Topic[];
-  usedForEventBridge: boolean;
-  function: lambdaNode.NodejsFunction;
-  mapping: Record<string, string>;
-};
-
 function getAssetLocation(location: string) {
   const loc = path.join(__dirname, '../' + location);
 
@@ -536,3 +527,10 @@ function getAssetLocation(location: string) {
 
   throw new Error(`Location ${loc} and ${loc2} does not exists.`);
 }
+
+type FunctionSubscription = {
+  subsribedTopics: sns.Topic[];
+  usedForEventBridge: boolean;
+  function: lambdaNode.NodejsFunction;
+  mapping: Record<string, string>;
+};

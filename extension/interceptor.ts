@@ -4,11 +4,14 @@ import { FunctionContext } from '../common/spyEvents/FunctionContext';
 import { FunctionErrorSpyEvent } from '../common/spyEvents/FunctionErrorSpyEvent';
 import { FunctionRequestSpyEvent } from '../common/spyEvents/FunctionRequestSpyEvent';
 import { FunctionResponseSpyEvent } from '../common/spyEvents/FunctionResponseSpyEvent';
+import { envVariableNames } from '../src/common/envVariableNames';
 import { load } from './aws/UserFunction';
 
 const ORIGINAL_HANDLER_KEY = 'ORIGINAL_HANDLER';
-const fluentTestSendFunctionName = process.env.FLUENT_TEST_SEND_FUNCTION_NAME;
-const subscribedToSQS = process.env.FLUENT_TEST_SUBSCRIBED_TO_SQS === 'true';
+const fluentTestSendFunctionName =
+  process.env[envVariableNames.FLUENT_TEST_SEND_FUNCTION_NAME];
+const subscribedToSQS =
+  process.env[envVariableNames.FLUENT_TEST_SUBSCRIBED_TO_SQS] === 'true';
 
 const lambdaClient = new LambdaClient({});
 
@@ -37,7 +40,7 @@ export const handler = (
   };
 
   console.log('EXTENSION REQUEST:', JSON.stringify(event));
-  const key = `Function#${process.env.FUNCTION_NAME}#Request`;
+  const key = `Function#${process.env[envVariableNames.FUNCTION_NAME]}#Request`;
   const p = sendLambdaSpyEvent(key, <FunctionRequestSpyEvent>{
     request: event,
     context: contextSpy,
@@ -47,7 +50,7 @@ export const handler = (
   const originalHandler = getOriginalHandler();
 
   const fail = (error: any) => {
-    const key = `Function#${process.env.FUNCTION_NAME}#Error`;
+    const key = `Function#${process.env[envVariableNames.FUNCTION_NAME]}#Error`;
     const p = sendLambdaSpyEvent(key, <FunctionErrorSpyEvent>{
       request: event,
       error,
@@ -59,7 +62,9 @@ export const handler = (
 
   const succeed = (response: any) => {
     console.log('EXTENSION RESPONSE:', JSON.stringify(response));
-    const key = `Function#${process.env.FUNCTION_NAME}#Response`;
+    const key = `Function#${
+      process.env[envVariableNames[envVariableNames.FUNCTION_NAME]]
+    }#Response`;
     const p = sendLambdaSpyEvent(key, <FunctionResponseSpyEvent>{
       request: event,
       response,

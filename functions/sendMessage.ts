@@ -25,13 +25,14 @@ import { SnsSubscriptionSpyEvent } from '../common/spyEvents/SnsSubscriptionSpyE
 import { SnsTopicSpyEvent } from '../common/spyEvents/SnsTopicSpyEvent';
 import { SpyMessage } from '../common/spyEvents/SpyMessage';
 import { SqsSpyEvent } from '../common/spyEvents/SqsSpyEvent';
+import { envVariableNames } from '../src/common/envVariableNames';
 
 const ddb = new DynamoDBClient({
   region: process.env.AWS_REGION,
 });
 
 const { TABLE_NAME } = process.env;
-const endpoint = process.env.WS_ENDPOINT!;
+const endpoint = process.env[envVariableNames.WS_ENDPOINT]!;
 
 const apigwManagementApi = new ApiGatewayManagementApi({
   apiVersion: '2018-11-29',
@@ -44,7 +45,7 @@ export const handler = async (event: any, context: any) => {
   console.log('EVENT', JSON.stringify(event));
   // console.log("CONTEXT", JSON.stringify(context));
 
-  const mapping = JSON.parse(process.env.INFRA_MAPPING!);
+  const mapping = JSON.parse(process.env[envVariableNames.INFRA_MAPPING]!);
   console.log('mapping', JSON.stringify(mapping));
 
   let connectionData;
