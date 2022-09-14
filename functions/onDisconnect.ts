@@ -9,7 +9,7 @@ export const handler = async (event: APIGatewayEvent) => {
   console.log('EVENT', JSON.stringify(event));
 
   const deleteParams = new DeleteItemCommand({
-    TableName: process.env[envVariableNames.TABLE_NAME],
+    TableName: process.env[envVariableNames.SSPY_WS_TABLE_NAME],
     Key: {
       connectionId: { S: event.requestContext.connectionId! },
     },

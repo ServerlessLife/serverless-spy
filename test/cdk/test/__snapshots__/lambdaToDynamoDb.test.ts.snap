@@ -54,16 +54,10 @@ Object {
             "DYNAMODB_TABLE_NAME": Object {
               "Ref": "MyTable794EDED1",
             },
-            "FLUENT_TEST_SEND_FUNCTION_NAME": Object {
-              "Ref": "ServerlessSpySubscription0036DF4AB",
-            },
-            "FUNCTION_NAME": "MyLambda",
-            "INFRA_MAPPING": "{}",
             "NODE_OPTIONS": "--enable-source-maps",
-            "TABLE_NAME": Object {
-              "Ref": "ServerlessSpyWebSocketB4D8CE14",
-            },
-            "WS_ENDPOINT": Object {
+            "SSPY_FUNCTION_NAME": "MyLambda",
+            "SSPY_INFRA_MAPPING": "{}",
+            "SSPY_WS_ENDPOINT": Object {
               "Fn::Join": Array [
                 "",
                 Array [
@@ -78,6 +72,9 @@ Object {
                   ".amazonaws.com/prod",
                 ],
               ],
+            },
+            "SSPY_WS_TABLE_NAME": Object {
+              "Ref": "ServerlessSpyWebSocketB4D8CE14",
             },
           },
         },
@@ -562,7 +559,7 @@ Object {
           "S3Bucket": Object {
             "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
           },
-          "S3Key": "624e1131eaff478ffe21f04144b2891fde4cf1c98a40ed6306ce2a474781bca1.zip",
+          "S3Key": "20f749f848cdf905b66b94ba68294f0575a60894714d45d4a568ff607f2a900a.zip",
         },
       },
       "Type": "AWS::Lambda::LayerVersion",
@@ -577,13 +574,13 @@ Object {
           "S3Bucket": Object {
             "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
           },
-          "S3Key": "24fff7f1248af5757995ef822207735dfa95222e4c3b4201e0e38c16d59366d9.zip",
+          "S3Key": "cdda93310f2f36072027e10107262329ba54479e926e0192679c8dcc7a5271d2.zip",
         },
         "Environment": Object {
           "Variables": Object {
             "AWS_NODEJS_CONNECTION_REUSE_ENABLED": "1",
             "NODE_OPTIONS": "--enable-source-maps",
-            "TABLE_NAME": Object {
+            "SSPY_WS_TABLE_NAME": Object {
               "Ref": "ServerlessSpyWebSocketB4D8CE14",
             },
           },
@@ -679,13 +676,13 @@ Object {
           "S3Bucket": Object {
             "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
           },
-          "S3Key": "5eb55a95fc7ce95ccd618574da58dcdcc833a2f6d79848cddd2bc1cdffd9dc68.zip",
+          "S3Key": "d393b2e4396c2f86650efc1d1c65c1249e3b11ab5338a0706bfad84efb06e7e1.zip",
         },
         "Environment": Object {
           "Variables": Object {
             "AWS_NODEJS_CONNECTION_REUSE_ENABLED": "1",
             "NODE_OPTIONS": "--enable-source-maps",
-            "TABLE_NAME": Object {
+            "SSPY_WS_TABLE_NAME": Object {
               "Ref": "ServerlessSpyWebSocketB4D8CE14",
             },
           },
@@ -781,12 +778,13 @@ Object {
           "S3Bucket": Object {
             "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
           },
-          "S3Key": "ce7be0245f40f6841e98bc308fd97fe9d90bd1858f3a2a7c006c2560a42bfe16.zip",
+          "S3Key": "b40bcf7dc541b21cd786763af7b21b2fd59aba5a608668a17f4aebe714b94c54.zip",
         },
         "Environment": Object {
           "Variables": Object {
             "AWS_NODEJS_CONNECTION_REUSE_ENABLED": "1",
-            "INFRA_MAPPING": Object {
+            "NODE_OPTIONS": "--enable-source-maps",
+            "SSPY_INFRA_MAPPING": Object {
               "Fn::Join": Array [
                 "",
                 Array [
@@ -801,11 +799,7 @@ Object {
                 ],
               ],
             },
-            "NODE_OPTIONS": "--enable-source-maps",
-            "TABLE_NAME": Object {
-              "Ref": "ServerlessSpyWebSocketB4D8CE14",
-            },
-            "WS_ENDPOINT": Object {
+            "SSPY_WS_ENDPOINT": Object {
               "Fn::Join": Array [
                 "",
                 Array [
@@ -820,6 +814,9 @@ Object {
                   ".amazonaws.com/prod",
                 ],
               ],
+            },
+            "SSPY_WS_TABLE_NAME": Object {
+              "Ref": "ServerlessSpyWebSocketB4D8CE14",
             },
           },
         },

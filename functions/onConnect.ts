@@ -10,7 +10,7 @@ exports.handler = async (event: APIGatewayEvent) => {
   console.log('EVENT', JSON.stringify(event));
 
   const putParams = new PutItemCommand({
-    TableName: process.env[envVariableNames.TABLE_NAME] as string,
+    TableName: process.env[envVariableNames.SSPY_WS_TABLE_NAME] as string,
     Item: {
       connectionId: { S: event.requestContext.connectionId! },
     },

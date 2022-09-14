@@ -33,7 +33,7 @@ const ddb = new DynamoDBClient({
 
 const apigwManagementApi = new ApiGatewayManagementApi({
   apiVersion: '2018-11-29',
-  endpoint: process.env[envVariableNames.WS_ENDPOINT]!,
+  endpoint: process.env[envVariableNames.SSPY_WS_ENDPOINT]!,
 });
 
 let connections: Record<string, AttributeValue>[] | undefined;
@@ -41,13 +41,13 @@ let connections: Record<string, AttributeValue>[] | undefined;
 export async function publishSpyEvent(event: any) {
   console.log('EVENT', JSON.stringify(event));
 
-  const mapping = JSON.parse(process.env[envVariableNames.INFRA_MAPPING]!);
+  const mapping = JSON.parse(process.env[envVariableNames.SSPY_INFRA_MAPPING]!);
   console.log('mapping', JSON.stringify(mapping));
 
   let connectionData;
 
   const scanParams = new ScanCommand({
-    TableName: process.env[envVariableNames.TABLE_NAME] as string,
+    TableName: process.env[envVariableNames.SSPY_WS_TABLE_NAME] as string,
     ProjectionExpression: 'connectionId',
   });
 
@@ -245,7 +245,7 @@ export async function postData(spyMessage: Omit<SpyMessage, 'timestamp'>) {
         console.log(`Found stale connection, deleting ${connectionId}`);
 
         const deleteParams = new DeleteItemCommand({
-          TableName: process.env[envVariableNames.TABLE_NAME],
+          TableName: process.env[envVariableNames.SSPY_WS_TABLE_NAME],
           Key: { connectionId },
         });
 

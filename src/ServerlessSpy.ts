@@ -61,9 +61,9 @@ export class ServerlessSpy extends Construct {
       timeout: Duration.seconds(5),
       runtime: lambda.Runtime.NODEJS_16_X,
       handler: 'handler',
-      entry: getAssetLocation('functions/onConnect.ts'),
+      entry: this.getAssetLocation('functions/onConnect.ts'),
       environment: {
-        [envVariableNames.TABLE_NAME]: this.table.tableName,
+        [envVariableNames.SSPY_WS_TABLE_NAME]: this.table.tableName,
         NODE_OPTIONS: '--enable-source-maps',
       },
     });
@@ -78,9 +78,9 @@ export class ServerlessSpy extends Construct {
         timeout: Duration.seconds(5),
         runtime: lambda.Runtime.NODEJS_16_X,
         handler: 'handler',
-        entry: getAssetLocation('functions/onDisconnect.ts'),
+        entry: this.getAssetLocation('functions/onDisconnect.ts'),
         environment: {
-          [envVariableNames.TABLE_NAME]: this.table.tableName,
+          [envVariableNames.SSPY_WS_TABLE_NAME]: this.table.tableName,
           NODE_OPTIONS: '--enable-source-maps',
         },
       }
@@ -130,14 +130,15 @@ export class ServerlessSpy extends Construct {
     //set mapping property for all functions we created
     for (const func of this.functionSubscriptionPool) {
       func.function.addEnvironment(
-        envVariableNames.INFRA_MAPPING,
+        envVariableNames.SSPY_INFRA_MAPPING,
         JSON.stringify(func.mapping)
       );
     }
 
+    //set mapping property for all functions we spy on
     for (const func of this.functionsSpied) {
       func.function.addEnvironment(
-        envVariableNames.INFRA_MAPPING,
+        envVariableNames.SSPY_INFRA_MAPPING,
         JSON.stringify(func.mapping)
       );
     }
@@ -266,17 +267,17 @@ export class ServerlessSpy extends Construct {
       const serviceKey = `Sqs#${queueName}`;
 
       //this.functionSubscriptionMain.mapping[queue.queueArn] = serviceKey;
-      func.addEnvironment(envVariableNames.INFRA_MAPPING, JSON.stringify({}));
+      func.addEnvironment(
+        envVariableNames.SSPY_INFRA_MAPPING,
+        JSON.stringify({})
+      );
       this.addMappingToFunction(func, {
         key: queue.queueArn,
         value: serviceKey,
       });
 
       this.serviceKeys.push(serviceKey);
-      func.addEnvironment(
-        envVariableNames.FLUENT_TEST_SUBSCRIBED_TO_SQS,
-        'true'
-      );
+      func.addEnvironment(envVariableNames.SSPY_SUBSCRIBED_TO_SQS, 'true');
     }
   }
 
@@ -286,16 +287,19 @@ export class ServerlessSpy extends Construct {
       timeout: Duration.seconds(5),
       runtime: lambda.Runtime.NODEJS_16_X,
       handler: 'handler',
-      entry: getAssetLocation('functions/sendMessage.ts'),
+      entry: this.getAssetLocation('functions/sendMessage.ts'),
       environment: {
-        [envVariableNames.TABLE_NAME]: this.table.tableName,
+        [envVariableNames.SSPY_WS_TABLE_NAME]: this.table.tableName,
         NODE_OPTIONS: '--enable-source-maps',
       },
     });
 
     this.table.grantWriteData(func);
     this.table.grantReadData(func);
-    func.addEnvironment(envVariableNames.WS_ENDPOINT, this.getWsEndpoint());
+    func.addEnvironment(
+      envVariableNames.SSPY_WS_ENDPOINT,
+      this.getWsEndpoint()
+    );
 
     this.webSocketApi.grantManageConnections(func);
     return func;
@@ -469,14 +473,16 @@ export class ServerlessSpy extends Construct {
 
     const functionName = this.getConstructName(func);
 
-    func.addEnvironment(envVariableNames.FUNCTION_NAME, functionName);
+    func.addEnvironment(envVariableNames.SSPY_FUNCTION_NAME, functionName);
     func.addEnvironment('AWS_LAMBDA_EXEC_WRAPPER', '/opt/spy-wrapper');
     func.addEnvironment(
-      envVariableNames.FLUENT_TEST_SEND_FUNCTION_NAME,
-      this.functionSubscriptionMain.function.functionName
+      envVariableNames.SSPY_WS_TABLE_NAME,
+      this.table.tableName
     );
-    func.addEnvironment(envVariableNames.TABLE_NAME, this.table.tableName);
-    func.addEnvironment(envVariableNames.WS_ENDPOINT, this.getWsEndpoint());
+    func.addEnvironment(
+      envVariableNames.SSPY_WS_ENDPOINT,
+      this.getWsEndpoint()
+    );
 
     this.table.grantWriteData(func);
     this.table.grantReadData(func);
@@ -561,22 +567,22 @@ export class ServerlessSpy extends Construct {
 
     this.functionsSpied.push(fs);
   }
-}
 
-function getAssetLocation(location: string) {
-  const loc = path.join(__dirname, '../' + location);
+  private getAssetLocation(location: string) {
+    const loc = path.join(__dirname, '../' + location);
 
-  if (fs.existsSync(loc)) {
-    return loc;
+    if (fs.existsSync(loc)) {
+      return loc;
+    }
+
+    const loc2 = path.join(__dirname, '../../' + location);
+
+    if (fs.existsSync(loc2)) {
+      return loc2;
+    }
+
+    throw new Error(`Location ${loc} and ${loc2} does not exists.`);
   }
-
-  const loc2 = path.join(__dirname, '../../' + location);
-
-  if (fs.existsSync(loc2)) {
-    return loc2;
-  }
-
-  throw new Error(`Location ${loc} and ${loc2} does not exists.`);
 }
 
 type FunctionSubscription = {
