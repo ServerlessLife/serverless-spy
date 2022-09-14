@@ -20,6 +20,9 @@ export class SqsToLambdaStack extends Stack {
       runtime: lambda.Runtime.NODEJS_16_X,
       handler: 'handler',
       entry: path.join(__dirname, '../functions/dummy.ts'),
+      environment: {
+        NODE_OPTIONS: '--enable-source-maps',
+      },
     });
     func.addEventSource(new SqsEventSource(queue));
 

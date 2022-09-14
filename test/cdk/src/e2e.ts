@@ -75,6 +75,7 @@ export class E2eStack extends Stack {
         environment: {
           SNS_TOPIC_ARN: topicNo1.topicArn,
           DYNAMODB_TABLE_NAME: dynamoDb.tableName,
+          NODE_OPTIONS: '--enable-source-maps',
         },
       }
     );
@@ -93,6 +94,7 @@ export class E2eStack extends Stack {
         environment: {
           S3_BUCKET_NAME: s3Bucket.bucketName,
           SQS_URL: queueNo2.queueUrl,
+          NODE_OPTIONS: '--enable-source-maps',
         },
       }
     );
@@ -120,6 +122,7 @@ export class E2eStack extends Stack {
         entry: path.join(__dirname, '../functions/fromSqsToEventBridge.ts'),
         environment: {
           EB_NAME: bus.eventBusName,
+          NODE_OPTIONS: '--enable-source-maps',
         },
       }
     );
@@ -132,6 +135,9 @@ export class E2eStack extends Stack {
       runtime: lambda.Runtime.NODEJS_16_X,
       handler: 'handler',
       entry: path.join(__dirname, '../functions/dummy.ts'),
+      environment: {
+        NODE_OPTIONS: '--enable-source-maps',
+      },
     });
     functionReceiveSqs.addEventSource(new SqsEventSource(queueNo1));
 
@@ -144,6 +150,9 @@ export class E2eStack extends Stack {
         runtime: lambda.Runtime.NODEJS_16_X,
         handler: 'handler',
         entry: path.join(__dirname, '../functions/dummy.ts'),
+        environment: {
+          NODE_OPTIONS: '--enable-source-maps',
+        },
       }
     );
 

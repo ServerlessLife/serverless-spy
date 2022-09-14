@@ -1,5 +1,6 @@
 import { LambdaClient, InvokeCommand } from '@aws-sdk/client-lambda';
 import { Callback, Context, Handler } from 'aws-lambda';
+import { publishSpyEvent } from '../common/publishSpyEvent';
 import { FunctionContext } from '../common/spyEvents/FunctionContext';
 import { FunctionErrorSpyEvent } from '../common/spyEvents/FunctionErrorSpyEvent';
 import { FunctionRequestSpyEvent } from '../common/spyEvents/FunctionRequestSpyEvent';
@@ -50,6 +51,7 @@ export const handler = (
   const originalHandler = getOriginalHandler();
 
   const fail = (error: any) => {
+    console.error('FAIL', error);
     const key = `Function#${process.env[envVariableNames.FUNCTION_NAME]}#Error`;
     const p = sendLambdaSpyEvent(key, <FunctionErrorSpyEvent>{
       request: event,
@@ -76,7 +78,7 @@ export const handler = (
 
   const newCallback = (err: any, data: any) => {
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    (err ? fail(data) : succeed(data)).then(() => {
+    (err ? fail(err) : succeed(data)).then(() => {
       callback(err, data);
     });
   };
@@ -130,15 +132,17 @@ async function sendLambdaSpyEvent(
 }
 
 async function sendRawSpyEvent(data: any) {
-  console.log('EXTENSION SPY EVENT:', JSON.stringify(data));
+  await publishSpyEvent(data);
 
-  const command = new InvokeCommand({
-    FunctionName: fluentTestSendFunctionName,
-    InvocationType: 'RequestResponse',
-    LogType: 'Tail',
-    Payload: JSON.stringify(data) as any,
-  });
-  await lambdaClient.send(command);
+  // console.log('EXTENSION SPY EVENT:', JSON.stringify(data));
+
+  // const command = new InvokeCommand({
+  //   FunctionName: fluentTestSendFunctionName,
+  //   InvocationType: 'RequestResponse',
+  //   LogType: 'Tail',
+  //   Payload: JSON.stringify(data) as any,
+  // });
+  // await lambdaClient.send(command);
 }
 
 function getOriginalHandler(): Handler {

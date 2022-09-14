@@ -29,6 +29,7 @@ export class ServerlessSpy extends Construct {
   private ownContructs: IConstruct[] = [];
   private functionSubscriptionPool: FunctionSubscription[] = [];
   private functionSubscriptionMain: FunctionSubscription;
+  private functionsSpied: FunctionSpied[] = [];
   private webSocketStage: apiGwV2.WebSocketStage;
   public serviceKeys: string[] = [];
   wsUrl: string;
@@ -62,7 +63,8 @@ export class ServerlessSpy extends Construct {
       handler: 'handler',
       entry: getAssetLocation('functions/onConnect.ts'),
       environment: {
-        TABLE_NAME: this.table.tableName,
+        [envVariableNames.TABLE_NAME]: this.table.tableName,
+        NODE_OPTIONS: '--enable-source-maps',
       },
     });
     this.table.grantWriteData(functionOnConnect);
@@ -78,7 +80,8 @@ export class ServerlessSpy extends Construct {
         handler: 'handler',
         entry: getAssetLocation('functions/onDisconnect.ts'),
         environment: {
-          TABLE_NAME: this.table.tableName,
+          [envVariableNames.TABLE_NAME]: this.table.tableName,
+          NODE_OPTIONS: '--enable-source-maps',
         },
       }
     );
@@ -126,6 +129,13 @@ export class ServerlessSpy extends Construct {
 
     //set mapping property for all functions we created
     for (const func of this.functionSubscriptionPool) {
+      func.function.addEnvironment(
+        envVariableNames.INFRA_MAPPING,
+        JSON.stringify(func.mapping)
+      );
+    }
+
+    for (const func of this.functionsSpied) {
       func.function.addEnvironment(
         envVariableNames.INFRA_MAPPING,
         JSON.stringify(func.mapping)
@@ -254,7 +264,14 @@ export class ServerlessSpy extends Construct {
       const queueName = this.getConstructName(queue);
 
       const serviceKey = `Sqs#${queueName}`;
-      this.functionSubscriptionMain.mapping[queue.queueArn] = serviceKey;
+
+      //this.functionSubscriptionMain.mapping[queue.queueArn] = serviceKey;
+      func.addEnvironment(envVariableNames.INFRA_MAPPING, JSON.stringify({}));
+      this.addMappingToFunction(func, {
+        key: queue.queueArn,
+        value: serviceKey,
+      });
+
       this.serviceKeys.push(serviceKey);
       func.addEnvironment(
         envVariableNames.FLUENT_TEST_SUBSCRIBED_TO_SQS,
@@ -271,21 +288,23 @@ export class ServerlessSpy extends Construct {
       handler: 'handler',
       entry: getAssetLocation('functions/sendMessage.ts'),
       environment: {
-        TABLE_NAME: this.table.tableName,
+        [envVariableNames.TABLE_NAME]: this.table.tableName,
+        NODE_OPTIONS: '--enable-source-maps',
       },
     });
 
     this.table.grantWriteData(func);
     this.table.grantReadData(func);
-    func.addEnvironment(
-      envVariableNames.WS_ENDPOINT,
-      `https://${this.webSocketApi.apiId}.execute-api.${
-        Stack.of(this).region
-      }.amazonaws.com/${this.webSocketStage.stageName}`
-    );
+    func.addEnvironment(envVariableNames.WS_ENDPOINT, this.getWsEndpoint());
 
     this.webSocketApi.grantManageConnections(func);
     return func;
+  }
+
+  private getWsEndpoint(): string {
+    return `https://${this.webSocketApi.apiId}.execute-api.${
+      Stack.of(this).region
+    }.amazonaws.com/${this.webSocketStage.stageName}`;
   }
 
   private spyS3(s3Bucket: s3.Bucket) {
@@ -447,7 +466,6 @@ export class ServerlessSpy extends Construct {
 
   private spyFunction(func: lambda.Function) {
     func.addLayers(this.extensionLayer);
-    this.functionSubscriptionMain.function.grantInvoke(func);
 
     const functionName = this.getConstructName(func);
 
@@ -457,11 +475,19 @@ export class ServerlessSpy extends Construct {
       envVariableNames.FLUENT_TEST_SEND_FUNCTION_NAME,
       this.functionSubscriptionMain.function.functionName
     );
+    func.addEnvironment(envVariableNames.TABLE_NAME, this.table.tableName);
+    func.addEnvironment(envVariableNames.WS_ENDPOINT, this.getWsEndpoint());
+
+    this.table.grantWriteData(func);
+    this.table.grantReadData(func);
+    this.webSocketApi.grantManageConnections(func);
 
     this.serviceKeys.push(`Function#${functionName}#Request`);
     this.serviceKeys.push(`Function#${functionName}#Error`);
     this.serviceKeys.push(`Function#${functionName}#Console`);
     this.serviceKeys.push(`Function#${functionName}#Response`);
+
+    this.addMappingToFunction(func);
   }
 
   public getConstructName(construct: IConstruct) {
@@ -510,6 +536,31 @@ export class ServerlessSpy extends Construct {
 
     return undefined;
   }
+
+  private addMappingToFunction(
+    func: lambda.Function,
+    keyValue?: { key: string; value: string }
+  ) {
+    for (const fs of this.functionsSpied) {
+      if (fs.function === func) {
+        if (keyValue) {
+          fs.mapping[keyValue.key] = keyValue.value;
+        }
+        return;
+      }
+    }
+
+    const fs: FunctionSpied = {
+      function: func,
+      mapping: {},
+    };
+
+    if (keyValue) {
+      fs.mapping[keyValue.key] = keyValue.value;
+    }
+
+    this.functionsSpied.push(fs);
+  }
 }
 
 function getAssetLocation(location: string) {
@@ -532,5 +583,10 @@ type FunctionSubscription = {
   subsribedTopics: sns.Topic[];
   usedForEventBridge: boolean;
   function: lambdaNode.NodejsFunction;
+  mapping: Record<string, string>;
+};
+
+type FunctionSpied = {
+  function: lambda.Function;
   mapping: Record<string, string>;
 };

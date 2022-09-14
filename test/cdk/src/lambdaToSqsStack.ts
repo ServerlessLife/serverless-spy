@@ -21,6 +21,7 @@ export class LambdaToSqsStack extends Stack {
       entry: path.join(__dirname, '../functions/toSqs.ts'),
       environment: {
         SQS_URL: queue.queueUrl,
+        NODE_OPTIONS: '--enable-source-maps',
       },
     });
     queue.grantSendMessages(func);

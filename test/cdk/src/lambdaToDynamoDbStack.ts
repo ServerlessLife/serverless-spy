@@ -24,6 +24,7 @@ export class LambdaToDynamoDbStack extends Stack {
       entry: path.join(__dirname, '../functions/toDynamoDb.ts'),
       environment: {
         DYNAMODB_TABLE_NAME: dynamoDb.tableName,
+        NODE_OPTIONS: '--enable-source-maps',
       },
     });
     dynamoDb.grantWriteData(func);

@@ -64,6 +64,27 @@ Object {
               "Ref": "ServerlessSpySubscription0036DF4AB",
             },
             "FUNCTION_NAME": "MyLambda",
+            "INFRA_MAPPING": "{}",
+            "NODE_OPTIONS": "--enable-source-maps",
+            "TABLE_NAME": Object {
+              "Ref": "ServerlessSpyWebSocketB4D8CE14",
+            },
+            "WS_ENDPOINT": Object {
+              "Fn::Join": Array [
+                "",
+                Array [
+                  "https://",
+                  Object {
+                    "Ref": "ServerlessSpyApiGwWebSocketB4986709",
+                  },
+                  ".execute-api.",
+                  Object {
+                    "Ref": "AWS::Region",
+                  },
+                  ".amazonaws.com/prod",
+                ],
+              ],
+            },
           },
         },
         "Handler": "index.handler",
@@ -130,30 +151,77 @@ Object {
               },
             },
             Object {
-              "Action": "lambda:InvokeFunction",
+              "Action": Array [
+                "dynamodb:BatchWriteItem",
+                "dynamodb:PutItem",
+                "dynamodb:UpdateItem",
+                "dynamodb:DeleteItem",
+                "dynamodb:DescribeTable",
+              ],
               "Effect": "Allow",
               "Resource": Array [
                 Object {
                   "Fn::GetAtt": Array [
-                    "ServerlessSpySubscription0036DF4AB",
+                    "ServerlessSpyWebSocketB4D8CE14",
                     "Arn",
                   ],
                 },
                 Object {
-                  "Fn::Join": Array [
-                    "",
-                    Array [
-                      Object {
-                        "Fn::GetAtt": Array [
-                          "ServerlessSpySubscription0036DF4AB",
-                          "Arn",
-                        ],
-                      },
-                      ":*",
-                    ],
-                  ],
+                  "Ref": "AWS::NoValue",
                 },
               ],
+            },
+            Object {
+              "Action": Array [
+                "dynamodb:BatchGetItem",
+                "dynamodb:GetRecords",
+                "dynamodb:GetShardIterator",
+                "dynamodb:Query",
+                "dynamodb:GetItem",
+                "dynamodb:Scan",
+                "dynamodb:ConditionCheckItem",
+                "dynamodb:DescribeTable",
+              ],
+              "Effect": "Allow",
+              "Resource": Array [
+                Object {
+                  "Fn::GetAtt": Array [
+                    "ServerlessSpyWebSocketB4D8CE14",
+                    "Arn",
+                  ],
+                },
+                Object {
+                  "Ref": "AWS::NoValue",
+                },
+              ],
+            },
+            Object {
+              "Action": "execute-api:ManageConnections",
+              "Effect": "Allow",
+              "Resource": Object {
+                "Fn::Join": Array [
+                  "",
+                  Array [
+                    "arn:",
+                    Object {
+                      "Ref": "AWS::Partition",
+                    },
+                    ":execute-api:",
+                    Object {
+                      "Ref": "AWS::Region",
+                    },
+                    ":",
+                    Object {
+                      "Ref": "AWS::AccountId",
+                    },
+                    ":",
+                    Object {
+                      "Ref": "ServerlessSpyApiGwWebSocketB4986709",
+                    },
+                    "/*/*/@connections/*",
+                  ],
+                ],
+              },
             },
           ],
           "Version": "2012-10-17",
@@ -466,7 +534,7 @@ Object {
           "S3Bucket": Object {
             "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
           },
-          "S3Key": "58cd489050be33022ad294b148c5278e406e04a8d93406aa2d2c01e2676b3250.zip",
+          "S3Key": "624e1131eaff478ffe21f04144b2891fde4cf1c98a40ed6306ce2a474781bca1.zip",
         },
       },
       "Type": "AWS::Lambda::LayerVersion",
@@ -481,11 +549,12 @@ Object {
           "S3Bucket": Object {
             "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
           },
-          "S3Key": "38aea2b58c9430acde9345827a761be9d46837516a656db079cda3dbeb80b16e.zip",
+          "S3Key": "24fff7f1248af5757995ef822207735dfa95222e4c3b4201e0e38c16d59366d9.zip",
         },
         "Environment": Object {
           "Variables": Object {
             "AWS_NODEJS_CONNECTION_REUSE_ENABLED": "1",
+            "NODE_OPTIONS": "--enable-source-maps",
             "TABLE_NAME": Object {
               "Ref": "ServerlessSpyWebSocketB4D8CE14",
             },
@@ -582,11 +651,12 @@ Object {
           "S3Bucket": Object {
             "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
           },
-          "S3Key": "924d82297dd0347cb940b37c62e594978c11f7ab81ac53e40f6acde2be1ae57d.zip",
+          "S3Key": "5eb55a95fc7ce95ccd618574da58dcdcc833a2f6d79848cddd2bc1cdffd9dc68.zip",
         },
         "Environment": Object {
           "Variables": Object {
             "AWS_NODEJS_CONNECTION_REUSE_ENABLED": "1",
+            "NODE_OPTIONS": "--enable-source-maps",
             "TABLE_NAME": Object {
               "Ref": "ServerlessSpyWebSocketB4D8CE14",
             },
@@ -727,12 +797,13 @@ Object {
           "S3Bucket": Object {
             "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
           },
-          "S3Key": "7dbedf3d4573e952407e45a0bd508c7ecd00d9bf5308b195814d265f8612f548.zip",
+          "S3Key": "ce7be0245f40f6841e98bc308fd97fe9d90bd1858f3a2a7c006c2560a42bfe16.zip",
         },
         "Environment": Object {
           "Variables": Object {
             "AWS_NODEJS_CONNECTION_REUSE_ENABLED": "1",
             "INFRA_MAPPING": "{\\"eventBridge\\":\\"EventBridge#MyEventBus\\"}",
+            "NODE_OPTIONS": "--enable-source-maps",
             "TABLE_NAME": Object {
               "Ref": "ServerlessSpyWebSocketB4D8CE14",
             },

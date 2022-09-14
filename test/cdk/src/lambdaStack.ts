@@ -16,6 +16,9 @@ export class LambdaStack extends Stack {
       runtime: lambda.Runtime.NODEJS_16_X,
       handler: 'handler',
       entry: path.join(__dirname, '../functions/lambda.ts'),
+      environment: {
+        NODE_OPTIONS: '--enable-source-maps',
+      },
     });
     const serverlessSpy = new ServerlessSpy(this, 'ServerlessSpy', {
       generateSpyEventsFileLocation: props.generateSpyEventsFile

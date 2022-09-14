@@ -21,6 +21,7 @@ export class LambdaToSnsStack extends Stack {
       entry: path.join(__dirname, '../functions/toSns.ts'),
       environment: {
         SNS_TOPIC_ARN: topic.topicArn,
+        NODE_OPTIONS: '--enable-source-maps',
       },
     });
     topic.grantPublish(func);

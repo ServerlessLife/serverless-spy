@@ -21,6 +21,7 @@ export class LambdaToEventBridgeStack extends Stack {
       entry: path.join(__dirname, '../functions/toEventBridge.ts'),
       environment: {
         EB_NAME: bus.eventBusName,
+        NODE_OPTIONS: '--enable-source-maps',
       },
     });
     bus.grantPutEventsTo(func);

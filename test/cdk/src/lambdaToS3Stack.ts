@@ -21,6 +21,7 @@ export class LambdaToS3Stack extends Stack {
       entry: path.join(__dirname, '../functions/toS3.ts'),
       environment: {
         S3_BUCKET_NAME: s3Bucket.bucketName,
+        NODE_OPTIONS: '--enable-source-maps',
       },
     });
     s3Bucket.grantWrite(func);
