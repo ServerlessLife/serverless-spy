@@ -37,6 +37,8 @@ export class EventBridgeToLambdaStack extends Stack {
         : undefined,
     });
 
+    serverlessSpy.spy();
+
     new CfnOutput(this, `EventBusName${serverlessSpy.getConstructName(bus)}`, {
       value: bus.eventBusName,
     });

@@ -38,6 +38,8 @@ export class SnsToSqsStack extends Stack {
         : undefined,
     });
 
+    serverlessSpy.spy();
+
     new CfnOutput(this, `SnsTopicArn${serverlessSpy.getConstructName(topic)}`, {
       value: topic.topicArn,
     });

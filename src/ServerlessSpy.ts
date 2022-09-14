@@ -26,15 +26,20 @@ export class ServerlessSpy extends Construct {
   private extensionLayer: lambda.LayerVersion;
   private table: dynamoDb.Table;
   private webSocketApi: apiGwV2.WebSocketApi;
-  private ownContructs: IConstruct[] = [];
+  private createdContructs: IConstruct[] = [];
   private functionSubscriptionPool: FunctionSubscription[] = [];
   private functionSubscriptionMain: FunctionSubscription;
   private functionsSpied: FunctionSpied[] = [];
   private webSocketStage: apiGwV2.WebSocketStage;
   public serviceKeys: string[] = [];
+  private spiedNodes: IConstruct[] = [];
   wsUrl: string;
 
-  constructor(scope: Construct, id: string, props?: ServerlessSpyProps) {
+  constructor(
+    scope: Construct,
+    id: string,
+    private props?: ServerlessSpyProps
+  ) {
     super(scope, id);
 
     this.extensionLayer = new lambda.LayerVersion(this, 'Extension', {
@@ -45,7 +50,7 @@ export class ServerlessSpy extends Construct {
       ],
       code: lambda.Code.fromAsset(this.getExtensionAssetLocation()),
     });
-    this.ownContructs.push(this.extensionLayer);
+    this.createdContructs.push(this.extensionLayer);
 
     this.table = new dynamoDb.Table(this, 'WebSocket', {
       partitionKey: {
@@ -54,7 +59,7 @@ export class ServerlessSpy extends Construct {
       },
       billingMode: dynamoDb.BillingMode.PAY_PER_REQUEST,
     });
-    this.ownContructs.push(this.table);
+    this.createdContructs.push(this.table);
 
     const functionOnConnect = new lambdaNode.NodejsFunction(this, 'OnConnect', {
       memorySize: 512,
@@ -68,7 +73,7 @@ export class ServerlessSpy extends Construct {
       },
     });
     this.table.grantWriteData(functionOnConnect);
-    this.ownContructs.push(functionOnConnect);
+    this.createdContructs.push(functionOnConnect);
 
     const functionOnDisconnect = new lambdaNode.NodejsFunction(
       this,
@@ -86,10 +91,10 @@ export class ServerlessSpy extends Construct {
       }
     );
     this.table.grantWriteData(functionOnDisconnect);
-    this.ownContructs.push(functionOnDisconnect);
+    this.createdContructs.push(functionOnDisconnect);
 
     this.webSocketApi = new apiGwV2.WebSocketApi(this, 'ApiGwWebSocket');
-    this.ownContructs.push(this.webSocketApi);
+    this.createdContructs.push(this.webSocketApi);
     this.webSocketStage = new apiGwV2.WebSocketStage(
       this,
       'ApiGwWebSocketStage',
@@ -99,7 +104,7 @@ export class ServerlessSpy extends Construct {
         autoDeploy: true,
       }
     );
-    this.ownContructs.push(this.webSocketStage);
+    this.createdContructs.push(this.webSocketStage);
     const webSocketApiRoute = this.webSocketApi.addRoute('$connect', {
       integration: new apiGwV2Int.WebSocketLambdaIntegration(
         '$connect',
@@ -125,8 +130,82 @@ export class ServerlessSpy extends Construct {
       ),
     });
 
-    this.iterateAllElements(Stack.of(this));
+    this.wsUrl = `wss://${this.webSocketApi.apiId}.execute-api.${
+      Stack.of(this).region
+    }.amazonaws.com/${this.webSocketStage.stageName}`;
 
+    new CfnOutput(Stack.of(this), 'ServerlessSpyWsUrl', {
+      value: this.wsUrl,
+    });
+  }
+
+  public spyNodes(nodes: IConstruct[]) {
+    for (const node of nodes) {
+      let ns = this.iterateAllNodes(node);
+      this.internalSpyNodes(ns);
+    }
+
+    this.finializeSpy();
+  }
+
+  public spy(filter?: {
+    spyLambda?: boolean;
+    spySqs?: boolean;
+    spySnsTopic?: boolean;
+    spySnsSubsription?: boolean;
+    spyEventBridge?: boolean;
+    spyS3?: boolean;
+    spyDynamoDB?: boolean;
+  }) {
+    let nodes = this.iterateAllNodes(Stack.of(this));
+
+    const filt = {
+      spyLambda: true,
+      spySqs: true,
+      spySnsTopic: true,
+      spySnsSubsription: true,
+      spyEventBridge: true,
+      spyEventBridgeRule: true,
+      spyS3: true,
+      spyDynamoDB: true,
+      ...filter,
+    };
+
+    nodes = nodes.filter((node) => {
+      if (filt.spyLambda && node instanceof lambda.Function) {
+        return true;
+      } else if (filt.spySnsTopic && node instanceof sns.Topic) {
+        return true;
+      } else if (filt.spySnsSubsription && node instanceof sns.Subscription) {
+        return true;
+      } else if (filt.spyS3 && node instanceof s3.Bucket) {
+        return true;
+      } else if (filt.spyDynamoDB && node instanceof dynamoDb.Table) {
+        return true;
+      } else if (filt.spyEventBridge && node instanceof events.EventBus) {
+        return true;
+      } else if (filt.spyEventBridgeRule && node instanceof events.Rule) {
+        return true;
+      } else if (filt.spySqs && node instanceof lambda.CfnEventSourceMapping) {
+        return true;
+      }
+
+      return false;
+    });
+
+    this.internalSpyNodes(nodes);
+    this.finializeSpy();
+
+    console.log('--------------------------------------');
+  }
+
+  private internalSpyNodes(nodes: IConstruct[]) {
+    for (const node of nodes) {
+      this.internalSpyNode(node);
+    }
+  }
+
+  private finializeSpy() {
     //set mapping property for all functions we created
     for (const func of this.functionSubscriptionPool) {
       func.function.addEnvironment(
@@ -142,17 +221,15 @@ export class ServerlessSpy extends Construct {
         JSON.stringify(func.mapping)
       );
     }
+    for (const func of this.functionsSpied) {
+      func.function.addEnvironment(
+        envVariableNames.SSPY_INFRA_MAPPING,
+        JSON.stringify(func.mapping)
+      );
+    }
 
-    this.wsUrl = `wss://${this.webSocketApi.apiId}.execute-api.${
-      Stack.of(this).region
-    }.amazonaws.com/${this.webSocketStage.stageName}`;
-
-    new CfnOutput(Stack.of(this), 'ServerlessSpyWsUrl', {
-      value: this.wsUrl,
-    });
-
-    if (props?.generateSpyEventsFileLocation) {
-      this.writeSpyEventsClass(props?.generateSpyEventsFileLocation);
+    if (this.props?.generateSpyEventsFileLocation) {
+      this.writeSpyEventsClass(this.props?.generateSpyEventsFileLocation);
     }
   }
 
@@ -215,40 +292,57 @@ export class ServerlessSpy extends Construct {
     fs.writeFileSync(fileLocation, code);
   }
 
-  private iterateAllElements(parent: IConstruct) {
+  private iterateAllNodes(parent: IConstruct) {
+    const nodes: IConstruct[] = [];
+    nodes.push(parent);
+    this.iterateAllNodesRecursive(parent, nodes);
+    return nodes;
+  }
+
+  private iterateAllNodesRecursive(parent: IConstruct, nodes: IConstruct[]) {
     for (const node of parent.node.children) {
-      if (this.ownContructs.includes(node)) {
-        continue;
-      }
-
-      if (this.functionSubscriptionPool.find((s) => s.function === node)) {
-        continue;
-      }
-
-      if (node instanceof lambda.Function) {
-        this.spyFunction(node);
-      } else if (node instanceof sns.Topic) {
-        console.log('interceptSnsTopic');
-        this.spySnsTopic(node);
-      } else if (node instanceof sns.Subscription) {
-        this.spySnsSubscription(node);
-      } else if (node instanceof s3.Bucket) {
-        this.spyS3(node);
-      } else if (node instanceof dynamoDb.Table) {
-        this.spyDynamodb(node);
-      } else if (node instanceof events.EventBus) {
-        this.spyEventBus(node);
-      } else if (node instanceof events.Rule) {
-        this.spyEventBusRule(node);
-      } else if (node instanceof lambda.CfnEventSourceMapping) {
-        this.spySqs(node);
-      }
-
-      this.iterateAllElements(node);
+      nodes.push(node);
+      this.iterateAllNodesRecursive(node, nodes);
     }
   }
 
-  private spySqs(node: lambda.CfnEventSourceMapping) {
+  private internalSpyNode(node: IConstruct) {
+    if (this.spiedNodes.includes(node)) {
+      return;
+    }
+
+    this.spiedNodes.push(node);
+
+    if (this.createdContructs.includes(node)) {
+      return;
+    }
+
+    if (this.functionSubscriptionPool.find((s) => s.function === node)) {
+      return;
+    }
+
+    console.log('SPY', node);
+
+    if (node instanceof lambda.Function) {
+      this.internalSpyFunction(node);
+    } else if (node instanceof sns.Topic) {
+      this.internalSpySnsTopic(node);
+    } else if (node instanceof sns.Subscription) {
+      this.internalSpySnsSubscription(node);
+    } else if (node instanceof s3.Bucket) {
+      this.internalSpyS3(node);
+    } else if (node instanceof dynamoDb.Table) {
+      this.internalSpyDynamodb(node);
+    } else if (node instanceof events.EventBus) {
+      this.internalSpyEventBus(node);
+    } else if (node instanceof events.Rule) {
+      this.internalSpyEventBusRule(node);
+    } else if (node instanceof lambda.CfnEventSourceMapping) {
+      this.internalSpySqs(node);
+    }
+  }
+
+  private internalSpySqs(node: lambda.CfnEventSourceMapping) {
     const queue = this.findElement<sqs.Queue>(
       (n: IConstruct) =>
         n instanceof sqs.Queue &&
@@ -311,7 +405,7 @@ export class ServerlessSpy extends Construct {
     }.amazonaws.com/${this.webSocketStage.stageName}`;
   }
 
-  private spyS3(s3Bucket: s3.Bucket) {
+  private internalSpyS3(s3Bucket: s3.Bucket) {
     s3Bucket.addEventNotification(
       s3.EventType.OBJECT_CREATED_PUT,
       new s3notif.LambdaDestination(this.functionSubscriptionMain.function)
@@ -324,7 +418,7 @@ export class ServerlessSpy extends Construct {
     this.serviceKeys.push(serviceKey);
   }
 
-  private spyDynamodb(table: dynamoDb.Table) {
+  private internalSpyDynamodb(table: dynamoDb.Table) {
     // enable DynamoDB streams with a hack
     (table.node.defaultChild as dynamoDb.CfnTable).streamSpecification = {
       streamViewType: dynamoDb.StreamViewType.NEW_AND_OLD_IMAGES,
@@ -348,7 +442,7 @@ export class ServerlessSpy extends Construct {
     this.serviceKeys.push(serviceKey);
   }
 
-  private spyEventBusRule(rule: events.Rule) {
+  private internalSpyEventBusRule(rule: events.Rule) {
     const { eventBusName } = rule.node.defaultChild as events.CfnRule;
     const eventBridge = this.getEventBridge(
       (rule.node.defaultChild as any).eventBusName
@@ -372,7 +466,7 @@ export class ServerlessSpy extends Construct {
     this.serviceKeys.push(serviceKey);
   }
 
-  private spyEventBus(eventBus: events.EventBus) {
+  private internalSpyEventBus(eventBus: events.EventBus) {
     const functionSubscription = this.provideFunctionForSubscription(
       (s) => !s.usedForEventBridge
     );
@@ -385,20 +479,21 @@ export class ServerlessSpy extends Construct {
       targets: [new targets.LambdaFunction(functionSubscription.function)],
     });
 
-    this.ownContructs.push(rule);
+    this.createdContructs.push(rule);
     const serviceKey = `EventBridge#${bridgeName}`;
     functionSubscription.mapping.eventBridge = serviceKey;
     this.serviceKeys.push(serviceKey);
   }
 
-  private spySnsTopic(topic: sns.Topic) {
+  private internalSpySnsTopic(topic: sns.Topic) {
     const functionSubscription = this.provideFunctionForSubscription(
       (s) => !s.subsribedTopics.includes(topic)
     );
 
-    topic.addSubscription(
+    const subscription = topic.addSubscription(
       new snsSubs.LambdaSubscription(functionSubscription.function)
     );
+    this.createdContructs.push(subscription);
     const topicName = this.getConstructName(topic);
     const serviceKey = `SnsTopic#${topicName}`;
     functionSubscription.mapping[topic.topicArn] = serviceKey;
@@ -406,7 +501,7 @@ export class ServerlessSpy extends Construct {
     functionSubscription.subsribedTopics.push(topic);
   }
 
-  private spySnsSubscription(subscription: sns.Subscription) {
+  private internalSpySnsSubscription(subscription: sns.Subscription) {
     if (!subscription.node.scope) {
       return;
     }
@@ -432,7 +527,7 @@ export class ServerlessSpy extends Construct {
     (subscriptionClone.node.defaultChild as sns.CfnSubscription).filterPolicy =
       filterPolicy;
 
-    this.ownContructs.push(subscriptionClone);
+    this.createdContructs.push(subscriptionClone);
 
     const topicName = this.getConstructName(topic);
     const targetName = this.getConstructName(subscription.node.scope);
@@ -468,7 +563,7 @@ export class ServerlessSpy extends Construct {
     return functionSubscription;
   }
 
-  private spyFunction(func: lambda.Function) {
+  private internalSpyFunction(func: lambda.Function) {
     func.addLayers(this.extensionLayer);
 
     const functionName = this.getConstructName(func);

@@ -1,5 +1,5 @@
 import { App } from 'aws-cdk-lib';
-import { E2eStack } from './e2e';
+import { E2eStack } from './e2eStack';
 import { EventBridgeToLambdaStack } from './eventBridgeToLambdaStack';
 import { LambdaStack } from './lambdaStack';
 import { LambdaToDynamoDbStack } from './lambdaToDynamoDbStack';

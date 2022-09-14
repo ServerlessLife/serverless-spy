@@ -168,6 +168,8 @@ export class E2eStack extends Stack {
         : undefined,
     });
 
+    serverlessSpy.spy();
+
     new CfnOutput(
       this,
       `FunctionName${serverlessSpy.getConstructName(functionToSnsAndDynamoDb)}`,

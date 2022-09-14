@@ -7,7 +7,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { createServerlessSpyListener } from '../../../listener/createServerlessSpyListener';
 import { ServerlessSpyListener } from '../../../listener/ServerlessSpyListener';
 import { ServerlessSpyEvents } from '../.cdkOut/ServerlessSpyEventsLambda';
-import { E2eStack } from '../src/e2e';
+import { E2eStack } from '../src/e2eStack';
 import { TestData } from './TestData';
 
 jest.setTimeout(30000);

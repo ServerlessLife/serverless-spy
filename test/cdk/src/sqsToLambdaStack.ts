@@ -32,6 +32,8 @@ export class SqsToLambdaStack extends Stack {
         : undefined,
     });
 
+    serverlessSpy.spy();
+
     new CfnOutput(this, `QueueUrl${serverlessSpy.getConstructName(queue)}`, {
       value: queue.queueUrl,
     });

@@ -32,6 +32,8 @@ export class LambdaToS3Stack extends Stack {
         : undefined,
     });
 
+    serverlessSpy.spy();
+
     new CfnOutput(this, `FunctionName${serverlessSpy.getConstructName(func)}`, {
       value: func.functionName,
     });
