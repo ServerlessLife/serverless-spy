@@ -188,6 +188,7 @@ const serverlessSpyProps: ServerlessSpyProps = { ... }
 | --- | --- | --- |
 | <code><a href="#serverless-spy.ServerlessSpyProps.property.debugMode">debugMode</a></code> | <code>boolean</code> | *No description.* |
 | <code><a href="#serverless-spy.ServerlessSpyProps.property.generateSpyEventsFileLocation">generateSpyEventsFileLocation</a></code> | <code>string</code> | *No description.* |
+| <code><a href="#serverless-spy.ServerlessSpyProps.property.spySqsWithNoSubscriptionAndDropAllMessages">spySqsWithNoSubscriptionAndDropAllMessages</a></code> | <code>boolean</code> | *No description.* |
 
 ---
 
@@ -208,6 +209,16 @@ public readonly generateSpyEventsFileLocation: string;
 ```
 
 - *Type:* string
+
+---
+
+##### `spySqsWithNoSubscriptionAndDropAllMessages`<sup>Optional</sup> <a name="spySqsWithNoSubscriptionAndDropAllMessages" id="serverless-spy.ServerlessSpyProps.property.spySqsWithNoSubscriptionAndDropAllMessages"></a>
+
+```typescript
+public readonly spySqsWithNoSubscriptionAndDropAllMessages: boolean;
+```
+
+- *Type:* boolean
 
 ---
 

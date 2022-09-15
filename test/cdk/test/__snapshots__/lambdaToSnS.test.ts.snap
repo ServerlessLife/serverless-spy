@@ -55,6 +55,7 @@ Object {
             "SNS_TOPIC_ARN": Object {
               "Ref": "MyTopic86869434",
             },
+            "SSPY_DEBUG": "true",
             "SSPY_FUNCTION_NAME": "MyLambda",
             "SSPY_INFRA_MAPPING": "{}",
             "SSPY_WS_ENDPOINT": Object {
@@ -525,7 +526,7 @@ Object {
           "S3Bucket": Object {
             "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
           },
-          "S3Key": "20f749f848cdf905b66b94ba68294f0575a60894714d45d4a568ff607f2a900a.zip",
+          "S3Key": "5effcd9566350956332d74438241607c8840a670444a7548b6dbf5b580f5750e.zip",
         },
       },
       "Type": "AWS::Lambda::LayerVersion",
@@ -546,6 +547,7 @@ Object {
           "Variables": Object {
             "AWS_NODEJS_CONNECTION_REUSE_ENABLED": "1",
             "NODE_OPTIONS": "--enable-source-maps",
+            "SSPY_DEBUG": "true",
             "SSPY_WS_TABLE_NAME": Object {
               "Ref": "ServerlessSpyWebSocketB4D8CE14",
             },
@@ -648,6 +650,7 @@ Object {
           "Variables": Object {
             "AWS_NODEJS_CONNECTION_REUSE_ENABLED": "1",
             "NODE_OPTIONS": "--enable-source-maps",
+            "SSPY_DEBUG": "true",
             "SSPY_WS_TABLE_NAME": Object {
               "Ref": "ServerlessSpyWebSocketB4D8CE14",
             },

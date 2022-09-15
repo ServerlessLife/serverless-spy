@@ -8,7 +8,8 @@ import { LambdaToS3Stack } from './lambdaToS3Stack';
 import { LambdaToSnsStack } from './lambdaToSnsStack';
 import { LambdaToSqsStack } from './lambdaToSqsStack';
 import { SnsToLambdaStack } from './snsToLambdaStack';
-import { SnsToSqsStack } from './snsToSqs';
+import { SnsToSqsStack } from './snsToSqsStack';
+import { SqsStack } from './sqsStack';
 import { SqsToLambdaStack } from './sqsToLambdaStack';
 
 const testEnv = {
@@ -55,6 +56,10 @@ new SnsToLambdaStack(app, 'ServerlessSpySnsToLambda', {
   generateSpyEventsFile: true,
 });
 new SnsToSqsStack(app, 'ServerlessSpySnsToSqs', {
+  env: testEnv,
+  generateSpyEventsFile: true,
+});
+new SqsStack(app, 'ServerlessSpySqs', {
   env: testEnv,
   generateSpyEventsFile: true,
 });

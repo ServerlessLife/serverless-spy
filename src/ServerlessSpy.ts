@@ -9,7 +9,9 @@ import * as events from 'aws-cdk-lib/aws-events';
 import * as targets from 'aws-cdk-lib/aws-events-targets';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
 import * as dynamoDbStream from 'aws-cdk-lib/aws-lambda-event-sources';
+import { SqsEventSource } from 'aws-cdk-lib/aws-lambda-event-sources';
 import * as lambdaNode from 'aws-cdk-lib/aws-lambda-nodejs';
+import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 import * as s3 from 'aws-cdk-lib/aws-s3';
 import * as s3notif from 'aws-cdk-lib/aws-s3-notifications';
 import * as sns from 'aws-cdk-lib/aws-sns';
@@ -20,6 +22,7 @@ import { envVariableNames } from './common/envVariableNames';
 
 export interface ServerlessSpyProps {
   readonly generateSpyEventsFileLocation?: string;
+  readonly spySqsWithNoSubscriptionAndDropAllMessages?: boolean;
   readonly debugMode?: boolean;
 }
 
@@ -38,7 +41,7 @@ export class ServerlessSpy extends Construct {
   private extensionLayer: lambda.LayerVersion;
   private table: dynamoDb.Table;
   private webSocketApi: apiGwV2.WebSocketApi;
-  private createdContructs: IConstruct[] = [];
+  private createdResourcesBySSpy: IConstruct[] = [];
   private lambdaSubscriptionPool: LambdaSubscription[] = [];
   private lambdaSubscriptionMain: LambdaSubscription;
   private lambdasSpied: LambdaSpied[] = [];
@@ -62,7 +65,7 @@ export class ServerlessSpy extends Construct {
       ],
       code: lambda.Code.fromAsset(this.getExtensionAssetLocation()),
     });
-    this.createdContructs.push(this.extensionLayer);
+    this.createdResourcesBySSpy.push(this.extensionLayer);
 
     this.table = new dynamoDb.Table(this, 'WebSocket', {
       partitionKey: {
@@ -71,14 +74,9 @@ export class ServerlessSpy extends Construct {
       },
       billingMode: dynamoDb.BillingMode.PAY_PER_REQUEST,
     });
-    this.createdContructs.push(this.table);
+    this.createdResourcesBySSpy.push(this.table);
 
-    const envVars: {
-      [key: string]: string;
-    } = {
-      [envVariableNames.SSPY_WS_TABLE_NAME]: this.table.tableName,
-      NODE_OPTIONS: '--enable-source-maps',
-    };
+    const envVars = this.getDafaultLambdaEnvironmentVariables();
 
     if (this.props?.debugMode) {
       envVars[envVariableNames.SSPY_DEBUG] = 'true';
@@ -93,7 +91,7 @@ export class ServerlessSpy extends Construct {
       environment: envVars,
     });
     this.table.grantWriteData(functionOnConnect);
-    this.createdContructs.push(functionOnConnect);
+    this.createdResourcesBySSpy.push(functionOnConnect);
 
     const functionOnDisconnect = new lambdaNode.NodejsFunction(
       this,
@@ -108,10 +106,10 @@ export class ServerlessSpy extends Construct {
       }
     );
     this.table.grantWriteData(functionOnDisconnect);
-    this.createdContructs.push(functionOnDisconnect);
+    this.createdResourcesBySSpy.push(functionOnDisconnect);
 
     this.webSocketApi = new apiGwV2.WebSocketApi(this, 'ApiGwWebSocket');
-    this.createdContructs.push(this.webSocketApi);
+    this.createdResourcesBySSpy.push(this.webSocketApi);
     this.webSocketStage = new apiGwV2.WebSocketStage(
       this,
       'ApiGwWebSocketStage',
@@ -121,7 +119,7 @@ export class ServerlessSpy extends Construct {
         autoDeploy: true,
       }
     );
-    this.createdContructs.push(this.webSocketStage);
+    this.createdResourcesBySSpy.push(this.webSocketStage);
     const webSocketApiRoute = this.webSocketApi.addRoute('$connect', {
       integration: new apiGwV2Int.WebSocketLambdaIntegration(
         '$connect',
@@ -156,13 +154,20 @@ export class ServerlessSpy extends Construct {
     });
   }
 
+  private getDafaultLambdaEnvironmentVariables(): { [key: string]: string } {
+    return {
+      [envVariableNames.SSPY_WS_TABLE_NAME]: this.table.tableName,
+      NODE_OPTIONS: '--enable-source-maps',
+    };
+  }
+
   /**
    * Initalize spying on resources given as parameter.
    * @param nodes Which reources and their children to spy on.
    */
   public spyNodes(nodes: IConstruct[]) {
     for (const node of nodes) {
-      let ns = this.iterateAllNodes(node);
+      let ns = this.getAllNodes(node);
       this.internalSpyNodes(ns);
     }
 
@@ -174,7 +179,7 @@ export class ServerlessSpy extends Construct {
    * @param filter Limit which resources to spy on.
    */
   public spy(filter?: SpyFilter) {
-    let nodes = this.iterateAllNodes(Stack.of(this));
+    let nodes = this.getAllNodes(Stack.of(this));
 
     const filterWithDefaults: Required<SpyFilter> = {
       spyLambda: true,
@@ -220,6 +225,12 @@ export class ServerlessSpy extends Construct {
         node instanceof lambda.CfnEventSourceMapping
       ) {
         return true;
+      } else if (
+        filterWithDefaults.spySqs &&
+        this.props?.spySqsWithNoSubscriptionAndDropAllMessages &&
+        node instanceof sqs.Queue
+      ) {
+        return true;
       }
 
       return false;
@@ -245,12 +256,6 @@ export class ServerlessSpy extends Construct {
     }
 
     //set mapping property for all functions we spy on
-    for (const func of this.lambdasSpied) {
-      func.function.addEnvironment(
-        envVariableNames.SSPY_INFRA_MAPPING,
-        JSON.stringify(func.mapping)
-      );
-    }
     for (const func of this.lambdasSpied) {
       func.function.addEnvironment(
         envVariableNames.SSPY_INFRA_MAPPING,
@@ -322,17 +327,17 @@ export class ServerlessSpy extends Construct {
     fs.writeFileSync(fileLocation, code);
   }
 
-  private iterateAllNodes(parent: IConstruct) {
+  private getAllNodes(parent: IConstruct) {
     const nodes: IConstruct[] = [];
     nodes.push(parent);
-    this.iterateAllNodesRecursive(parent, nodes);
+    this.getAllNodesRecursive(parent, nodes);
     return nodes;
   }
 
-  private iterateAllNodesRecursive(parent: IConstruct, nodes: IConstruct[]) {
+  private getAllNodesRecursive(parent: IConstruct, nodes: IConstruct[]) {
     for (const node of parent.node.children) {
       nodes.push(node);
-      this.iterateAllNodesRecursive(node, nodes);
+      this.getAllNodesRecursive(node, nodes);
     }
   }
 
@@ -343,7 +348,7 @@ export class ServerlessSpy extends Construct {
 
     this.spiedNodes.push(node);
 
-    if (this.createdContructs.includes(node)) {
+    if (this.createdResourcesBySSpy.includes(node)) {
       return;
     }
 
@@ -352,7 +357,7 @@ export class ServerlessSpy extends Construct {
     }
 
     if (this.props?.debugMode) {
-      console.debug('Spy node', this.getConstructName(node));
+      console.info('Spy on node', this.getConstructName(node));
     }
 
     if (node instanceof lambda.Function) {
@@ -371,7 +376,74 @@ export class ServerlessSpy extends Construct {
       this.internalSpyEventBusRule(node);
     } else if (node instanceof lambda.CfnEventSourceMapping) {
       this.internalSpySqs(node);
+    } else if (node instanceof sqs.Queue) {
+      if (this.props?.spySqsWithNoSubscriptionAndDropAllMessages) {
+        this.internalSpySpySqsWithNoSubscription(node);
+      }
     }
+  }
+
+  private internalSpySpySqsWithNoSubscription(queue: sqs.Queue) {
+    const subscription = this.findElement<lambda.CfnEventSourceMapping>(
+      (n: IConstruct) =>
+        n instanceof lambda.CfnEventSourceMapping &&
+        (n as lambda.CfnEventSourceMapping).eventSourceArn === queue.queueArn
+    );
+
+    if (subscription) {
+      return; //already have subscription
+    }
+
+    console.log('********** ADD LAMBDA *******************');
+    const queueName = this.getConstructName(queue);
+    const func = new NodejsFunction(
+      this,
+      `${queueName}SqsSubscriptionAndDropAllMessages`,
+      {
+        memorySize: 512,
+        timeout: Duration.seconds(5),
+        runtime: lambda.Runtime.NODEJS_16_X,
+        handler: 'handler',
+        entry: this.getAssetLocation(
+          'functions/sqsSubscriptionAndDropAllMessages.ts'
+        ),
+        environment: this.getDafaultLambdaEnvironmentVariables(),
+      }
+    );
+    func.addEventSource(new SqsEventSource(queue));
+
+    //
+    func.addLayers(this.extensionLayer);
+
+    //const functionName = this.getConstructName(func);
+
+    //func.addEnvironment(envVariableNames.SSPY_FUNCTION_NAME, functionName);
+    func.addEnvironment('AWS_LAMBDA_EXEC_WRAPPER', '/opt/spy-wrapper');
+    func.addEnvironment(
+      envVariableNames.SSPY_WS_ENDPOINT,
+      this.getWsEndpoint()
+    );
+
+    if (this.props?.debugMode) {
+      func.addEnvironment(envVariableNames.SSPY_DEBUG, 'true');
+    }
+
+    this.table.grantWriteData(func);
+    this.table.grantReadData(func);
+    this.webSocketApi.grantManageConnections(func);
+    //
+
+    this.createdResourcesBySSpy.push(func);
+
+    const serviceKey = `Sqs#${queueName}`;
+
+    this.addMappingToFunction(func, {
+      key: queue.queueArn,
+      value: serviceKey,
+    });
+
+    this.serviceKeys.push(serviceKey);
+    func.addEnvironment(envVariableNames.SSPY_SUBSCRIBED_TO_SQS, 'true');
   }
 
   private internalSpySqs(node: lambda.CfnEventSourceMapping) {
@@ -392,10 +464,6 @@ export class ServerlessSpy extends Construct {
 
       const serviceKey = `Sqs#${queueName}`;
 
-      func.addEnvironment(
-        envVariableNames.SSPY_INFRA_MAPPING,
-        JSON.stringify({})
-      );
       this.addMappingToFunction(func, {
         key: queue.queueArn,
         value: serviceKey,
@@ -510,7 +578,7 @@ export class ServerlessSpy extends Construct {
       targets: [new targets.LambdaFunction(functionSubscription.function)],
     });
 
-    this.createdContructs.push(rule);
+    this.createdResourcesBySSpy.push(rule);
     const serviceKey = `EventBridge#${bridgeName}`;
     functionSubscription.mapping.eventBridge = serviceKey;
     this.serviceKeys.push(serviceKey);
@@ -524,7 +592,7 @@ export class ServerlessSpy extends Construct {
     const subscription = topic.addSubscription(
       new snsSubs.LambdaSubscription(functionSubscription.function)
     );
-    this.createdContructs.push(subscription);
+    this.createdResourcesBySSpy.push(subscription);
     const topicName = this.getConstructName(topic);
     const serviceKey = `SnsTopic#${topicName}`;
     functionSubscription.mapping[topic.topicArn] = serviceKey;
@@ -558,7 +626,7 @@ export class ServerlessSpy extends Construct {
     (subscriptionClone.node.defaultChild as sns.CfnSubscription).filterPolicy =
       filterPolicy;
 
-    this.createdContructs.push(subscriptionClone);
+    this.createdResourcesBySSpy.push(subscriptionClone);
 
     const topicName = this.getConstructName(topic);
     const targetName = this.getConstructName(subscription.node.scope);
