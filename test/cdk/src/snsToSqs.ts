@@ -36,6 +36,7 @@ export class SnsToSqsStack extends Stack {
       generateSpyEventsFileLocation: props.generateSpyEventsFile
         ? '.cdkOut/ServerlessSpyEventsSnsToSqs.ts'
         : undefined,
+      debugMode: true,
     });
 
     serverlessSpy.spy();

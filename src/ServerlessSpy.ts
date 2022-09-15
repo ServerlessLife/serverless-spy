@@ -20,6 +20,18 @@ import { envVariableNames } from './common/envVariableNames';
 
 export interface ServerlessSpyProps {
   readonly generateSpyEventsFileLocation?: string;
+  readonly debugMode?: boolean;
+}
+
+export interface SpyFilter {
+  readonly spyLambda?: boolean;
+  readonly spySqs?: boolean;
+  readonly spySnsTopic?: boolean;
+  readonly spySnsSubsription?: boolean;
+  readonly spyEventBridge?: boolean;
+  readonly spyEventBridgeRule?: boolean;
+  readonly spyS3?: boolean;
+  readonly spyDynamoDB?: boolean;
 }
 
 export class ServerlessSpy extends Construct {
@@ -27,9 +39,9 @@ export class ServerlessSpy extends Construct {
   private table: dynamoDb.Table;
   private webSocketApi: apiGwV2.WebSocketApi;
   private createdContructs: IConstruct[] = [];
-  private functionSubscriptionPool: FunctionSubscription[] = [];
-  private functionSubscriptionMain: FunctionSubscription;
-  private functionsSpied: FunctionSpied[] = [];
+  private lambdaSubscriptionPool: LambdaSubscription[] = [];
+  private lambdaSubscriptionMain: LambdaSubscription;
+  private lambdasSpied: LambdaSpied[] = [];
   private webSocketStage: apiGwV2.WebSocketStage;
   public serviceKeys: string[] = [];
   private spiedNodes: IConstruct[] = [];
@@ -61,16 +73,24 @@ export class ServerlessSpy extends Construct {
     });
     this.createdContructs.push(this.table);
 
+    const envVars: {
+      [key: string]: string;
+    } = {
+      [envVariableNames.SSPY_WS_TABLE_NAME]: this.table.tableName,
+      NODE_OPTIONS: '--enable-source-maps',
+    };
+
+    if (this.props?.debugMode) {
+      envVars[envVariableNames.SSPY_DEBUG] = 'true';
+    }
+
     const functionOnConnect = new lambdaNode.NodejsFunction(this, 'OnConnect', {
       memorySize: 512,
       timeout: Duration.seconds(5),
       runtime: lambda.Runtime.NODEJS_16_X,
       handler: 'handler',
       entry: this.getAssetLocation('functions/onConnect.ts'),
-      environment: {
-        [envVariableNames.SSPY_WS_TABLE_NAME]: this.table.tableName,
-        NODE_OPTIONS: '--enable-source-maps',
-      },
+      environment: envVars,
     });
     this.table.grantWriteData(functionOnConnect);
     this.createdContructs.push(functionOnConnect);
@@ -84,10 +104,7 @@ export class ServerlessSpy extends Construct {
         runtime: lambda.Runtime.NODEJS_16_X,
         handler: 'handler',
         entry: this.getAssetLocation('functions/onDisconnect.ts'),
-        environment: {
-          [envVariableNames.SSPY_WS_TABLE_NAME]: this.table.tableName,
-          NODE_OPTIONS: '--enable-source-maps',
-        },
+        environment: envVars,
       }
     );
     this.table.grantWriteData(functionOnDisconnect);
@@ -121,12 +138,12 @@ export class ServerlessSpy extends Construct {
       ),
     });
 
-    this.functionSubscriptionMain = this.provideFunctionForSubscription();
+    this.lambdaSubscriptionMain = this.provideFunctionForSubscription();
 
     this.webSocketApi.addRoute('sendmessage', {
       integration: new apiGwV2Int.WebSocketLambdaIntegration(
         'SendMessage',
-        this.functionSubscriptionMain.function
+        this.lambdaSubscriptionMain.function
       ),
     });
 
@@ -139,6 +156,10 @@ export class ServerlessSpy extends Construct {
     });
   }
 
+  /**
+   * Initalize spying on resources given as parameter.
+   * @param nodes Which reources and their children to spy on.
+   */
   public spyNodes(nodes: IConstruct[]) {
     for (const node of nodes) {
       let ns = this.iterateAllNodes(node);
@@ -148,18 +169,14 @@ export class ServerlessSpy extends Construct {
     this.finializeSpy();
   }
 
-  public spy(filter?: {
-    spyLambda?: boolean;
-    spySqs?: boolean;
-    spySnsTopic?: boolean;
-    spySnsSubsription?: boolean;
-    spyEventBridge?: boolean;
-    spyS3?: boolean;
-    spyDynamoDB?: boolean;
-  }) {
+  /**
+   * Initalize spying on resources.
+   * @param filter Limit which resources to spy on.
+   */
+  public spy(filter?: SpyFilter) {
     let nodes = this.iterateAllNodes(Stack.of(this));
 
-    const filt = {
+    const filterWithDefaults: Required<SpyFilter> = {
       spyLambda: true,
       spySqs: true,
       spySnsTopic: true,
@@ -172,21 +189,36 @@ export class ServerlessSpy extends Construct {
     };
 
     nodes = nodes.filter((node) => {
-      if (filt.spyLambda && node instanceof lambda.Function) {
+      if (filterWithDefaults.spyLambda && node instanceof lambda.Function) {
         return true;
-      } else if (filt.spySnsTopic && node instanceof sns.Topic) {
+      } else if (filterWithDefaults.spySnsTopic && node instanceof sns.Topic) {
         return true;
-      } else if (filt.spySnsSubsription && node instanceof sns.Subscription) {
+      } else if (
+        filterWithDefaults.spySnsSubsription &&
+        node instanceof sns.Subscription
+      ) {
         return true;
-      } else if (filt.spyS3 && node instanceof s3.Bucket) {
+      } else if (filterWithDefaults.spyS3 && node instanceof s3.Bucket) {
         return true;
-      } else if (filt.spyDynamoDB && node instanceof dynamoDb.Table) {
+      } else if (
+        filterWithDefaults.spyDynamoDB &&
+        node instanceof dynamoDb.Table
+      ) {
         return true;
-      } else if (filt.spyEventBridge && node instanceof events.EventBus) {
+      } else if (
+        filterWithDefaults.spyEventBridge &&
+        node instanceof events.EventBus
+      ) {
         return true;
-      } else if (filt.spyEventBridgeRule && node instanceof events.Rule) {
+      } else if (
+        filterWithDefaults.spyEventBridgeRule &&
+        node instanceof events.Rule
+      ) {
         return true;
-      } else if (filt.spySqs && node instanceof lambda.CfnEventSourceMapping) {
+      } else if (
+        filterWithDefaults.spySqs &&
+        node instanceof lambda.CfnEventSourceMapping
+      ) {
         return true;
       }
 
@@ -195,8 +227,6 @@ export class ServerlessSpy extends Construct {
 
     this.internalSpyNodes(nodes);
     this.finializeSpy();
-
-    console.log('--------------------------------------');
   }
 
   private internalSpyNodes(nodes: IConstruct[]) {
@@ -207,7 +237,7 @@ export class ServerlessSpy extends Construct {
 
   private finializeSpy() {
     //set mapping property for all functions we created
-    for (const func of this.functionSubscriptionPool) {
+    for (const func of this.lambdaSubscriptionPool) {
       func.function.addEnvironment(
         envVariableNames.SSPY_INFRA_MAPPING,
         JSON.stringify(func.mapping)
@@ -215,13 +245,13 @@ export class ServerlessSpy extends Construct {
     }
 
     //set mapping property for all functions we spy on
-    for (const func of this.functionsSpied) {
+    for (const func of this.lambdasSpied) {
       func.function.addEnvironment(
         envVariableNames.SSPY_INFRA_MAPPING,
         JSON.stringify(func.mapping)
       );
     }
-    for (const func of this.functionsSpied) {
+    for (const func of this.lambdasSpied) {
       func.function.addEnvironment(
         envVariableNames.SSPY_INFRA_MAPPING,
         JSON.stringify(func.mapping)
@@ -317,14 +347,16 @@ export class ServerlessSpy extends Construct {
       return;
     }
 
-    if (this.functionSubscriptionPool.find((s) => s.function === node)) {
+    if (this.lambdaSubscriptionPool.find((s) => s.function === node)) {
       return;
     }
 
-    console.log('SPY', node);
+    if (this.props?.debugMode) {
+      console.debug('Spy node', this.getConstructName(node));
+    }
 
     if (node instanceof lambda.Function) {
-      this.internalSpyFunction(node);
+      this.internalSpyLambda(node);
     } else if (node instanceof sns.Topic) {
       this.internalSpySnsTopic(node);
     } else if (node instanceof sns.Subscription) {
@@ -360,7 +392,6 @@ export class ServerlessSpy extends Construct {
 
       const serviceKey = `Sqs#${queueName}`;
 
-      //this.functionSubscriptionMain.mapping[queue.queueArn] = serviceKey;
       func.addEnvironment(
         envVariableNames.SSPY_INFRA_MAPPING,
         JSON.stringify({})
@@ -408,13 +439,13 @@ export class ServerlessSpy extends Construct {
   private internalSpyS3(s3Bucket: s3.Bucket) {
     s3Bucket.addEventNotification(
       s3.EventType.OBJECT_CREATED_PUT,
-      new s3notif.LambdaDestination(this.functionSubscriptionMain.function)
+      new s3notif.LambdaDestination(this.lambdaSubscriptionMain.function)
     );
 
     const name = this.getConstructName(s3Bucket);
 
     const serviceKey = `S3#${name}`;
-    this.functionSubscriptionMain.mapping[s3Bucket.bucketArn] = serviceKey;
+    this.lambdaSubscriptionMain.mapping[s3Bucket.bucketArn] = serviceKey;
     this.serviceKeys.push(serviceKey);
   }
 
@@ -427,7 +458,7 @@ export class ServerlessSpy extends Construct {
       table.node.defaultChild as dynamoDb.CfnTable
     ).attrStreamArn;
 
-    this.functionSubscriptionMain.function.addEventSource(
+    this.lambdaSubscriptionMain.function.addEventSource(
       new dynamoDbStream.DynamoEventSource(table, {
         startingPosition: lambda.StartingPosition.LATEST,
         batchSize: 1,
@@ -438,7 +469,7 @@ export class ServerlessSpy extends Construct {
     const name = this.getConstructName(table);
 
     const serviceKey = `DynamoDB#${name}`;
-    this.functionSubscriptionMain.mapping[table.tableArn] = serviceKey;
+    this.lambdaSubscriptionMain.mapping[table.tableArn] = serviceKey;
     this.serviceKeys.push(serviceKey);
   }
 
@@ -539,14 +570,14 @@ export class ServerlessSpy extends Construct {
   }
 
   private provideFunctionForSubscription(
-    filterFunction?: (subscription: FunctionSubscription) => boolean
+    filterFunction?: (subscription: LambdaSubscription) => boolean
   ) {
-    let functionSubscription: FunctionSubscription | undefined;
+    let functionSubscription: LambdaSubscription | undefined;
 
     if (filterFunction) {
-      functionSubscription = this.functionSubscriptionPool.find(filterFunction);
-    } else if (this.functionSubscriptionPool.length > 0) {
-      functionSubscription = this.functionSubscriptionPool[0];
+      functionSubscription = this.lambdaSubscriptionPool.find(filterFunction);
+    } else if (this.lambdaSubscriptionPool.length > 0) {
+      functionSubscription = this.lambdaSubscriptionPool[0];
     }
 
     if (!functionSubscription) {
@@ -555,15 +586,15 @@ export class ServerlessSpy extends Construct {
         usedForEventBridge: false,
         mapping: {},
         function: this.createFunctionForSubscription(
-          this.functionSubscriptionPool.length
+          this.lambdaSubscriptionPool.length
         ),
       };
-      this.functionSubscriptionPool.push(functionSubscription);
+      this.lambdaSubscriptionPool.push(functionSubscription);
     }
     return functionSubscription;
   }
 
-  private internalSpyFunction(func: lambda.Function) {
+  private internalSpyLambda(func: lambda.Function) {
     func.addLayers(this.extensionLayer);
 
     const functionName = this.getConstructName(func);
@@ -578,6 +609,10 @@ export class ServerlessSpy extends Construct {
       envVariableNames.SSPY_WS_ENDPOINT,
       this.getWsEndpoint()
     );
+
+    if (this.props?.debugMode) {
+      func.addEnvironment(envVariableNames.SSPY_DEBUG, 'true');
+    }
 
     this.table.grantWriteData(func);
     this.table.grantReadData(func);
@@ -642,7 +677,7 @@ export class ServerlessSpy extends Construct {
     func: lambda.Function,
     keyValue?: { key: string; value: string }
   ) {
-    for (const fs of this.functionsSpied) {
+    for (const fs of this.lambdasSpied) {
       if (fs.function === func) {
         if (keyValue) {
           fs.mapping[keyValue.key] = keyValue.value;
@@ -651,7 +686,7 @@ export class ServerlessSpy extends Construct {
       }
     }
 
-    const fs: FunctionSpied = {
+    const fs: LambdaSpied = {
       function: func,
       mapping: {},
     };
@@ -660,7 +695,7 @@ export class ServerlessSpy extends Construct {
       fs.mapping[keyValue.key] = keyValue.value;
     }
 
-    this.functionsSpied.push(fs);
+    this.lambdasSpied.push(fs);
   }
 
   private getAssetLocation(location: string) {
@@ -680,14 +715,14 @@ export class ServerlessSpy extends Construct {
   }
 }
 
-type FunctionSubscription = {
+type LambdaSubscription = {
   subsribedTopics: sns.Topic[];
   usedForEventBridge: boolean;
   function: lambdaNode.NodejsFunction;
   mapping: Record<string, string>;
 };
 
-type FunctionSpied = {
+type LambdaSpied = {
   function: lambda.Function;
   mapping: Record<string, string>;
 };

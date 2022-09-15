@@ -20,7 +20,12 @@ export enum envVariableNames {
   SSPY_FUNCTION_NAME = 'SSPY_FUNCTION_NAME',
 
   /**
-   *DynamoDB table name that stores active websocket connections.
+   * DynamoDB table name that stores active websocket connections.
    */
   SSPY_WS_TABLE_NAME = 'SSPY_WS_TABLE_NAME',
+
+  /**
+   * Log debugging details.
+   */
+  SSPY_DEBUG = 'SSPY_DEBUG',
 }

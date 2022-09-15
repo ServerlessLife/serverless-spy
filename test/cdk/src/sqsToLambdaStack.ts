@@ -30,6 +30,7 @@ export class SqsToLambdaStack extends Stack {
       generateSpyEventsFileLocation: props.generateSpyEventsFile
         ? '.cdkOut/ServerlessSpyEventsSqsToLambda.ts'
         : undefined,
+      debugMode: true,
     });
 
     serverlessSpy.spy();

@@ -33,6 +33,7 @@ export class LambdaToDynamoDbStack extends Stack {
       generateSpyEventsFileLocation: props.generateSpyEventsFile
         ? '.cdkOut/ServerlessSpyEventsLambdaToDynamoDbStack.ts'
         : undefined,
+      debugMode: true,
     });
 
     serverlessSpy.spy();

@@ -16,8 +16,11 @@ export class WsListener<TSpyEvents> {
   private ws?: WebSocket;
   private closed = true;
   private functionPrefix = 'waitFor';
+  private debugMode = false;
 
-  async start(params: ServerlessSpyListenerParams) {
+  public async start(params: ServerlessSpyListenerParams) {
+    this.debugMode = !!params.debugMode;
+
     this.waitForConnection = new Promise((resolve) => {
       this.connectionOpenResolve = resolve;
     });
@@ -30,10 +33,13 @@ export class WsListener<TSpyEvents> {
     this.ws = new WebSocket(urlSigned);
     this.closed = false;
     this.ws.on('open', () => {
+      this.log('Connection oppened');
       this.connectionOpenResolve!();
     });
     this.ws.on('message', (data) => {
       if (this.closed) return;
+
+      this.log('Message received', data);
 
       const message = JSON.parse(data.toString()) as SpyMessageStorage;
 
@@ -49,19 +55,20 @@ export class WsListener<TSpyEvents> {
       this.resolveOldTrackerWithNewMessage(message);
     });
     this.ws.on('close', () => {
+      this.log('Connection closed');
+
       this.closed = true;
-      //console.log('disconnected ' + new Date().toISOString());
     });
 
     await this.waitForConnection;
   }
 
-  async stop() {
+  public async stop() {
     this.closed = true;
     this.ws!.close();
   }
 
-  trackerMatchMessage(tracker: Tracker, message: SpyMessageStorage) {
+  private trackerMatchMessage(tracker: Tracker, message: SpyMessageStorage) {
     if (tracker.finished) return;
 
     if (
@@ -179,7 +186,7 @@ export class WsListener<TSpyEvents> {
     }
   }
 
-  public createWaitForXXXFunc(
+  private createWaitForXXXFunc(
     serviceKeyForFunction: string,
     functionContextAwsRequestId?: string
   ) {
@@ -195,7 +202,6 @@ export class WsListener<TSpyEvents> {
       };
     });
 
-    //waitForXXXFunc
     return (paramsW?: WaitForParams<SpyEvent>) => {
       tracker.condition = paramsW?.condition;
 
@@ -252,6 +258,12 @@ export class WsListener<TSpyEvents> {
     });
 
     return proxy as ServerlessSpyListener<TSpyEvents>;
+  }
+
+  private log(message: string, ...optionalParams: any[]) {
+    if (this.debugMode) {
+      console.debug('SSPY', message, ...optionalParams);
+    }
   }
 }
 

@@ -13,7 +13,7 @@ const ORIGINAL_HANDLER_KEY = 'ORIGINAL_HANDLER';
 const subscribedToSQS =
   process.env[envVariableNames.SSPY_SUBSCRIBED_TO_SQS] === 'true';
 
-const lambdaClient = new LambdaClient({});
+const debugMode = process.env[envVariableNames.SSPY_DEBUG] === 'true';
 
 // Wrap original handler.
 // Handler can be async or non-async:
@@ -23,11 +23,13 @@ export const handler = (
   context: Context,
   callback: Callback
 ): Promise<any> | undefined => {
+  log('Request', JSON.stringify(event));
+
   const promises: Promise<any>[] = [];
 
   if (subscribedToSQS) {
     // send raw message
-    console.log('EXTENSION: Send raw message for SQS');
+    log('Send raw message for SQS');
     const p = sendRawSpyEvent(event);
     promises.push(p);
   }
@@ -39,7 +41,6 @@ export const handler = (
     clientContext: context.clientContext,
   };
 
-  console.log('EXTENSION REQUEST:', JSON.stringify(event));
   const key = `Function#${
     process.env[envVariableNames.SSPY_FUNCTION_NAME]
   }#Request`;
@@ -52,7 +53,7 @@ export const handler = (
   const originalHandler = getOriginalHandler();
 
   const fail = (error: any) => {
-    console.error('FAIL', error);
+    logError(error);
     const key = `Function#${
       process.env[envVariableNames.SSPY_FUNCTION_NAME]
     }#Error`;
@@ -66,7 +67,7 @@ export const handler = (
   };
 
   const succeed = (response: any) => {
-    console.log('EXTENSION RESPONSE:', JSON.stringify(response));
+    log('Response', JSON.stringify(response));
     const key = `Function#${
       process.env[envVariableNames[envVariableNames.SSPY_FUNCTION_NAME]]
     }#Response`;
@@ -136,20 +137,10 @@ async function sendLambdaSpyEvent(
 
 async function sendRawSpyEvent(data: any) {
   await publishSpyEvent(data);
-
-  // console.log('EXTENSION SPY EVENT:', JSON.stringify(data));
-
-  // const command = new InvokeCommand({
-  //   FunctionName: fluentTestSendFunctionName,
-  //   InvocationType: 'RequestResponse',
-  //   LogType: 'Tail',
-  //   Payload: JSON.stringify(data) as any,
-  // });
-  // await lambdaClient.send(command);
 }
 
 function getOriginalHandler(): Handler {
-  console.log('ORIGINAL_HANDLER_KEY', process.env[ORIGINAL_HANDLER_KEY]);
+  log('Original handler', process.env[ORIGINAL_HANDLER_KEY]);
 
   if (process.env[ORIGINAL_HANDLER_KEY] === undefined)
     throw Error('Missing original handler');
@@ -157,4 +148,16 @@ function getOriginalHandler(): Handler {
     process.env.LAMBDA_TASK_ROOT!,
     process.env[ORIGINAL_HANDLER_KEY]
   ) as Handler;
+}
+
+function log(message: string, ...optionalParams: any[]) {
+  if (debugMode) {
+    console.debug('SSPY EXTENSION', message, ...optionalParams);
+  }
+}
+
+function logError(message: string, ...optionalParams: any[]) {
+  if (debugMode) {
+    console.error('SSPY EXTENSION', message, ...optionalParams);
+  }
 }

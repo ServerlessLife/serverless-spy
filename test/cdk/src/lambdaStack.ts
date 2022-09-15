@@ -24,6 +24,7 @@ export class LambdaStack extends Stack {
       generateSpyEventsFileLocation: props.generateSpyEventsFile
         ? '.cdkOut/ServerlessSpyEventsLambda.ts'
         : undefined,
+      debugMode: true,
     });
 
     serverlessSpy.spy();
