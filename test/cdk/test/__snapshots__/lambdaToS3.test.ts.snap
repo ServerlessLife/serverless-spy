@@ -784,7 +784,7 @@ def submit_response(event: dict, context, response_status: str, error_message: s
           "S3Bucket": Object {
             "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
           },
-          "S3Key": "5effcd9566350956332d74438241607c8840a670444a7548b6dbf5b580f5750e.zip",
+          "S3Key": "692c14d6f59bd4256592d354c0eb9f70915896ad831b91816e895b3407eb1f72.zip",
         },
       },
       "Type": "AWS::Lambda::LayerVersion",
@@ -1005,7 +1005,7 @@ def submit_response(event: dict, context, response_status: str, error_message: s
           "S3Bucket": Object {
             "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
           },
-          "S3Key": "b40bcf7dc541b21cd786763af7b21b2fd59aba5a608668a17f4aebe714b94c54.zip",
+          "S3Key": "809ad07666cdc6682ea6868d8a7ac0f7420d32abb6cf3d9f559aa90f6ead96b4.zip",
         },
         "Environment": Object {
           "Variables": Object {

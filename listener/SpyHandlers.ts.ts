@@ -1,6 +1,7 @@
 import { DynamoDBSpyEvent } from '../common/spyEvents/DynamoDBSpyEvent';
 import { EventBridgeRuleSpyEvent } from '../common/spyEvents/EventBridgeRuleSpyEvent';
 import { EventBridgeSpyEvent } from '../common/spyEvents/EventBridgeSpyEvent';
+import { FunctionConsole } from '../common/spyEvents/FunctionConsole';
 import { FunctionConsoleSpyEvent } from '../common/spyEvents/FunctionConsoleSpyEvent';
 import { FunctionContext } from '../common/spyEvents/FunctionContext';
 import { FunctionRequestSpyEvent } from '../common/spyEvents/FunctionRequestSpyEvent';
@@ -112,13 +113,26 @@ export interface FunctionBaseSpyHandler<TData = any>
     FunctionRequestSpyEvent<TData>,
     FunctionRequestSpyHandler<TData>
   > {
-  // follwedByConsoleLog: () => Promise<
-  //   FunctionBaseSpyHandler<TData> &
-  //     JestExpectWithSpyMethods<
-  //       FunctionRequestSpyEvent<TData>,
-  //       FunctionRequestSpyHandler<TData>
-  //     >
-  // >;
+  followedByConsole: (
+    // This implementation confuses TypeScript which does not accurately display the type.
+    param?: {
+      condition?: (event: {
+        spyEventType: 'FunctionConsole';
+        request: TData;
+        context: FunctionContext;
+        console: FunctionConsole;
+      }) => boolean;
+      timoutMs?: number;
+    }
+  ) => Promise<
+    FunctionBaseSpyHandler<TData> &
+      FunctionConsoleSpyHandler<TData> &
+      JestExpectWithSpyMethods<
+        FunctionConsoleSpyEvent<TData>,
+        FunctionRequestSpyHandler<TData>
+      >
+  >;
+
   followedByResponse: <TDataResponse = any>(
     // This implementation confuses TypeScript which does not accurately display the type.
     // Leave it for reference!
@@ -137,7 +151,7 @@ export interface FunctionBaseSpyHandler<TData = any>
       timoutMs?: number;
     }
   ) => Promise<
-    FunctionResponseSpyHandler &
+    FunctionResponseSpyHandler<TData> &
       JestExpectWithSpyMethods<
         FunctionRequestSpyEvent<TData>,
         FunctionRequestSpyHandler<TData>
@@ -151,8 +165,55 @@ export interface FunctionRequestSpyHandler<TData = any>
 }
 
 export interface FunctionConsoleSpyHandler<TData = any>
-  extends FunctionBaseSpyHandler<TData> {
+  extends JestExpectWithSpyMethods<
+    FunctionConsoleSpyEvent<TData>,
+    FunctionConsoleSpyHandler<TData>
+  > {
   getData: () => PrettifyForDisplay<FunctionConsoleSpyEvent<TData>>;
+  followedByConsole: (
+    // This implementation confuses TypeScript which does not accurately display the type.
+    param?: {
+      condition?: (event: {
+        spyEventType: 'FunctionConsole';
+        request: TData;
+        context: FunctionContext;
+        console: FunctionConsole;
+      }) => boolean;
+      timoutMs?: number;
+    }
+  ) => Promise<
+    FunctionBaseSpyHandler<TData> &
+      FunctionConsoleSpyHandler<TData> &
+      JestExpectWithSpyMethods<
+        FunctionConsoleSpyEvent<TData>,
+        FunctionRequestSpyHandler<TData>
+      >
+  >;
+
+  followedByResponse: <TDataResponse = any>(
+    // This implementation confuses TypeScript which does not accurately display the type.
+    // Leave it for reference!
+    // param: PrettifyForDisplay<
+    //   WaitForParams<
+    //     PrettifyForDisplay<FunctionResponseSpyEvent<TData, TDataResponse>>
+    //   >
+    // >
+    param?: {
+      condition?: (event: {
+        spyEventType: 'FunctionResponse';
+        request: TData;
+        context: FunctionContext;
+        response: TDataResponse;
+      }) => boolean;
+      timoutMs?: number;
+    }
+  ) => Promise<
+    FunctionResponseSpyHandler<TData> &
+      JestExpectWithSpyMethods<
+        FunctionRequestSpyEvent<TData>,
+        FunctionRequestSpyHandler<TData>
+      >
+  >;
 }
 
 export interface FunctionResponseSpyHandler<TData = any>

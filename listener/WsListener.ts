@@ -90,27 +90,30 @@ export class WsListener<TSpyEvents> {
           (serviceKeyForFunction.endsWith('Request') ||
             serviceKeyForFunction.endsWith('Console'))
         ) {
-          let serviceKeyForFunctionResponse = serviceKeyForFunction;
+          let serviceKeyForFunctionChain = serviceKeyForFunction;
 
-          if (serviceKeyForFunctionResponse.endsWith('Request')) {
-            serviceKeyForFunctionResponse =
-              serviceKeyForFunctionResponse.substring(
-                0,
-                serviceKeyForFunctionResponse.length - 'Request'.length
-              );
-          } else if (serviceKeyForFunctionResponse.endsWith('Console')) {
-            serviceKeyForFunctionResponse =
-              serviceKeyForFunctionResponse.substring(
-                0,
-                serviceKeyForFunctionResponse.length - 'Console'.length
-              );
+          if (serviceKeyForFunctionChain.endsWith('Request')) {
+            serviceKeyForFunctionChain = serviceKeyForFunctionChain.substring(
+              0,
+              serviceKeyForFunctionChain.length - 'Request'.length
+            );
+          } else if (serviceKeyForFunctionChain.endsWith('Console')) {
+            serviceKeyForFunctionChain = serviceKeyForFunctionChain.substring(
+              0,
+              serviceKeyForFunctionChain.length - 'Console'.length
+            );
           }
 
-          serviceKeyForFunctionResponse += 'Response';
+          spyAndJestMatchers.followedByConsole = (paramsW: WaitForParams) => {
+            return this.createWaitForXXXFunc(
+              `${serviceKeyForFunctionChain}Console`,
+              (message.data as FunctionRequestSpyEvent).context.awsRequestId
+            )(paramsW);
+          };
 
           spyAndJestMatchers.followedByResponse = (paramsW: WaitForParams) => {
             return this.createWaitForXXXFunc(
-              serviceKeyForFunctionResponse,
+              `${serviceKeyForFunctionChain}Response`,
               (message.data as FunctionRequestSpyEvent).context.awsRequestId
             )(paramsW);
           };

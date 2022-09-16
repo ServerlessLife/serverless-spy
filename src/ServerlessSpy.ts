@@ -394,7 +394,6 @@ export class ServerlessSpy extends Construct {
       return; //already have subscription
     }
 
-    console.log('********** ADD LAMBDA *******************');
     const queueName = this.getConstructName(queue);
     const func = new NodejsFunction(
       this,

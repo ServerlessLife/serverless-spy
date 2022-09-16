@@ -1,10 +1,10 @@
-import { LambdaClient, InvokeCommand } from '@aws-sdk/client-lambda';
 import { Callback, Context, Handler } from 'aws-lambda';
-import { publishSpyEvent } from '../common/publishSpyEvent';
+import { FunctionConsoleSpyEvent } from '../common/spyEvents/FunctionConsoleSpyEvent';
 import { FunctionContext } from '../common/spyEvents/FunctionContext';
 import { FunctionErrorSpyEvent } from '../common/spyEvents/FunctionErrorSpyEvent';
 import { FunctionRequestSpyEvent } from '../common/spyEvents/FunctionRequestSpyEvent';
 import { FunctionResponseSpyEvent } from '../common/spyEvents/FunctionResponseSpyEvent';
+import { SpyEventSender } from '../common/SpyEventSender';
 import { envVariableNames } from '../src/common/envVariableNames';
 import { load } from './aws/UserFunction';
 
@@ -15,6 +15,22 @@ const subscribedToSQS =
 
 const debugMode = process.env[envVariableNames.SSPY_DEBUG] === 'true';
 
+const oldConsoleLog = console.log;
+const oldConsoleWarn = console.warn;
+const oldConsoleDebug = console.debug;
+const oldConsoleInfo = console.info;
+const oldConsoleError = console.error;
+let currentEvent: any;
+let currentContext: FunctionContext | undefined;
+let promises: Promise<any>[] = [];
+
+interceptConsole();
+
+const spyEventSender = new SpyEventSender({
+  log,
+  logError,
+});
+
 // Wrap original handler.
 // Handler can be async or non-async:
 // https://docs.aws.amazon.com/lambda/latest/dg/nodejs-prog-model-handler.html
@@ -23,9 +39,19 @@ export const handler = (
   context: Context,
   callback: Callback
 ): Promise<any> | undefined => {
-  log('Request', JSON.stringify(event));
+  const contextSpy: FunctionContext = {
+    functionName: context.functionName,
+    awsRequestId: context.awsRequestId,
+    identity: context.identity,
+    clientContext: context.clientContext,
+  };
 
-  const promises: Promise<any>[] = [];
+  currentEvent = event;
+  currentContext = contextSpy;
+
+  promises = [];
+
+  log('Request', JSON.stringify(event));
 
   if (subscribedToSQS) {
     // send raw message
@@ -33,13 +59,6 @@ export const handler = (
     const p = sendRawSpyEvent(event);
     promises.push(p);
   }
-
-  const contextSpy: FunctionContext = {
-    functionName: context.functionName,
-    awsRequestId: context.awsRequestId,
-    identity: context.identity,
-    clientContext: context.clientContext,
-  };
 
   const key = `Function#${
     process.env[envVariableNames.SSPY_FUNCTION_NAME]
@@ -63,6 +82,8 @@ export const handler = (
       context: contextSpy,
     });
     promises.push(p);
+    currentEvent = undefined;
+    currentContext = undefined;
     return Promise.all(promises);
   };
 
@@ -77,6 +98,9 @@ export const handler = (
       context: contextSpy,
     });
     promises.push(p);
+    currentEvent = undefined;
+    currentContext = undefined;
+
     return Promise.all(promises);
   };
 
@@ -117,6 +141,59 @@ export const handler = (
   }
 };
 
+function interceptConsole() {
+  const sendLogs = (
+    type: 'log' | 'debug' | 'info' | 'error' | 'warn',
+    args?: any[]
+  ) => {
+    if (!currentContext) return;
+
+    log(`Console ${type}`, JSON.stringify(args));
+    const message = args?.shift();
+
+    const key = `Function#${
+      process.env[envVariableNames.SSPY_FUNCTION_NAME]
+    }#Console`;
+
+    const p = sendLambdaSpyEvent(key, <FunctionConsoleSpyEvent>{
+      request: currentEvent,
+      context: currentContext,
+      console: {
+        type,
+        message,
+        optionalParams: args,
+      },
+    });
+
+    promises.push(p);
+  };
+
+  console.log = function (...args: any[]) {
+    sendLogs('log', args);
+    oldConsoleLog.apply(console, args);
+  };
+
+  console.warn = function (...args: any[]) {
+    sendLogs('warn', args);
+    oldConsoleWarn.apply(console, args);
+  };
+
+  console.debug = function (...args: any[]) {
+    sendLogs('debug', args);
+    oldConsoleDebug.apply(console, args);
+  };
+
+  console.info = function (...args: any[]) {
+    sendLogs('info', args);
+    oldConsoleInfo.apply(console, args);
+  };
+
+  console.error = function (...args: any[]) {
+    sendLogs('error', args);
+    oldConsoleError.apply(console, args);
+  };
+}
+
 function isPromise(obj: any): boolean {
   return typeof obj?.then === 'function';
 }
@@ -136,7 +213,7 @@ async function sendLambdaSpyEvent(
 }
 
 async function sendRawSpyEvent(data: any) {
-  await publishSpyEvent(data);
+  await spyEventSender.publishSpyEvent(data);
 }
 
 function getOriginalHandler(): Handler {
@@ -152,12 +229,12 @@ function getOriginalHandler(): Handler {
 
 function log(message: string, ...optionalParams: any[]) {
   if (debugMode) {
-    console.debug('SSPY EXTENSION', message, ...optionalParams);
+    oldConsoleDebug('SSPY EXTENSION', message, ...optionalParams);
   }
 }
 
 function logError(message: string, ...optionalParams: any[]) {
   if (debugMode) {
-    console.error('SSPY EXTENSION', message, ...optionalParams);
+    oldConsoleError('SSPY EXTENSION', message, ...optionalParams);
   }
 }
