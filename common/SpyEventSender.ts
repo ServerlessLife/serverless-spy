@@ -207,6 +207,7 @@ export class SpyEventSender {
         spyEventType,
         detail: message,
         detailType: eventEb['detail-type'],
+        eventBridgeId: eventEb['id'],
         source: eventEb.source,
         time: eventEb.time,
         account: eventEb.account,

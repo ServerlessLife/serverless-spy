@@ -5,6 +5,7 @@ export interface EventBridgeSpyEvent<
   EventBridgeDetailType extends string = string
 > extends SpyEvent {
   spyEventType: 'EventBridge';
+  eventBridgeId: string;
   detail: MessageType;
   detailType: EventBridgeDetailType;
   source: string;
