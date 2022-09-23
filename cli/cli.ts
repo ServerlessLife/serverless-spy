@@ -1,39 +1,59 @@
 import * as fs from 'fs';
 import * as http from 'http';
 import * as path from 'path';
+import { program } from 'commander';
 import open from 'open';
-import { getWebSocketUrl } from '../common/getWebSocketUrl';
+import { getWebSocketUrl as getSignedWebSocketUrl } from '../common/getWebSocketUrl';
 
 async function run() {
-  const cdkExportFileName = '../.spy/cdkExports.json';
+  program
+    .option('--ws <ws>', 'Websocket link')
+    .option(
+      '--cdkoutput <cdkoutput>',
+      'CDK output file that contains Websocket link in a property ServerlessSpyWsUrl'
+    )
+    .option(
+      '--cdkstack <cdkstack>',
+      'CDK stack in cdk output file. If not specified the first one is picked.'
+    )
+    .option('--open', 'Open browser', true)
+    .option(
+      '--port <p>',
+      `CDK stack in cdk output file. If not specified the first one is picked.`,
+      '3456'
+    );
+  program.parse();
+
+  const options = program.opts();
 
   let serverlessSpyWsUrl: string | undefined;
-  if (fs.existsSync(cdkExportFileName)) {
-    const rawdata = fs.readFileSync(cdkExportFileName);
+
+  if (options.ws) {
+    serverlessSpyWsUrl = options.ws;
+  } else if (options.cdkoutput) {
+    const rawdata = fs.readFileSync(path.join(__dirname, options.cdkoutput));
     const config = JSON.parse(rawdata.toString());
 
     if (config && config[Object.keys(config)[0]]) {
-      // get first ServerlessSpyWsUrl
-      // {
-      //   "my-stack": {
-      //     "ServerlessSpyWsUrl": "xxx"
-      //   }
-      // }
-
       serverlessSpyWsUrl = config[Object.keys(config)[0]].ServerlessSpyWsUrl;
+    }
+
+    if (options.cdkstack) {
+      serverlessSpyWsUrl = config[options.cdkstack].ServerlessSpyWsUrl;
+    } else {
+      if (config && config[Object.keys(config)[0]]) {
+        serverlessSpyWsUrl = config[Object.keys(config)[0]].ServerlessSpyWsUrl;
+      }
     }
   }
 
-  serverlessSpyWsUrl =
-    'wss://lcvewdlge0.execute-api.eu-west-1.amazonaws.com/prod';
-
   if (!serverlessSpyWsUrl) {
-    throw new Error('Missing WS url');
+    throw new Error('Missing websocket url');
   }
 
-  console.log('serverlessSpyWsUrl', serverlessSpyWsUrl);
+  console.log(`Websocket URL: ${serverlessSpyWsUrl}`);
 
-  const wsUrl = await getWebSocketUrl(serverlessSpyWsUrl);
+  const wsUrl = await getSignedWebSocketUrl(serverlessSpyWsUrl);
 
   // source https://developer.mozilla.org/en-US/docs/Learn/Server-side/Node_server_without_framework
   http
@@ -94,9 +114,9 @@ async function run() {
         }
       });
     })
-    .listen(8125);
+    .listen(options.port);
 
-  await open('http://localhost:8125');
+  await open(`http://localhost:${options.port}`);
 }
 
 run().catch(console.error);

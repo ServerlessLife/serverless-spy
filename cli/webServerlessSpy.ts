@@ -5,10 +5,9 @@ import { FunctionBaseSpyEvent } from '../common/spyEvents/FunctionBaseSpyEvent';
 import { SnsSpyEventBase } from '../common/spyEvents/SnsSpyEventBase';
 import { SpyEvent } from '../common/spyEvents/SpyEvent';
 import { SpyMessage } from '../common/spyEvents/SpyMessage';
-import { list } from './messages';
+//import { sampleData } from './sampleData';
 
 //needed because of strange bug in Bootstrap Tooltip
-
 (window as any).process = { env: {} };
 
 function run() {
@@ -119,9 +118,11 @@ function run() {
     console.log('disconnected ' + new Date().toISOString());
   });
 
-  for (const sm of list) {
-    addSpyMessage(sm as any);
-  }
+  // Do not remove!
+  // sample data for testing purposes
+  // for (const sm of sampleData) {
+  //   addSpyMessage(sm as any);
+  // }
 
   window.requestAnimationFrame(render);
 
@@ -132,11 +133,6 @@ function run() {
     ).toLocaleLowerCase();
     spyMessageExt.serviceKeyLowerCase =
       spyMessageExt.serviceKey.toLocaleLowerCase();
-
-    // spyMessages.push(spyMessage);
-    // spyMessagesChanged = true;
-
-    // return;
 
     const service = getServiceName(spyMessageExt.serviceKey);
     let spyMessageToAdd: SpyMessageExt | SpyMessageGroup | undefined =
@@ -241,7 +237,6 @@ function run() {
     } catch {}
 
     return testServiceKey && testData;
-    //return testServiceKey;
   }
 
   function getServiceKeyFunctionStep(serviceKey: string) {
@@ -269,8 +264,6 @@ function run() {
       .map((sm, i) => {
         const service = getServiceName(sm.serviceKey);
         let icon: string | undefined;
-        // let iconLinked =
-        //   '<i class="icon-subscription bi bi-caret-right-fill"></i>';
 
         let iconLinked = '<i class="icon-linked bi bi-arrow-return-right"></i>';
 
@@ -278,7 +271,6 @@ function run() {
           case 'Function':
             const step = getServiceKeyFunctionStep(sm.serviceKey);
 
-            //if (step === 'Request') {
             if (i === 0) {
               icon = `<img class="aws-icon" src="icons/Arch_AWS-Lambda_16.svg" ></img>`;
             } else {
@@ -306,8 +298,6 @@ function run() {
               '<img class="aws-icon" src="icons/Arch_Amazon-Simple-Queue-Service_16.svg" />';
             break;
           case 'EventBridgeRule':
-            //icon = `${iconLinked}<img class="aws-icon" src="icons/Arch_Amazon-EventBridge_16.svg" />`;
-            //icon = iconLinked;
             if (i === 0) {
               icon =
                 '<img class="aws-icon" src="icons/Arch_Amazon-EventBridge_16.svg" />';
@@ -316,9 +306,6 @@ function run() {
             }
             break;
           case 'SnsSubscription':
-            //icon = `${iconLinked}<img class="aws-icon" src="icons/Arch_Amazon-Simple-Notification-Service_16.svg" />`;
-            //icon = iconLinked;
-
             if (i === 0) {
               icon =
                 '<img class="aws-icon" src="icons/Arch_Amazon-Simple-Notification-Service_16.svg" />';
@@ -354,7 +341,6 @@ function run() {
 }
 
 document.addEventListener('DOMContentLoaded', function () {
-  console.log('RUN');
   run();
 });
 
