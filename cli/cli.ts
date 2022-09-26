@@ -1,6 +1,7 @@
 import * as fs from 'fs';
 import * as http from 'http';
 import * as path from 'path';
+import open from 'open';
 import { getWebSocketUrl } from '../common/getWebSocketUrl';
 
 async function run() {
@@ -24,7 +25,7 @@ async function run() {
   }
 
   serverlessSpyWsUrl =
-    'wss://preh1xo1xh.execute-api.eu-west-1.amazonaws.com/prod';
+    'wss://lcvewdlge0.execute-api.eu-west-1.amazonaws.com/prod';
 
   if (!serverlessSpyWsUrl) {
     throw new Error('Missing WS url');
@@ -43,6 +44,8 @@ async function run() {
       if (filePath === './') {
         filePath = './index.html';
       }
+
+      filePath = path.join(__dirname, filePath);
 
       const extname = String(path.extname(filePath)).toLowerCase();
       const mimeTypes: any = {
@@ -80,7 +83,7 @@ async function run() {
           }
         } else {
           response.writeHead(200, { 'Content-Type': contentType });
-          if (request.url === '/serverlessSpy.js') {
+          if (request.url === '/webServerlessSpy.js') {
             const contentNew = content
               .toString()
               .replace('SERVERLESS_SPY_WS_URL', wsUrl);
@@ -92,6 +95,8 @@ async function run() {
       });
     })
     .listen(8125);
+
+  await open('http://localhost:8125');
 }
 
 run().catch(console.error);

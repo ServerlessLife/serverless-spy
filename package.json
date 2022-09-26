@@ -32,7 +32,9 @@
     "lint": "eslint **/*.ts",
     "lint-fix": "eslint --fix './**/*.ts'",
     "pretty": "prettier --write '**/*.ts'",
-    "bundle-extension": "scripts/run-task bundle-extension"
+    "bundle-extension": "scripts/run-task bundle-extension",
+    "bundle-cli": "esbuild --bundle --platform=node --sourcemap cli/webServerlessSpy.ts --outdir=cli/.",
+    "cli": "npm run bundle-cli && npx esr cli/cli.ts"
   },
   "author": {
     "name": "Marko (ServerlessLife.com)",
@@ -78,7 +80,8 @@
   },
   "workspaces": [
     "test",
-    "test/cdk"
+    "test/cdk",
+    "cli"
   ],
   "peerDependencies": {
     "aws-cdk-lib": "^2.37.1",

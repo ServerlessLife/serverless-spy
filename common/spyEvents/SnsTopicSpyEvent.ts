@@ -1,12 +1,6 @@
-import { SNSMessageAttributes } from 'aws-lambda';
-import { SpyEvent } from './SpyEvent';
+import { SnsSpyEventBase } from './SnsSpyEventBase';
 
-export interface SnsTopicSpyEvent<MessageType = any> extends SpyEvent {
+export interface SnsTopicSpyEvent<MessageType = any>
+  extends SnsSpyEventBase<MessageType> {
   spyEventType: 'FunctionSnsTopic';
-  message: MessageType;
-  subject: string;
-  timestamp: string;
-  topicArn: string;
-  messageId: string;
-  messageAttributes: SNSMessageAttributes;
 }

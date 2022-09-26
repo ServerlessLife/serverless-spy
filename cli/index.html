@@ -2,39 +2,76 @@
 <html>
 
 <head>
-  <title>Our Funky HTML Page</title>
-  <meta name="description" content="Our first page">
-  <meta name="keywords" content="html tutorial template">
+  <title>ServerlessSpy</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="bootstrap.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.9.1/font/bootstrap-icons.css">
+  <script src="bootstrap.bundle.js"></script>
   <link rel="stylesheet" href="style.css">
   </link>
-  <script src="serverlessSpy.js"></script>
+  <script src="webServerlessSpy.js"></script>
 </head>
 
 
 <body>
-  <table>
-    <thead>
-      <tr>
-        <th>Time</th>
-        <th>Service key</th>
-        <th>Data</th>
-      </tr>
-    </thead>
-    <tbody id="tableBody" class="log">
+  <div class="container-fluid">
+    <div class="table-responsive">
+      <table class="table table-striped table-bordered">
+        <thead>
+          <tr>
+            <th class="col-time" scope="col">
+            </th>
+            <th class="col-servicekey" scope="col">
 
-    </tbody>
-  </table>
+              <div class="input-group input-group-sm" data-bs-toggle="tooltip" data-bs-html="true"
+                title="<p class='text-start'>Examples:</p><p class='text-start font-monospace'>MyFunction</p><p class='text-start font-monospace'>^Function</p><p class='text-start font-monospace'>^Function.*Response$</p>">
 
-  <div id="myModal" class="modal">
+                <div class="input-group-text"><i class="bi bi-funnel-fill"></i></div>
+                <input type="text" class="form-control" id="serviceKeyFilter" placeholder="Filter (regex)">
+              </div>
 
-    <!-- Modal content -->
-    <div class="modal-content">
-      <span class="close">&times;</span>
-      <p>
-      <pre id="modalContent"></pre>
-      </p>
+            </th>
+            <th class="col-data" scope="col">
+              <div class="input-group input-group-sm">
+                <div class="input-group-text"><i class="bi bi-funnel-fill"></i></div>
+                <input type="text" class="form-control" id="dataFilter" placeholder="Filter (regex)">
+              </div>
+            </th>
+          </tr>
+        </thead>
+        <tbody id="tableBody" class="log">
+
+        </tbody>
+      </table>
     </div>
+  </div>
 
+
+
+  <div id="detailsModal" class="modal fade" id="staticBackdrop" tabindex="-1" aria-labelledby="staticBackdropLabel"
+    aria-hidden="true">
+    <div class="modal-dialog modal-dialog-scrollable modal-xl">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="staticBackdropLabel">Details</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <p>Time:
+            <span class="fw-bold" id="time">2022-09-19T10:12:15.489Z</span>
+          </p>
+          <p>Service key:
+            <span class="fw-bold" id="serviceKey">Function#ToSnsAndDynamoDb#Response</span>
+          </p>
+          <p>Data:</p>
+          <pre id="data"></pre>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
   </div>
 </body>
 

@@ -1,14 +1,8 @@
-import { SpyEvent } from './SpyEvent';
+import { EventBridgeBaseSpyEvent } from './EventBridgeBaseSpyEvent';
 
 export interface EventBridgeRuleSpyEvent<
   MessageType = any,
   EventBridgeDetailType extends string = string
-> extends SpyEvent {
+> extends EventBridgeBaseSpyEvent<MessageType, EventBridgeDetailType> {
   spyEventType: 'EventBridgeRule';
-  eventBridgeId: string;
-  detail: MessageType;
-  detailType: EventBridgeDetailType;
-  source: string;
-  time: string;
-  account: string;
 }

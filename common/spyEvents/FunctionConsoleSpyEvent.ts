@@ -1,10 +1,8 @@
+import { FunctionBaseSpyEvent } from './FunctionBaseSpyEvent';
 import { FunctionConsole } from './FunctionConsole';
-import { FunctionContext } from './FunctionContext';
-import { SpyEvent } from './SpyEvent';
 
-export interface FunctionConsoleSpyEvent<TRequest = any> extends SpyEvent {
+export interface FunctionConsoleSpyEvent<TRequest = any>
+  extends FunctionBaseSpyEvent<TRequest> {
   spyEventType: 'FunctionConsole';
-  request: TRequest;
   console: FunctionConsole;
-  context: FunctionContext;
 }
