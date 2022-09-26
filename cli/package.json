@@ -16,5 +16,8 @@
     "get-installed-path": "^4.0.8",
     "json-format-highlight": "^1.0.4",
     "open": "^8.4.0"
+  },
+  "devDependencies": {
+    "@types/get-installed-path": "^4.0.1"
   }
 }

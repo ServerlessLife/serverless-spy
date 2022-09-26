@@ -140,7 +140,7 @@ async function run() {
 
               response.writeHead(200, { 'Content-Type': contentType });
               response.end(content, 'utf-8');
-            } catch (error) {
+            } catch (error: any) {
               if (error.code === 'ENOENT') {
                 response.writeHead(404, { 'Content-Type': 'text/html' });
                 response.end(
@@ -153,7 +153,7 @@ async function run() {
               }
             }
           }
-        } catch (err) {
+        } catch (err: any) {
           response.writeHead(500, { 'Content-Type': 'text/html' });
           response.end(err.message, 'utf-8');
         }
