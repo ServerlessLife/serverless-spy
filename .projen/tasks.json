@@ -106,6 +106,15 @@
         }
       ]
     },
+    "compile-cli-web": {
+      "name": "compile-cli-web",
+      "description": "Compile TS for CLI web console",
+      "steps": [         
+        {
+          "exec": "esbuild --bundle --platform=node --sourcemap cli/webServerlessSpy.ts --outdir=lib/cli"
+        }
+      ]
+    },
     "compile": {
       "name": "compile",
       "description": "Only compile",
@@ -138,8 +147,23 @@
           "spawn": "bundle-extension"
         }, 
         {
+          "spawn": "compile-cli-web"
+        }, 
+        {
           "exec": "rm -rf temp"
-        } 
+        }      
+      ]
+    },
+    "cli": {
+      "name": "cli",
+      "description": "Run cli",
+      "steps": [      
+        {
+          "spawn": "compile-cli-web"
+        },    
+        {
+          "exec": "esr cli/cli.ts --cdkoutput ../test/cdk/.cdkOut/cdkExports.json"
+        }      
       ]
     },
     "bundle-extension": {
