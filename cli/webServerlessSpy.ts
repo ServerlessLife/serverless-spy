@@ -28,16 +28,24 @@ function run() {
     SpyMessageExt<EventBridgeBaseSpyEvent>[]
   > = {};
   let uiNeedsRefresh = false;
+  let stackList: string[] | undefined;
+  const selectedStackLocalStorageKey = 'selectedStack';
+  let ws: WebSocket;
 
   // ************* HTML elements *************
-  const tableBody = document.getElementById('tableBody')!;
-  const modalTime = document.getElementById('time')!;
-  const modalServiceKey = document.getElementById('serviceKey')!;
-  const modalData = document.getElementById('data')!;
-  const serviceKeyFilterInput = document.getElementById(
+  const tableBodyElement = document.getElementById('tableBody')!;
+  const modalTimeElement = document.getElementById('time')!;
+  const modalServiceKeyElement = document.getElementById('serviceKey')!;
+  const modalDataElement = document.getElementById('data')!;
+  const stackListContainerElement =
+    document.getElementById('stackListContainer')!;
+  const stackListElement = document.getElementById(
+    'stackList'
+  ) as HTMLSelectElement;
+  const serviceKeyFilterInputElement = document.getElementById(
     'serviceKeyFilter'
   ) as HTMLInputElement;
-  const dataFilterInput = document.getElementById(
+  const dataFilterInputElement = document.getElementById(
     'dataFilter'
   ) as HTMLInputElement;
   const detailsModal = new Modal('#detailsModal', {
@@ -46,15 +54,21 @@ function run() {
   });
 
   // ************* events *************
-  serviceKeyFilterInput.addEventListener('input', () => {
+  serviceKeyFilterInputElement.addEventListener('input', () => {
     uiNeedsRefresh = true;
   });
-  dataFilterInput.addEventListener('input', () => {
+  dataFilterInputElement.addEventListener('input', () => {
     uiNeedsRefresh = true;
   });
-  tableBody.addEventListener('click', openDetails());
+  tableBodyElement.addEventListener('click', openDetails());
+  stackListElement.addEventListener('change', () => {
+    switchStack();
+  });
 
-  void connectToWebSocket(); //do not wait for await
+  void (async () => {
+    await fillStacks();
+    await connectToWebSocket();
+  })();
   window.requestAnimationFrame(render);
   setupTooltip();
 
@@ -64,13 +78,45 @@ function run() {
   //   addSpyMessage(sm as any);
   // }
 
+  function switchStack() {
+    spyMessages.length = 0;
+    uiNeedsRefresh = true;
+    ws.close();
+  }
+
+  async function fillStacks() {
+    const response = await fetch('/stackList');
+    try {
+      stackList = await response.json();
+    } catch {
+      stackList = [];
+    }
+
+    const selectedStack = localStorage.getItem(selectedStackLocalStorageKey);
+
+    stackListElement.innerHTML =
+      stackList
+        ?.map(
+          (s) =>
+            `<option value="${s}" ${
+              selectedStack === s ? 'selected' : ''
+            }>${s}</option>`
+        )
+        .join('') ?? '';
+
+    console.log(stackListContainerElement.style.display);
+    stackListContainerElement.style.display =
+      stackList && stackList.length > 1 ? '' : 'none';
+  }
+
   async function connectToWebSocket() {
-    const response = await fetch('/wsUrl');
+    const stack = stackListElement.value;
+    const response = await fetch(`/wsUrl/${stack}`);
     const url = await response.text();
-    const ws = new WebSocket(url);
+    ws = new WebSocket(url);
 
     ws.addEventListener('open', () => {
-      console.log(`Connected ${new Date().toISOString()}`);
+      console.log(`Connected ${new Date().toISOString()} to stack ${stack}`);
     });
     ws.addEventListener('message', receiveSpyMessage());
     ws.addEventListener('close', () => {
@@ -81,7 +127,7 @@ function run() {
 
   function render() {
     if (uiNeedsRefresh) {
-      tableBody.innerHTML = spyMessages
+      tableBodyElement.innerHTML = spyMessages
         .map((sm) => renderSpyMessage(sm))
         .join('');
       uiNeedsRefresh = false;
@@ -125,9 +171,12 @@ function run() {
         return;
       }
 
-      modalTime.innerHTML = timeElements[0].textContent || '';
-      modalServiceKey.innerHTML = serviceKeyElements[0].textContent || '';
-      modalData.innerHTML = formatDataJson(dataElements[0].textContent || '');
+      modalTimeElement.innerHTML = timeElements[0].textContent || '';
+      modalServiceKeyElement.innerHTML =
+        serviceKeyElements[0].textContent || '';
+      modalDataElement.innerHTML = formatDataJson(
+        dataElements[0].textContent || ''
+      );
       detailsModal.show();
     };
   }
@@ -264,8 +313,8 @@ function run() {
   }
 
   function renderSpyMessage(spyMessage: SpyMessageExt | SpyMessageGroup) {
-    const serviceKey = serviceKeyFilterInput.value?.toLocaleLowerCase();
-    const data = dataFilterInput.value?.toLocaleLowerCase();
+    const serviceKey = serviceKeyFilterInputElement.value?.toLocaleLowerCase();
+    const data = dataFilterInputElement.value?.toLocaleLowerCase();
 
     let messages: SpyMessageExt[];
     if ((spyMessage as SpyMessageGroup).messages) {

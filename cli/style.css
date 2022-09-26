@@ -1,7 +1,21 @@
 body {
   font-size: 14px;
   line-height: 1.2;
+  padding-top: 10px;
 }
+
+.col-form-label {
+  line-height: 1.2;
+  flex: 0 0 0% !important;
+}
+
+.form-select {
+  font-size: 14px;
+  line-height: 1.2;
+  flex: 0 0 0% !important;
+  align-content: flex-start
+}
+
 
 .table {
   width: 100%;

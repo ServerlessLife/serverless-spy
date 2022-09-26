@@ -3,10 +3,11 @@ import * as http from 'http';
 import * as path from 'path';
 import { program } from 'commander';
 import open from 'open';
-import { getWebSocketUrl as getSignedWebSocketUrl } from '../common/getWebSocketUrl';
+import { getSignedWebSocketUrl } from '../common/getWebSocketUrl';
 
 async function run() {
   let stackList: string[] | undefined;
+  let cdkOutput: Record<string, Record<string, string>>;
 
   program
     .option('--ws <ws>', 'Websocket link')
@@ -30,6 +31,12 @@ async function run() {
 
   if (!options.ws && !options.cdkoutput) {
     throw new Error('--ws or --cdkstack parameter not specified');
+  }
+
+  if (options.cdkoutput) {
+    const rawdata = fs.readFileSync(path.join(__dirname, options.cdkoutput));
+    cdkOutput = JSON.parse(rawdata.toString());
+    stackList = Object.keys(cdkOutput);
   }
 
   // source https://developer.mozilla.org/en-US/docs/Learn/Server-side/Node_server_without_framework
@@ -88,16 +95,11 @@ async function run() {
             stack = options.cdkstack;
           }
 
-          const rawdata = fs.readFileSync(
-            path.join(__dirname, options.cdkoutput)
-          );
-          const config = JSON.parse(rawdata.toString());
-
           if (stack) {
-            wsUrl = config[stack].ServerlessSpyWsUrl;
+            wsUrl = cdkOutput[stack].ServerlessSpyWsUrl;
           } else {
-            if (config && config[Object.keys(config)[0]]) {
-              wsUrl = config[Object.keys(config)[0]].ServerlessSpyWsUrl;
+            if (cdkOutput && cdkOutput[Object.keys(cdkOutput)[0]]) {
+              wsUrl = cdkOutput[Object.keys(cdkOutput)[0]].ServerlessSpyWsUrl;
             }
           }
         }
@@ -106,7 +108,7 @@ async function run() {
           throw new Error('Missing websocket url');
         }
 
-        console.log(`WS URL: ${wsUrl}`);
+        //console.log(`WS URL: ${wsUrl}`);
         void getSignedWebSocketUrl(wsUrl).then((wsUrl) => {
           response.writeHead(200, { 'Content-Type': 'text/html' });
           response.end(wsUrl, 'utf-8');
@@ -115,10 +117,8 @@ async function run() {
         fs.readFile(filePath, (error, content) => {
           if (error) {
             if (error.code === 'ENOENT') {
-              fs.readFile('./404.html', (_err, cont) => {
-                response.writeHead(404, { 'Content-Type': 'text/html' });
-                response.end(cont, 'utf-8');
-              });
+              response.writeHead(404, { 'Content-Type': 'text/html' });
+              response.end(`No such file or directory ${request.url}`, 'utf-8');
             } else {
               response.writeHead(500);
               response.end(`Error: ${error.code} ..\n`);

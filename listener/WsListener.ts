@@ -1,5 +1,5 @@
 import { WebSocket } from 'ws';
-import { getWebSocketUrl } from '../common/getWebSocketUrl';
+import { getSignedWebSocketUrl } from '../common/getWebSocketUrl';
 import { FunctionRequestSpyEvent } from '../common/spyEvents/FunctionRequestSpyEvent';
 import { SpyEvent } from '../common/spyEvents/SpyEvent';
 import { SpyMessage } from '../common/spyEvents/SpyMessage';
@@ -25,7 +25,7 @@ export class WsListener<TSpyEvents> {
       this.connectionOpenResolve = resolve;
     });
 
-    const urlSigned = await getWebSocketUrl(
+    const urlSigned = await getSignedWebSocketUrl(
       params.serverlessSpyWsUrl,
       params.credentials
     );

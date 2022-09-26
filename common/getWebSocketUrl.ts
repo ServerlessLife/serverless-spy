@@ -4,9 +4,26 @@ import * as aws4 from 'aws4';
 
 // ""wss://m6g3w6ttdh.execute-api.eu-west-1.amazonaws.com/prod";"
 
-export async function getWebSocketUrl(url: string, credentials?: Credentials) {
-  const urlParsed = parseUrl(url);
-  const hostParts = urlParsed!.host.split('.');
+export async function getSignedWebSocketUrl(
+  url: string,
+  credentials?: Credentials
+) {
+  let hostParts: string[];
+  let pathname: string;
+
+  if (!url) {
+    throw new Error(`Missing websocket URL`);
+  }
+
+  try {
+    new URL(url); //validate URL
+
+    const urlParsed = parseUrl(url);
+    pathname = urlParsed!.pathname!;
+    hostParts = urlParsed!.host.split('.');
+  } catch {
+    throw new Error(`Invalid websocket URL ${url}`);
+  }
 
   if (!credentials) {
     const credentialsProvider = fromNodeProviderChain();
@@ -15,7 +32,7 @@ export async function getWebSocketUrl(url: string, credentials?: Credentials) {
 
   const AWS_REGION = hostParts[2]; // The region of your API-gateway
   const SOCKET_HOST = hostParts[0]; // Your API-gateway ID
-  const ENV = urlParsed!.pathname!.replace(/^\//, ''); // The stage of your target deployment
+  const ENV = pathname.replace(/^\//, ''); // The stage of your target deployment
   const WEBSOCKET_URL = `${SOCKET_HOST}.execute-api.${AWS_REGION}.amazonaws.com`; // Don't prepend with wss!
   // const AWS_REGION = "eu-west-1"; // The region of your API-gateway
   // const SOCKET_HOST = "m6g3w6ttdh"; // Your API-gateway ID
