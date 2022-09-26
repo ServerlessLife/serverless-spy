@@ -49,14 +49,23 @@ async function run() {
         try {
           //console.log('request ', request.url);
           let filePath: string = `.${request.url}`;
+          //remove query parameters
+          filePath = filePath.split('?')[0];
           let rootFolder = __dirname;
 
           if (request.url?.startsWith('/webServerlessSpy.js')) {
             //get transpiled TS to JS files
             rootFolder = path.join(__dirname, `../lib/cli`);
-          } else if (request.url?.startsWith('/bootstrap')) {
-            filePath = filePath.substring('/bootstrap'.length + 1);
+          } else if (request.url?.startsWith('/bootstrap/')) {
+            filePath = filePath.substring('/bootstrap/'.length);
             const bootstrapFolder = await getInstalledPath('bootstrap', {
+              local: true,
+            });
+
+            rootFolder = bootstrapFolder;
+          } else if (request.url?.startsWith('/bootstrap-icons/')) {
+            filePath = filePath.substring('/bootstrap-icons/'.length);
+            const bootstrapFolder = await getInstalledPath('bootstrap-icons', {
               local: true,
             });
 
@@ -68,7 +77,7 @@ async function run() {
           }
 
           filePath = path.join(rootFolder, filePath);
-          console.log(`${request.url} --> ${filePath}`);
+          //console.log(`${request.url} --> ${filePath}`);
 
           const extname = String(path.extname(filePath)).toLowerCase();
           const mimeTypes: any = {

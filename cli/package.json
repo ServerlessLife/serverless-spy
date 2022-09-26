@@ -11,6 +11,7 @@
   "license": "ISC",
   "dependencies": {
     "bootstrap": "^5.2.1",
+    "bootstrap-icons": "^1.9.1",
     "commander": "^9.4.0",
     "get-installed-path": "^4.0.8",
     "json-format-highlight": "^1.0.4",
