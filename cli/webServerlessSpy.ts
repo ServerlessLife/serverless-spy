@@ -15,6 +15,20 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 function run() {
+  // ************* variables *************
+  const spyMessages: (SpyMessageExt | SpyMessageGroup)[] = [];
+  const snsEventsByMessageId: Record<string, SpyMessageExt<SnsSpyEventBase>[]> =
+    {};
+  const functionEventsByRequestId: Record<
+    string,
+    SpyMessageExt<FunctionBaseSpyEvent>[]
+  > = {};
+  const eventBridgeById: Record<
+    string,
+    SpyMessageExt<EventBridgeBaseSpyEvent>[]
+  > = {};
+  let uiNeedsRefresh = false;
+
   // ************* HTML elements *************
   const tableBody = document.getElementById('tableBody')!;
   const modalTime = document.getElementById('time')!;
@@ -31,22 +45,6 @@ function run() {
     keyboard: true,
   });
 
-  // ************* variables *************
-  const spyMessages: (SpyMessageExt | SpyMessageGroup)[] = [];
-  const snsEventsByMessageId: Record<string, SpyMessageExt<SnsSpyEventBase>[]> =
-    {};
-  const functionEventsByRequestId: Record<
-    string,
-    SpyMessageExt<FunctionBaseSpyEvent>[]
-  > = {};
-  const eventBridgeById: Record<
-    string,
-    SpyMessageExt<EventBridgeBaseSpyEvent>[]
-  > = {};
-  let uiNeedsRefresh = false;
-  const url = 'SERVERLESS_SPY_WS_URL';
-  const ws = new WebSocket(url);
-
   // ************* events *************
   serviceKeyFilterInput.addEventListener('input', () => {
     uiNeedsRefresh = true;
@@ -55,14 +53,10 @@ function run() {
     uiNeedsRefresh = true;
   });
   tableBody.addEventListener('click', openDetails());
-  ws.addEventListener('open', () => {
-    console.log('Connected ' + new Date().toISOString());
-  });
-  ws.addEventListener('message', receiveSpyMessage());
-  ws.addEventListener('close', () => {
-    console.log('Disconnected ' + new Date().toISOString());
-  });
+
+  void connectToWebSocket(); //do not wait for await
   window.requestAnimationFrame(render);
+  setupTooltip();
 
   // Do not remove!
   // sample data for testing purposes
@@ -70,7 +64,20 @@ function run() {
   //   addSpyMessage(sm as any);
   // }
 
-  setupTooltip();
+  async function connectToWebSocket() {
+    const response = await fetch('/wsUrl');
+    const url = await response.text();
+    const ws = new WebSocket(url);
+
+    ws.addEventListener('open', () => {
+      console.log(`Connected ${new Date().toISOString()}`);
+    });
+    ws.addEventListener('message', receiveSpyMessage());
+    ws.addEventListener('close', () => {
+      console.log(`Disconnected ${new Date().toISOString()}, reconnecting`);
+      void connectToWebSocket();
+    });
+  }
 
   function render() {
     if (uiNeedsRefresh) {

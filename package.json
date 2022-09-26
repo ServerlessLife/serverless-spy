@@ -33,7 +33,7 @@
     "lint-fix": "eslint --fix './**/*.ts'",
     "pretty": "prettier --write '**/*.ts'",
     "bundle-extension": "scripts/run-task bundle-extension",
-    "bundle-cli": "esbuild --bundle --platform=node --sourcemap cli/webServerlessSpy.ts --outdir=cli/.",
+    "bundle-cli": "esbuild --bundle --platform=node --sourcemap cli/webServerlessSpy.ts --outdir=lib/cli",
     "cli": "npm run bundle-cli && npx esr cli/cli.ts --cdkoutput ../test/cdk/.cdkOut/cdkExports.json "
   },
   "author": {

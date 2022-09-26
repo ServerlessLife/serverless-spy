@@ -6,6 +6,8 @@ import open from 'open';
 import { getWebSocketUrl as getSignedWebSocketUrl } from '../common/getWebSocketUrl';
 
 async function run() {
+  let stackList: string[] | undefined;
+
   program
     .option('--ws <ws>', 'Websocket link')
     .option(
@@ -26,43 +28,25 @@ async function run() {
 
   const options = program.opts();
 
-  let serverlessSpyWsUrl: string | undefined;
-
-  if (options.ws) {
-    serverlessSpyWsUrl = options.ws;
-  } else if (options.cdkoutput) {
-    const rawdata = fs.readFileSync(path.join(__dirname, options.cdkoutput));
-    const config = JSON.parse(rawdata.toString());
-
-    if (config && config[Object.keys(config)[0]]) {
-      serverlessSpyWsUrl = config[Object.keys(config)[0]].ServerlessSpyWsUrl;
-    }
-
-    if (options.cdkstack) {
-      serverlessSpyWsUrl = config[options.cdkstack].ServerlessSpyWsUrl;
-    } else {
-      if (config && config[Object.keys(config)[0]]) {
-        serverlessSpyWsUrl = config[Object.keys(config)[0]].ServerlessSpyWsUrl;
-      }
-    }
+  if (!options.ws && !options.cdkoutput) {
+    throw new Error('--ws or --cdkstack parameter not specified');
   }
-
-  if (!serverlessSpyWsUrl) {
-    throw new Error('Missing websocket url');
-  }
-
-  console.log(`Websocket URL: ${serverlessSpyWsUrl}`);
-
-  const wsUrl = await getSignedWebSocketUrl(serverlessSpyWsUrl);
 
   // source https://developer.mozilla.org/en-US/docs/Learn/Server-side/Node_server_without_framework
   http
     .createServer((request, response) => {
-      console.log('request ', request.url);
+      //console.log('request ', request.url);
 
-      let filePath = `.${request.url}`;
-      if (filePath === './') {
-        filePath = './index.html';
+      let filePath: string;
+
+      if (request.url?.startsWith('/webServerlessSpy.js')) {
+        //get transpiled TS to JS files
+        filePath = `../lib/cli${request.url}`;
+      } else {
+        filePath = `.${request.url}`;
+        if (filePath === './') {
+          filePath = './index.html';
+        }
       }
 
       filePath = path.join(__dirname, filePath);
@@ -88,31 +72,63 @@ async function run() {
 
       const contentType = mimeTypes[extname] || 'application/octet-stream';
 
-      fs.readFile(filePath, (error, content) => {
-        if (error) {
-          if (error.code === 'ENOENT') {
-            fs.readFile('./404.html', (_err, cont) => {
-              response.writeHead(404, { 'Content-Type': 'text/html' });
-              response.end(cont, 'utf-8');
-            });
-          } else {
-            response.writeHead(500);
-            response.end(
-              `Sorry, check with the site admin for error: ${error.code} ..\n`
-            );
-          }
+      if (request.url === '/stackList') {
+        response.writeHead(200, { 'Content-Type': 'application/json' });
+        response.end(JSON.stringify(stackList), 'utf-8');
+      } else if (request.url?.match('^/wsUrl')) {
+        let wsUrl: string | undefined;
+        if (options.ws) {
+          wsUrl = options.ws;
         } else {
-          response.writeHead(200, { 'Content-Type': contentType });
-          if (request.url === '/webServerlessSpy.js') {
-            const contentNew = content
-              .toString()
-              .replace('SERVERLESS_SPY_WS_URL', wsUrl);
-            response.end(contentNew, 'utf-8');
+          // options.cdkoutput
+          const urlPaths = request.url.split('/');
+          let stack = urlPaths[2];
+
+          if (!stack) {
+            stack = options.cdkstack;
+          }
+
+          const rawdata = fs.readFileSync(
+            path.join(__dirname, options.cdkoutput)
+          );
+          const config = JSON.parse(rawdata.toString());
+
+          if (stack) {
+            wsUrl = config[stack].ServerlessSpyWsUrl;
           } else {
-            response.end(content, 'utf-8');
+            if (config && config[Object.keys(config)[0]]) {
+              wsUrl = config[Object.keys(config)[0]].ServerlessSpyWsUrl;
+            }
           }
         }
-      });
+
+        if (!wsUrl) {
+          throw new Error('Missing websocket url');
+        }
+
+        console.log(`WS URL: ${wsUrl}`);
+        void getSignedWebSocketUrl(wsUrl).then((wsUrl) => {
+          response.writeHead(200, { 'Content-Type': 'text/html' });
+          response.end(wsUrl, 'utf-8');
+        });
+      } else {
+        fs.readFile(filePath, (error, content) => {
+          if (error) {
+            if (error.code === 'ENOENT') {
+              fs.readFile('./404.html', (_err, cont) => {
+                response.writeHead(404, { 'Content-Type': 'text/html' });
+                response.end(cont, 'utf-8');
+              });
+            } else {
+              response.writeHead(500);
+              response.end(`Error: ${error.code} ..\n`);
+            }
+          } else {
+            response.writeHead(200, { 'Content-Type': contentType });
+            response.end(content, 'utf-8');
+          }
+        });
+      }
     })
     .listen(options.port);
 
