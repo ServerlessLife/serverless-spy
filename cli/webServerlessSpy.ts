@@ -37,6 +37,7 @@ function run() {
   const modalTimeElement = document.getElementById('time')!;
   const modalServiceKeyElement = document.getElementById('serviceKey')!;
   const modalDataElement = document.getElementById('data')!;
+  const errorContentElement = document.getElementById('errorContent')!;
   const stackListContainerElement =
     document.getElementById('stackListContainer')!;
   const stackListElement = document.getElementById(
@@ -49,6 +50,10 @@ function run() {
     'dataFilter'
   ) as HTMLInputElement;
   const detailsModal = new Modal('#detailsModal', {
+    backdrop: true,
+    keyboard: true,
+  });
+  const errorModal = new Modal('#errorModal', {
     backdrop: true,
     keyboard: true,
   });
@@ -110,19 +115,34 @@ function run() {
   }
 
   async function connectToWebSocket() {
-    const stack = stackListElement.value;
-    const response = await fetch(`/wsUrl/${stack}`);
-    const url = await response.text();
-    ws = new WebSocket(url);
+    try {
+      const stack = stackListElement.value;
+      const response = await fetch(`/wsUrl/${stack}`);
+      if (response.ok) {
+        const url = await response.text();
+        ws = new WebSocket(url);
 
-    ws.addEventListener('open', () => {
-      console.log(`Connected ${new Date().toISOString()} to stack ${stack}`);
-    });
-    ws.addEventListener('message', receiveSpyMessage());
-    ws.addEventListener('close', () => {
-      console.log(`Disconnected ${new Date().toISOString()}, reconnecting`);
-      void connectToWebSocket();
-    });
+        ws.addEventListener('open', () => {
+          console.log(
+            `Connected ${new Date().toISOString()} to stack ${stack}`
+          );
+        });
+        ws.addEventListener('message', receiveSpyMessage());
+        ws.addEventListener('close', () => {
+          console.log(`Disconnected ${new Date().toISOString()}, reconnecting`);
+          void connectToWebSocket();
+        });
+      } else {
+        showError(await response.text());
+      }
+    } catch (err) {
+      showError(err.message);
+    }
+  }
+
+  function showError(messsage: string) {
+    errorContentElement.innerHTML = messsage;
+    errorModal.show();
   }
 
   function render() {
