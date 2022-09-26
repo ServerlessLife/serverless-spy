@@ -3,6 +3,7 @@ import * as http from 'http';
 import * as path from 'path';
 import { promisify } from 'util';
 import { program } from 'commander';
+import { getInstalledPath } from 'get-installed-path';
 import open from 'open';
 import { getSignedWebSocketUrl } from '../common/getWebSocketUrl';
 
@@ -47,19 +48,27 @@ async function run() {
       void (async () => {
         try {
           //console.log('request ', request.url);
-          let filePath: string;
+          let filePath: string = `.${request.url}`;
+          let rootFolder = __dirname;
 
           if (request.url?.startsWith('/webServerlessSpy.js')) {
             //get transpiled TS to JS files
-            filePath = `../lib/cli${request.url}`;
+            rootFolder = path.join(__dirname, `../lib/cli`);
+          } else if (request.url?.startsWith('/bootstrap')) {
+            filePath = filePath.substring('/bootstrap'.length + 1);
+            const bootstrapFolder = await getInstalledPath('bootstrap', {
+              local: true,
+            });
+
+            rootFolder = bootstrapFolder;
           } else {
-            filePath = `.${request.url}`;
             if (filePath === './') {
               filePath = './index.html';
             }
           }
 
-          filePath = path.join(__dirname, filePath);
+          filePath = path.join(rootFolder, filePath);
+          console.log(`${request.url} --> ${filePath}`);
 
           const extname = String(path.extname(filePath)).toLowerCase();
           const mimeTypes: any = {
