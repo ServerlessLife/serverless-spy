@@ -5,16 +5,33 @@ import { FunctionBaseSpyEvent } from '../common/spyEvents/FunctionBaseSpyEvent';
 import { SnsSpyEventBase } from '../common/spyEvents/SnsSpyEventBase';
 import { SpyEvent } from '../common/spyEvents/SpyEvent';
 import { SpyMessage } from '../common/spyEvents/SpyMessage';
-//import { sampleData } from './sampleData';
+//import { sampleData } from './sampleData'; // Leave this for testing
 
 //needed because of strange bug in Bootstrap Tooltip
 (window as any).process = { env: {} };
 
+document.addEventListener('DOMContentLoaded', function () {
+  run();
+});
+
 function run() {
+  // ************* HTML elements *************
   const tableBody = document.getElementById('tableBody')!;
   const modalTime = document.getElementById('time')!;
   const modalServiceKey = document.getElementById('serviceKey')!;
   const modalData = document.getElementById('data')!;
+  const serviceKeyFilterInput = document.getElementById(
+    'serviceKeyFilter'
+  ) as HTMLInputElement;
+  const dataFilterInput = document.getElementById(
+    'dataFilter'
+  ) as HTMLInputElement;
+  const detailsModal = new Modal('#detailsModal', {
+    backdrop: true,
+    keyboard: true,
+  });
+
+  // ************* variables *************
   const spyMessages: (SpyMessageExt | SpyMessageGroup)[] = [];
   const snsEventsByMessageId: Record<string, SpyMessageExt<SnsSpyEventBase>[]> =
     {};
@@ -26,21 +43,36 @@ function run() {
     string,
     SpyMessageExt<EventBridgeBaseSpyEvent>[]
   > = {};
-  const serviceKeyFilterInput = document.getElementById(
-    'serviceKeyFilter'
-  ) as HTMLInputElement;
-  const dataFilterInput = document.getElementById(
-    'dataFilter'
-  ) as HTMLInputElement;
-
   let uiNeedsRefresh = false;
+  const url = 'SERVERLESS_SPY_WS_URL';
+  const ws = new WebSocket(url);
 
-  const detailsModal = new Modal('#detailsModal', {
-    backdrop: true,
-    keyboard: true,
+  // ************* events *************
+  serviceKeyFilterInput.addEventListener('input', () => {
+    uiNeedsRefresh = true;
   });
+  dataFilterInput.addEventListener('input', () => {
+    uiNeedsRefresh = true;
+  });
+  tableBody.addEventListener('click', openDetails());
+  ws.addEventListener('open', () => {
+    console.log('Connected ' + new Date().toISOString());
+  });
+  ws.addEventListener('message', receiveSpyMessage());
+  ws.addEventListener('close', () => {
+    console.log('Disconnected ' + new Date().toISOString());
+  });
+  window.requestAnimationFrame(render);
 
-  const render = () => {
+  // Do not remove!
+  // sample data for testing purposes
+  // for (const sm of sampleData) {
+  //   addSpyMessage(sm as any);
+  // }
+
+  setupTooltip();
+
+  function render() {
     if (uiNeedsRefresh) {
       tableBody.innerHTML = spyMessages
         .map((sm) => renderSpyMessage(sm))
@@ -49,82 +81,60 @@ function run() {
     }
 
     window.requestAnimationFrame(render);
-  };
+  }
 
-  setupTooltip();
-
-  serviceKeyFilterInput.addEventListener('input', () => {
-    uiNeedsRefresh = true;
-  });
-  dataFilterInput.addEventListener('input', () => {
-    uiNeedsRefresh = true;
-  });
-
-  tableBody.addEventListener('click', (e) => {
-    const row = (e.target as HTMLElement).closest('tr');
-    const dataElements = row?.getElementsByClassName('data');
-    const timeElements = row?.getElementsByClassName('time');
-    const serviceKeyElements = row?.getElementsByClassName('serviceKey');
-
-    if (
-      !dataElements ||
-      dataElements.length === 0 ||
-      !timeElements ||
-      timeElements.length === 0 ||
-      !serviceKeyElements ||
-      serviceKeyElements.length === 0
-    ) {
-      return;
-    }
-
-    const formatter = formatHighlight(
-      JSON.stringify(JSON.parse(dataElements[0].textContent || ''), null, 2),
-      {
-        keyColor: 'black',
-        numberColor: 'blue',
-        stringColor: '#0B7500',
-        trueColor: '#00cc00',
-        falseColor: '#ff8080',
-        nullColor: 'cornflowerblue',
+  function receiveSpyMessage(): (
+    this: WebSocket,
+    ev: MessageEvent<any>
+  ) => any {
+    return ({ data }) => {
+      //console.log(data);
+      let parsed;
+      try {
+        parsed = JSON.parse(data);
+      } catch (err) {
+        console.error('Can not parse ' + data);
       }
-    );
 
-    modalTime.innerHTML = timeElements[0].textContent || '';
-    modalServiceKey.innerHTML = serviceKeyElements[0].textContent || '';
-    modalData.innerHTML = formatter;
-    detailsModal.show();
-  });
+      addSpyMessage(parsed);
+    };
+  }
 
-  const url = 'SERVERLESS_SPY_WS_URL';
-  const ws = new WebSocket(url);
+  function openDetails(): (this: HTMLElement, ev: MouseEvent) => any {
+    return (e) => {
+      const row = (e.target as HTMLElement).closest('tr');
+      const dataElements = row?.getElementsByClassName('data');
+      const timeElements = row?.getElementsByClassName('time');
+      const serviceKeyElements = row?.getElementsByClassName('serviceKey');
 
-  ws.addEventListener('open', function (event) {
-    console.log('connected ' + new Date().toISOString());
-  });
+      if (
+        !dataElements ||
+        dataElements.length === 0 ||
+        !timeElements ||
+        timeElements.length === 0 ||
+        !serviceKeyElements ||
+        serviceKeyElements.length === 0
+      ) {
+        return;
+      }
 
-  ws.addEventListener('message', function ({ data }) {
-    console.log(data);
+      modalTime.innerHTML = timeElements[0].textContent || '';
+      modalServiceKey.innerHTML = serviceKeyElements[0].textContent || '';
+      modalData.innerHTML = formatDataJson(dataElements[0].textContent || '');
+      detailsModal.show();
+    };
+  }
 
-    let parsed;
-    try {
-      parsed = JSON.parse(data);
-    } catch (err) {
-      console.error('Can not parse ' + data);
-    }
-
-    addSpyMessage(parsed);
-  });
-  ws.addEventListener('close', function () {
-    console.log('disconnected ' + new Date().toISOString());
-  });
-
-  // Do not remove!
-  // sample data for testing purposes
-  // for (const sm of sampleData) {
-  //   addSpyMessage(sm as any);
-  // }
-
-  window.requestAnimationFrame(render);
+  function formatDataJson(dataJson: string) {
+    return formatHighlight(JSON.stringify(JSON.parse(dataJson), null, 2), {
+      keyColor: 'black',
+      numberColor: 'blue',
+      stringColor: '#0B7500',
+      trueColor: '#00cc00',
+      falseColor: '#ff8080',
+      nullColor: 'cornflowerblue',
+    });
+  }
 
   function addSpyMessage(spyMessage: SpyMessageExt) {
     const spyMessageExt = spyMessage as SpyMessageExt;
@@ -134,7 +144,7 @@ function run() {
     spyMessageExt.serviceKeyLowerCase =
       spyMessageExt.serviceKey.toLocaleLowerCase();
 
-    const service = getServiceName(spyMessageExt.serviceKey);
+    const service = getServiceNameFromServiceKey(spyMessageExt.serviceKey);
     let spyMessageToAdd: SpyMessageExt | SpyMessageGroup | undefined =
       spyMessageExt;
 
@@ -148,7 +158,7 @@ function run() {
         functionEventsByRequestId[awsRequestId] = functionEvents;
       }
 
-      const step = getServiceKeyFunctionStep(spyMessageExt.serviceKey);
+      const step = getFunctionStepFromServiceKey(spyMessageExt.serviceKey);
 
       if (step === 'Request') {
         spyMessageToAdd = <SpyMessageGroup>{
@@ -158,7 +168,7 @@ function run() {
         };
         functionEvents.unshift(spyMessageFunction);
       } else {
-        addSpyMessageSorted(spyMessageFunction, functionEvents);
+        addSpyMessageToArraySorted(spyMessageFunction, functionEvents);
         spyMessageToAdd = undefined;
       }
     } else if (service === 'SnsSubscription' || service === 'SnsTopic') {
@@ -178,7 +188,7 @@ function run() {
         };
         snsEvents.unshift(spyMessageSns);
       } else {
-        addSpyMessageSorted(spyMessageSns, snsEvents);
+        addSpyMessageToArraySorted(spyMessageSns, snsEvents);
         spyMessageToAdd = undefined;
       }
     } else if (service === 'EventBridge' || service === 'EventBridgeRule') {
@@ -199,16 +209,14 @@ function run() {
         };
         eventBridgeEvents.unshift(spyMessageEventBridge);
       } else {
-        addSpyMessageSorted(spyMessageEventBridge, eventBridgeEvents);
+        addSpyMessageToArraySorted(spyMessageEventBridge, eventBridgeEvents);
         spyMessageToAdd = undefined;
       }
     }
 
     if (spyMessageToAdd) {
       //add in correct order
-      addSpyMessageSorted(spyMessageToAdd, spyMessages);
-
-      //spyMessages.push(spyMessageToAdd);
+      addSpyMessageToArraySorted(spyMessageToAdd, spyMessages);
       uiNeedsRefresh = true;
     }
   }
@@ -239,7 +247,7 @@ function run() {
     return testServiceKey && testData;
   }
 
-  function getServiceKeyFunctionStep(serviceKey: string) {
+  function getFunctionStepFromServiceKey(serviceKey: string) {
     const serviceKeyParts = serviceKey.split('#');
     const step =
       serviceKeyParts.length > 0
@@ -262,14 +270,14 @@ function run() {
     const html = messages
       .filter((sm) => matchFilter(sm, { serviceKey, data }))
       .map((sm, i) => {
-        const service = getServiceName(sm.serviceKey);
+        const service = getServiceNameFromServiceKey(sm.serviceKey);
         let icon: string | undefined;
 
         let iconLinked = '<i class="icon-linked bi bi-arrow-return-right"></i>';
 
         switch (service) {
           case 'Function':
-            const step = getServiceKeyFunctionStep(sm.serviceKey);
+            const step = getFunctionStepFromServiceKey(sm.serviceKey);
 
             if (i === 0) {
               icon = `<img class="aws-icon" src="icons/Arch_AWS-Lambda_16.svg" ></img>`;
@@ -333,40 +341,36 @@ function run() {
     return html;
   }
 
-  function getServiceName(serviceKey: string) {
+  function getServiceNameFromServiceKey(serviceKey: string) {
     const serviceKeyParts = serviceKey.split('#');
     const service = serviceKeyParts.length > 0 ? serviceKeyParts[0] : undefined;
     return service;
   }
-}
 
-document.addEventListener('DOMContentLoaded', function () {
-  run();
-});
+  function setupTooltip() {
+    var tooltipTriggerList = [].slice.call(
+      document.querySelectorAll('[data-bs-toggle="tooltip"]')
+    );
 
-function setupTooltip() {
-  var tooltipTriggerList = [].slice.call(
-    document.querySelectorAll('[data-bs-toggle="tooltip"]')
-  );
-
-  tooltipTriggerList.map(function (tooltipTriggerEl) {
-    return new Tooltip(tooltipTriggerEl);
-  });
-}
-
-function addSpyMessageSorted(
-  spyMessageToAdd: SpyMessageExt | SpyMessageGroup,
-  spyMessages: (SpyMessageExt | SpyMessageGroup)[]
-) {
-  let index = 0;
-  for (let i = spyMessages.length - 1; i >= 0; i--) {
-    const currentSpyMessages = spyMessages[i];
-    index = i + 1;
-    if (i === 0 || currentSpyMessages.timestamp < spyMessageToAdd.timestamp) {
-      break;
-    }
+    tooltipTriggerList.map(function (tooltipTriggerEl) {
+      return new Tooltip(tooltipTriggerEl);
+    });
   }
-  spyMessages.splice(index, 0, spyMessageToAdd);
+
+  function addSpyMessageToArraySorted(
+    spyMessageToAdd: SpyMessageExt | SpyMessageGroup,
+    spyMessages: (SpyMessageExt | SpyMessageGroup)[]
+  ) {
+    let index = 0;
+    for (let i = spyMessages.length - 1; i >= 0; i--) {
+      const currentSpyMessages = spyMessages[i];
+      index = i + 1;
+      if (i === 0 || currentSpyMessages.timestamp < spyMessageToAdd.timestamp) {
+        break;
+      }
+    }
+    spyMessages.splice(index, 0, spyMessageToAdd);
+  }
 }
 
 type SpyMessageExt<T extends SpyEvent = SpyEvent> = SpyMessage<T> & {

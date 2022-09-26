@@ -5183,90 +5183,97 @@ var require_json_format_highlight = __commonJS({
 var import_bootstrap = __toESM(require_bootstrap());
 var import_json_format_highlight = __toESM(require_json_format_highlight());
 window.process = { env: {} };
+document.addEventListener("DOMContentLoaded", function() {
+  run();
+});
 function run() {
   const tableBody = document.getElementById("tableBody");
   const modalTime = document.getElementById("time");
   const modalServiceKey = document.getElementById("serviceKey");
   const modalData = document.getElementById("data");
-  const spyMessages = [];
-  const snsEventsByMessageId = {};
-  const functionEventsByRequestId = {};
-  const eventBridgeById = {};
   const serviceKeyFilterInput = document.getElementById(
     "serviceKeyFilter"
   );
   const dataFilterInput = document.getElementById(
     "dataFilter"
   );
-  let uiNeedsRefresh = false;
   const detailsModal = new import_bootstrap.Modal("#detailsModal", {
     backdrop: true,
     keyboard: true
   });
-  const render = () => {
-    if (uiNeedsRefresh) {
-      tableBody.innerHTML = spyMessages.map((sm) => renderSpyMessage(sm)).join("");
-      uiNeedsRefresh = false;
-    }
-    window.requestAnimationFrame(render);
-  };
-  setupTooltip();
+  const spyMessages = [];
+  const snsEventsByMessageId = {};
+  const functionEventsByRequestId = {};
+  const eventBridgeById = {};
+  let uiNeedsRefresh = false;
+  const url = "SERVERLESS_SPY_WS_URL";
+  const ws = new WebSocket(url);
   serviceKeyFilterInput.addEventListener("input", () => {
     uiNeedsRefresh = true;
   });
   dataFilterInput.addEventListener("input", () => {
     uiNeedsRefresh = true;
   });
-  tableBody.addEventListener("click", (e) => {
-    const row = e.target.closest("tr");
-    const dataElements = row?.getElementsByClassName("data");
-    const timeElements = row?.getElementsByClassName("time");
-    const serviceKeyElements = row?.getElementsByClassName("serviceKey");
-    if (!dataElements || dataElements.length === 0 || !timeElements || timeElements.length === 0 || !serviceKeyElements || serviceKeyElements.length === 0) {
-      return;
-    }
-    const formatter = (0, import_json_format_highlight.default)(
-      JSON.stringify(JSON.parse(dataElements[0].textContent || ""), null, 2),
-      {
-        keyColor: "black",
-        numberColor: "blue",
-        stringColor: "#0B7500",
-        trueColor: "#00cc00",
-        falseColor: "#ff8080",
-        nullColor: "cornflowerblue"
-      }
-    );
-    modalTime.innerHTML = timeElements[0].textContent || "";
-    modalServiceKey.innerHTML = serviceKeyElements[0].textContent || "";
-    modalData.innerHTML = formatter;
-    detailsModal.show();
+  tableBody.addEventListener("click", openDetails());
+  ws.addEventListener("open", () => {
+    console.log("Connected " + new Date().toISOString());
   });
-  const url = "SERVERLESS_SPY_WS_URL";
-  const ws = new WebSocket(url);
-  ws.addEventListener("open", function(event) {
-    console.log("connected " + new Date().toISOString());
-  });
-  ws.addEventListener("message", function({ data }) {
-    console.log(data);
-    let parsed;
-    try {
-      parsed = JSON.parse(data);
-    } catch (err) {
-      console.error("Can not parse " + data);
-    }
-    addSpyMessage(parsed);
-  });
-  ws.addEventListener("close", function() {
-    console.log("disconnected " + new Date().toISOString());
+  ws.addEventListener("message", receiveSpyMessage());
+  ws.addEventListener("close", () => {
+    console.log("Disconnected " + new Date().toISOString());
   });
   window.requestAnimationFrame(render);
+  setupTooltip();
+  function render() {
+    if (uiNeedsRefresh) {
+      tableBody.innerHTML = spyMessages.map((sm) => renderSpyMessage(sm)).join("");
+      uiNeedsRefresh = false;
+    }
+    window.requestAnimationFrame(render);
+  }
+  function receiveSpyMessage() {
+    return ({ data }) => {
+      let parsed;
+      try {
+        parsed = JSON.parse(data);
+      } catch (err) {
+        console.error("Can not parse " + data);
+      }
+      addSpyMessage(parsed);
+    };
+  }
+  function openDetails() {
+    return (e) => {
+      const row = e.target.closest("tr");
+      const dataElements = row?.getElementsByClassName("data");
+      const timeElements = row?.getElementsByClassName("time");
+      const serviceKeyElements = row?.getElementsByClassName("serviceKey");
+      if (!dataElements || dataElements.length === 0 || !timeElements || timeElements.length === 0 || !serviceKeyElements || serviceKeyElements.length === 0) {
+        return;
+      }
+      modalTime.innerHTML = timeElements[0].textContent || "";
+      modalServiceKey.innerHTML = serviceKeyElements[0].textContent || "";
+      modalData.innerHTML = formatDataJson(dataElements[0].textContent || "");
+      detailsModal.show();
+    };
+  }
+  function formatDataJson(dataJson) {
+    return (0, import_json_format_highlight.default)(JSON.stringify(JSON.parse(dataJson), null, 2), {
+      keyColor: "black",
+      numberColor: "blue",
+      stringColor: "#0B7500",
+      trueColor: "#00cc00",
+      falseColor: "#ff8080",
+      nullColor: "cornflowerblue"
+    });
+  }
   function addSpyMessage(spyMessage) {
     const spyMessageExt = spyMessage;
     spyMessageExt.dataJsonLowerCase = JSON.stringify(
       spyMessageExt.data
     ).toLocaleLowerCase();
     spyMessageExt.serviceKeyLowerCase = spyMessageExt.serviceKey.toLocaleLowerCase();
-    const service = getServiceName(spyMessageExt.serviceKey);
+    const service = getServiceNameFromServiceKey(spyMessageExt.serviceKey);
     let spyMessageToAdd = spyMessageExt;
     if (service === "Function") {
       const spyMessageFunction = spyMessageExt;
@@ -5276,7 +5283,7 @@ function run() {
         functionEvents = [];
         functionEventsByRequestId[awsRequestId] = functionEvents;
       }
-      const step = getServiceKeyFunctionStep(spyMessageExt.serviceKey);
+      const step = getFunctionStepFromServiceKey(spyMessageExt.serviceKey);
       if (step === "Request") {
         spyMessageToAdd = {
           timestamp: spyMessageExt.timestamp,
@@ -5285,7 +5292,7 @@ function run() {
         };
         functionEvents.unshift(spyMessageFunction);
       } else {
-        addSpyMessageSorted(spyMessageFunction, functionEvents);
+        addSpyMessageToArraySorted(spyMessageFunction, functionEvents);
         spyMessageToAdd = void 0;
       }
     } else if (service === "SnsSubscription" || service === "SnsTopic") {
@@ -5304,7 +5311,7 @@ function run() {
         };
         snsEvents.unshift(spyMessageSns);
       } else {
-        addSpyMessageSorted(spyMessageSns, snsEvents);
+        addSpyMessageToArraySorted(spyMessageSns, snsEvents);
         spyMessageToAdd = void 0;
       }
     } else if (service === "EventBridge" || service === "EventBridgeRule") {
@@ -5323,12 +5330,12 @@ function run() {
         };
         eventBridgeEvents.unshift(spyMessageEventBridge);
       } else {
-        addSpyMessageSorted(spyMessageEventBridge, eventBridgeEvents);
+        addSpyMessageToArraySorted(spyMessageEventBridge, eventBridgeEvents);
         spyMessageToAdd = void 0;
       }
     }
     if (spyMessageToAdd) {
-      addSpyMessageSorted(spyMessageToAdd, spyMessages);
+      addSpyMessageToArraySorted(spyMessageToAdd, spyMessages);
       uiNeedsRefresh = true;
     }
   }
@@ -5345,7 +5352,7 @@ function run() {
     }
     return testServiceKey && testData;
   }
-  function getServiceKeyFunctionStep(serviceKey) {
+  function getFunctionStepFromServiceKey(serviceKey) {
     const serviceKeyParts = serviceKey.split("#");
     const step = serviceKeyParts.length > 0 ? serviceKeyParts[serviceKeyParts.length - 1] : void 0;
     return step;
@@ -5360,12 +5367,12 @@ function run() {
       messages = [spyMessage];
     }
     const html = messages.filter((sm) => matchFilter(sm, { serviceKey, data })).map((sm, i) => {
-      const service = getServiceName(sm.serviceKey);
+      const service = getServiceNameFromServiceKey(sm.serviceKey);
       let icon;
       let iconLinked = '<i class="icon-linked bi bi-arrow-return-right"></i>';
       switch (service) {
         case "Function":
-          const step = getServiceKeyFunctionStep(sm.serviceKey);
+          const step = getFunctionStepFromServiceKey(sm.serviceKey);
           if (i === 0) {
             icon = `<img class="aws-icon" src="icons/Arch_AWS-Lambda_16.svg" ></img>`;
           } else {
@@ -5417,33 +5424,30 @@ function run() {
     }).join("");
     return html;
   }
-  function getServiceName(serviceKey) {
+  function getServiceNameFromServiceKey(serviceKey) {
     const serviceKeyParts = serviceKey.split("#");
     const service = serviceKeyParts.length > 0 ? serviceKeyParts[0] : void 0;
     return service;
   }
-}
-document.addEventListener("DOMContentLoaded", function() {
-  run();
-});
-function setupTooltip() {
-  var tooltipTriggerList = [].slice.call(
-    document.querySelectorAll('[data-bs-toggle="tooltip"]')
-  );
-  tooltipTriggerList.map(function(tooltipTriggerEl) {
-    return new import_bootstrap.Tooltip(tooltipTriggerEl);
-  });
-}
-function addSpyMessageSorted(spyMessageToAdd, spyMessages) {
-  let index = 0;
-  for (let i = spyMessages.length - 1; i >= 0; i--) {
-    const currentSpyMessages = spyMessages[i];
-    index = i + 1;
-    if (i === 0 || currentSpyMessages.timestamp < spyMessageToAdd.timestamp) {
-      break;
-    }
+  function setupTooltip() {
+    var tooltipTriggerList = [].slice.call(
+      document.querySelectorAll('[data-bs-toggle="tooltip"]')
+    );
+    tooltipTriggerList.map(function(tooltipTriggerEl) {
+      return new import_bootstrap.Tooltip(tooltipTriggerEl);
+    });
   }
-  spyMessages.splice(index, 0, spyMessageToAdd);
+  function addSpyMessageToArraySorted(spyMessageToAdd, spyMessages2) {
+    let index = 0;
+    for (let i = spyMessages2.length - 1; i >= 0; i--) {
+      const currentSpyMessages = spyMessages2[i];
+      index = i + 1;
+      if (i === 0 || currentSpyMessages.timestamp < spyMessageToAdd.timestamp) {
+        break;
+      }
+    }
+    spyMessages2.splice(index, 0, spyMessageToAdd);
+  }
 }
 /*!
   * Bootstrap v5.2.1 (https://getbootstrap.com/)
