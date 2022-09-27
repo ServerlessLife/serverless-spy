@@ -104,7 +104,13 @@
     "@serverless-stack/node": "^1.15.3",
     "aws-lambda": "^1.0.7",
     "aws4": "^1.11.0",
-    "ws": "^8.9.0"
+    "ws": "^8.9.0",
+    "bootstrap": "^5.2.1",
+    "bootstrap-icons": "^1.9.1",
+    "caporal": "^1.4.0",
+    "get-installed-path": "^4.0.8",
+    "json-format-highlight": "^1.0.4",
+    "open": "^8.4.0"
   },
   "keywords": [
     "cdk"
@@ -148,7 +154,13 @@
     "aws-lambda",
     "@aws-sdk/types",
     "ws",
-    "@aws-sdk/client-sts"
+    "@aws-sdk/client-sts",
+    "bootstrap",
+    "bootstrap-icons",
+    "caporal",
+    "get-installed-path",
+    "json-format-highlight",
+    "open"
   ],
   "jest": {
     "testMatch": [
