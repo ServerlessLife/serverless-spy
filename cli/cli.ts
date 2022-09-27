@@ -2,7 +2,7 @@ import * as fs from 'fs';
 import * as http from 'http';
 import * as path from 'path';
 import { promisify } from 'util';
-import { program } from 'commander';
+import * as program from 'caporal';
 import { getInstalledPath } from 'get-installed-path';
 import open from 'open';
 import { getSignedWebSocketUrl } from '../common/getWebSocketUrl';
@@ -12,6 +12,8 @@ const readFileAsync = promisify(fs.readFile);
 async function run() {
   let stackList: string[] | undefined;
   let cdkOutput: Record<string, Record<string, string>>;
+
+  let options: any;
 
   program
     .option('--ws <ws>', 'Websocket link')
@@ -23,15 +25,18 @@ async function run() {
       '--cdkstack <cdkstack>',
       'CDK stack in cdk output file. If not specified the first one is picked.'
     )
-    .option('--open', 'Open browser', true)
+    .option('--open', 'Open browser', undefined, true)
     .option(
       '--port <p>',
       `CDK stack in cdk output file. If not specified the first one is picked.`,
+      undefined,
       '3456'
-    );
-  program.parse();
+    )
+    .action(function (_args, opt, _logger) {
+      options = opt;
+    });
 
-  const options = program.opts();
+  program.parse(process.argv);
 
   if (!options.ws && !options.cdkoutput) {
     throw new Error('--ws or --cdkstack parameter not specified');
