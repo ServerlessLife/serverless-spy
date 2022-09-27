@@ -150,6 +150,9 @@
           "spawn": "compile-cli-web"
         }, 
         {
+          "exec": "cp -rlf cli/* lib/cli"
+        },
+        {
           "exec": "rm -rf temp"
         }      
       ]

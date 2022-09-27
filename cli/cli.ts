@@ -2,7 +2,7 @@ import * as fs from 'fs';
 import * as http from 'http';
 import * as path from 'path';
 import { promisify } from 'util';
-import * as program from 'caporal';
+import * as progam from 'caporal';
 import { getInstalledPath } from 'get-installed-path';
 import open from 'open';
 import { getSignedWebSocketUrl } from '../common/getWebSocketUrl';
@@ -15,7 +15,8 @@ async function run() {
 
   let options: any;
 
-  program
+  progam
+    .description('ServerlessSpy')
     .option('--ws <ws>', 'Websocket link')
     .option(
       '--cdkoutput <cdkoutput>',
@@ -32,11 +33,11 @@ async function run() {
       undefined,
       '3456'
     )
-    .action(function (_args, opt, _logger) {
+    .action((_args, opt, _logger) => {
       options = opt;
     });
 
-  program.parse(process.argv);
+  progam.parse(process.argv);
 
   if (!options.ws && !options.cdkoutput) {
     throw new Error('--ws or --cdkstack parameter not specified');
@@ -166,6 +167,9 @@ async function run() {
     })
     .listen(options.port);
 
+  console.log(
+    `ServerlessSoy console runing at http://localhost:${options.port}`
+  );
   await open(`http://localhost:${options.port}`);
 }
 
