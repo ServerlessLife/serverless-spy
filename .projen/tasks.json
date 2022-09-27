@@ -111,7 +111,7 @@
       "description": "Compile TS for CLI web console",
       "steps": [         
         {
-          "exec": "esbuild --bundle --platform=node --sourcemap cli/webServerlessSpy.ts --outdir=lib/cli"
+          "exec": "esbuild --bundle --platform=browser --sourcemap cli/webServerlessSpy.ts --outdir=lib/cli"
         }
       ]
     },
