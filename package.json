@@ -116,7 +116,7 @@
     "cdk"
   ],
   "bin": {
-    "spy": "lib/cli/cli.js"
+    "sspy": "lib/cli/cli.js"
   },
   "main": "lib/index.js",
   "exports": {
