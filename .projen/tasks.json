@@ -317,17 +317,17 @@
           "exec": "npm update npm-check-updates"
         },
         {
-          "exec": "npm-check-updates --dep dev --upgrade --reject='@types/jest,jest,jest-junit,ts-jest'"
+          "exec": "npm-check-updates --dep dev --upgrade --target=minor"
         },
         {
-          "exec": "npm-check-updates --dep optional --upgrade --reject='@types/jest,jest,jest-junit,ts-jest'"
+          "exec": "npm-check-updates --dep optional --upgrade --target=minor"
         },
         {
-          "exec": "npm-check-updates --dep peer --upgrade --reject='@types/jest,jest,jest-junit,ts-jest'"
+          "exec": "npm-check-updates --dep peer --upgrade --target=minor"
         },
         {
-          "exec": "npm-check-updates --dep prod --upgrade --reject='@types/jest,jest,jest-junit,ts-jest'"
-        },
+          "exec": "npm-check-updates --dep prod --upgrade --target=minor"
+        },   
         {
           "exec": "npm run upgrade -w test/cdk"
         },
