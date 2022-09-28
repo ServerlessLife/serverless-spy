@@ -4,8 +4,7 @@ import * as http from 'http';
 import * as path from 'path';
 import { promisify } from 'util';
 import * as progam from 'caporal';
-import { getInstalledPath } from 'get-installed-path';
-import open from 'open';
+import * as open from 'open';
 import { getSignedWebSocketUrl } from '../common/getWebSocketUrl';
 
 const readFileAsync = promisify(fs.readFile);
@@ -27,11 +26,11 @@ async function run() {
       '--cdkstack <cdkstack>',
       'CDK stack in cdk output file. If not specified the first one is picked.'
     )
-    .option('--open', 'Open browser', undefined, true)
+    .option('--open <open>', 'Open browser', progam.BOOL, true)
     .option(
       '--port <p>',
       `CDK stack in cdk output file. If not specified the first one is picked.`,
-      undefined,
+      progam.INT,
       '3456'
     )
     .action((_args, opt, _logger) => {
@@ -62,19 +61,19 @@ async function run() {
 
           if (request.url?.startsWith('/webServerlessSpy.js')) {
             //get transpiled TS to JS files
-            rootFolder = path.join(__dirname, `../lib/cli`);
+            rootFolder = getCompiledJsPath();
           } else if (request.url?.startsWith('/bootstrap/')) {
             filePath = filePath.substring('/bootstrap/'.length);
-            const bootstrapFolder = await getInstalledPath('bootstrap', {
-              local: true,
-            });
+            const bootstrapFolder = await getNpmModuleInstalledPath(
+              'bootstrap'
+            );
 
             rootFolder = bootstrapFolder;
           } else if (request.url?.startsWith('/bootstrap-icons/')) {
             filePath = filePath.substring('/bootstrap-icons/'.length);
-            const bootstrapFolder = await getInstalledPath('bootstrap-icons', {
-              local: true,
-            });
+            const bootstrapFolder = await getNpmModuleInstalledPath(
+              'bootstrap-icons'
+            );
 
             rootFolder = bootstrapFolder;
           } else {
@@ -171,7 +170,43 @@ async function run() {
   console.log(
     `ServerlessSoy console runing at http://localhost:${options.port}`
   );
-  await open(`http://localhost:${options.port}`);
+  if (options.open) {
+    await open(`http://localhost:${options.port}`);
+  }
 }
 
 run().catch(console.error);
+
+function getNpmModuleInstalledPath(npm: string) {
+  let folder = path.join(__dirname, '../', 'node_modules', npm);
+  if (fs.existsSync(folder)) {
+    return folder;
+  }
+
+  let folderAsPackage = path.join(__dirname, '../../', 'node_modules', npm);
+
+  if (fs.existsSync(folderAsPackage)) {
+    return folderAsPackage;
+  }
+
+  throw new Error(
+    `Can not find package in folder ${folder} and ${folderAsPackage}`
+  );
+}
+
+function getCompiledJsPath() {
+  let folder = path.join(__dirname, '../', 'lib/cli');
+  if (fs.existsSync(folder)) {
+    return folder;
+  }
+
+  let folderAsPackage = path.join(__dirname, '../../', 'lib/cli');
+
+  if (fs.existsSync(folderAsPackage)) {
+    return folderAsPackage;
+  }
+
+  throw new Error(
+    `Can not find compiled files in folder ${folder} and ${folderAsPackage}`
+  );
+}
