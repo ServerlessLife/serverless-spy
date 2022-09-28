@@ -9,6 +9,12 @@ import { getSignedWebSocketUrl } from '../common/getWebSocketUrl';
 
 const readFileAsync = promisify(fs.readFile);
 
+//resolve issue with module import
+let opener = open;
+if ((open as any).default) {
+  opener = (open as any).default;
+}
+
 async function run() {
   let stackList: string[] | undefined;
   let cdkOutput: Record<string, Record<string, string>>;
@@ -171,7 +177,7 @@ async function run() {
     `ServerlessSoy console runing at http://localhost:${options.port}`
   );
   if (options.open) {
-    await open(`http://localhost:${options.port}`);
+    await opener(`http://localhost:${options.port}`);
   }
 }
 
