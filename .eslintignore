@@ -1,0 +1,9 @@
+.github
+.husky
+.vscode
+cdk.out
+coverage
+lib
+test-reposts
+dist
+logo
