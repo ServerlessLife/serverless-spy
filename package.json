@@ -119,7 +119,7 @@
     "import": "./lib/index.mjs",
     "require": "./lib/index.js"
   },
-  "license": "Apache-2.0",
+  "license": "MPL-2.0",
   "version": "0.0.0",
   "types": "lib/index.d.ts",
   "stability": "stable",
