@@ -2,7 +2,6 @@
 !/.projen/tasks.json
 !/.github/workflows/pull-request-lint.yml
 !/package.json
-!/LICENSE
 !/.npmignore
 logs
 *.log
@@ -48,3 +47,18 @@ junit.xml
 .jsii
 !/API.md
 temp
+
+
+### Jekyll ###
+_site/
+.sass-cache/
+.jekyll-cache/
+.jekyll-metadata
+
+/_layouts/*
+/_sass/*
+/assets/*
+
+!/_layouts/home.html
+!/_layouts/default.html
+!/assets/css/main.scss

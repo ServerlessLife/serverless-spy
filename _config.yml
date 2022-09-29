@@ -1,0 +1,35 @@
+title: "ServerlessSpy"
+project: "ServerlessSpy"
+description: "ServerlessSpy"
+author: Marko (ServerlessLife)
+email: marko@serverlesslife.com
+twitter_username: ServerlessL
+github_username:  serverlesslife
+show_downloads: false
+encoding: UTF-8
+kramdown:
+  input: GFM
+  hard_wrap: false
+future: true
+jailed: false
+gfm_quirks: paragraph_end
+# theme: jekyll-theme-primer
+# remote_theme: pages-themes/primer
+# remote_theme: mmistakes/minimal-mistakes
+theme: minimal-mistakes-jekyll
+minimal_mistakes_skin: dark
+teaser: /logo/full_logo.svg
+logo: /logo/full_logo.svg
+markdown: kramdown
+kramdown:
+  input: GFM
+  auto_ids: true # Auto-generate ID's for headings
+sass:
+  # Where you keep your scss files
+  sass_dir: assets/css/
+  # Where sass should look for other scss
+  load_paths:
+    - node_modules/
+exclude:
+  - node_modules
+  - test/node_modules  

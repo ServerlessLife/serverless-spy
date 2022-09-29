@@ -1,0 +1,3 @@
+Run Jekyll locally:
+bundle exec jekyll serve --watch
+https://github.com/mmistakes/minimal-mistakes

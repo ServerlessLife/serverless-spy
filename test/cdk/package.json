@@ -1,5 +1,5 @@
 {
-  "name": "serverless-spy-test-e2e",
+  "name": "serverless-spy-test",
   "scripts": {
     "build": "scripts/run-task build",
     "bundle": "scripts/run-task bundle",
@@ -50,6 +50,6 @@
     "constructs": "^10.1.115",
     "tsconfig-paths": "^4.1.0"
   },
-  "license": "Apache-2.0",
+  "license": "MPL-2.0",
   "version": "0.0.0"
 }
