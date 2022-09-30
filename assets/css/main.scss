@@ -12,6 +12,6 @@ html {
   font-size: 15px;
 }
 
-img[src="/logo/full_logo.svg"] {
-  content: url("/logo/full_logo_white.svg")
+img[src$="/logo/full_logo.svg"] {
+  content: url("./logo/full_logo_white.svg")
 }
