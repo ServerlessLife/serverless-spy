@@ -62,4 +62,5 @@ _site/
 
 !/_layouts/home.html
 !/_layouts/default.html
+!/_layouts/archive.html
 !/assets/css/main.scss

@@ -9,9 +9,20 @@ search: false
 @import "minimal-mistakes"; // main partials
 
 html {
-  font-size: 15px;
+  font-size: 16px;
 }
 
 img[src$="/logo/full_logo.svg"] {
-  content: url("/logo/full_logo_white.svg")
+  display: none;
+}
+
+.logo-serverlesslife {
+  width: 10%;
+}
+
+.link-author
+{ 
+  margin-top: -60px !important;
+  text-align: right;
+  text-decoration: none !important;
 }
