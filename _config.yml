@@ -35,3 +35,4 @@ exclude:
   - test/node_modules  
   - vendor
 repository: ServerlessLife/serverless-spy
+baseurl: /
