@@ -36,3 +36,6 @@ exclude:
   - vendor
 repository: ServerlessLife/serverless-spy
 baseurl: /
+include: 
+  - CONTRIBUTING.md
+  - CODE_OF_CONDUCT.md
