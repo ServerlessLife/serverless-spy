@@ -36,3 +36,4 @@ exclude:
   - vendor
 github: 
   - metadata
+repository: ServerlessLife/serverless-spy
