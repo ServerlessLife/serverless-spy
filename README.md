@@ -1,11 +1,29 @@
 ![ServerlessSpy](/logo/full_logo.svg)
 
-Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Eros in cursus turpis massa tincidunt. Egestas fringilla phasellus faucibus scelerisque eleifend donec pretium. Id aliquet lectus proin nibh nisl. Cras ornare arcu dui vivamus arcu felis bibendum ut tristique. Felis donec et odio pellentesque diam volutpat commodo sed egestas. Maecenas volutpat blandit aliquam etiam. Aliquet risus feugiat in ante metus dictum at tempor. Vel orci porta non pulvinar neque laoreet suspendisse interdum consectetur. Est ante in nibh mauris cursus mattis molestie a iaculis. Quis auctor elit sed vulputate mi sit amet mauris. Pellentesque habitant morbi tristique senectus et netus.
+# **DECLAREMENT: THE PROJECT IS IN THE DEEP  DEVELOPMENT PHASE AND NOT JET MENT FOR USE.**
 
-Nisi quis eleifend quam adipiscing vitae proin sagittis nisl. Gravida in fermentum et sollicitudin ac orci. In hendrerit gravida rutrum quisque non tellus orci ac. Nibh tellus molestie nunc non blandit massa enim nec. Suspendisse ultrices gravida dictum fusce ut placerat orci nulla pellentesque. Viverra maecenas accumsan lacus vel facilisis volutpat est velit. Tincidunt tortor aliquam nulla facilisi cras fermentum odio. Elit ut aliquam purus sit amet luctus venenatis lectus. Sit amet venenatis urna cursus eget nunc scelerisque viverra mauris. Netus et malesuada fames ac turpis egestas integer eget aliquet. Tristique senectus et netus et malesuada fames ac. Lobortis elementum nibh tellus molestie nunc non. Velit euismod in pellentesque massa placerat duis ultricies. Egestas diam in arcu cursus euismod quis. Elementum curabitur vitae nunc sed velit dignissim. Tristique risus nec feugiat in. Elementum integer enim neque volutpat ac tincidunt vitae. Eget duis at tellus at. Lacus vel facilisis volutpat est velit egestas.
+CDK-based library for writing integration tests on AWS serverless architecture and web console to monitor events in real-time.
 
-Justo nec ultrices dui sapien eget mi proin. Ut porttitor leo a diam sollicitudin tempor id eu nisl. Ut venenatis tellus in metus vulputate eu scelerisque. Urna id volutpat lacus laoreet non curabitur gravida. At elementum eu facilisis sed. Urna porttitor rhoncus dolor purus non enim praesent elementum. Ultricies mi eget mauris pharetra et. Consequat interdum varius sit amet mattis vulputate enim. Mattis ullamcorper velit sed ullamcorper morbi tincidunt ornare. Pulvinar neque laoreet suspendisse interdum. Vitae congue mauris rhoncus aenean vel elit scelerisque mauris pellentesque. Lectus arcu bibendum at varius vel pharetra vel turpis. Risus quis varius quam quisque id diam. Massa vitae tortor condimentum lacinia quis vel. Sagittis vitae et leo duis ut diam quam. Ullamcorper eget nulla facilisi etiam dignissim diam quis enim lobortis. At ultrices mi tempus imperdiet nulla malesuada pellentesque elit eget.
+# How it works
 
-Ut sem viverra aliquet eget sit. Enim facilisis gravida neque convallis a cras. Vitae aliquet nec ullamcorper sit amet. Iaculis urna id volutpat lacus laoreet non curabitur gravida. Leo integer malesuada nunc vel risus commodo. Diam volutpat commodo sed egestas egestas. Ut venenatis tellus in metus vulputate. Nunc mattis enim ut tellus elementum sagittis vitae et. Leo a diam sollicitudin tempor id eu nisl. Turpis massa sed elementum tempus egestas sed sed. Sapien et ligula ullamcorper malesuada proin libero nunc. Sit amet risus nullam eget felis.
+**Add ServerlessSpy construct to your CDK stack, which creates infrastructure to intercept events in Lambda, SNS, SQS, EventBridge, DynamoDB... and send it to a testing library or your local web console via API Gateway websocket. The testing library subscribes to events so tests can be executed fast without checking/retrying if the event has been received. The testing library is integrated with Jest but can also be used with another library. The web console can be used to see and inspect events in real-time.**
 
-Eu sem integer vitae justo eget magna fermentum. Duis ut diam quam nulla porttitor massa id neque aliquam. Pharetra massa massa ultricies mi quis hendrerit dolor magna. Suspendisse faucibus interdum posuere lorem ipsum dolor sit amet. Enim nulla aliquet porttitor lacus. Facilisi nullam vehicula ipsum a arcu cursus vitae. Ut etiam sit amet nisl purus in mollis nunc. Facilisi nullam vehicula ipsum a arcu cursus vitae. Dictum sit amet justo donec enim diam vulputate. Amet massa vitae tortor condimentum lacinia. Mattis aliquam faucibus purus in massa tempor nec feugiat. Amet consectetur adipiscing elit pellentesque habitant morbi tristique senectus. Accumsan in nisl nisi scelerisque eu ultrices vitae.
+![Concept](/doc/concept.svg)
+
+
+# What is not
+ - ServerlessSpy can not be used if your infrastructure is not created with CDK. 
+ - The solution is meant for development and (automatic) testing environment only. You should **EXCLUDE**  ServerlessSpy CDK construct in any other environment, especially production or high load. ServerlessSpy is not meant for those environments; it just induces costs and could contribute to hitting AWS quotas (Lambda concurrent executions, ...).
+
+# Documentation
+ - [Quick start](doc/quick_start.md)
+ - [Writing tests](doc/writing_tests.md)
+ - Integrations
+   - [Lambda](doc/lambda.md) 
+   - [SQS](doc/SQS.md)
+   - [SNS](doc/SNS.md)
+   - [EventBridge](doc/eventBridge.md)
+   - [DynamoDB](doc/DynamoDB.md)
+ - [Using web console](doc/web_console.md) 
+ - [Code of Conduct](doc/CODE_OF_CONDUCT.md) 
+ - [Contributing Guide](doc/CONTRIBUTING.md) 

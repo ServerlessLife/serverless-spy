@@ -1,5 +1,6 @@
 {
   "name": "serverless-spy",
+  "homepage": "https://serverlessspy.com",
   "repository": {
     "type": "git",
     "url": "git@github.com:ServerlessLife/serverless-spy.git"
@@ -109,7 +110,18 @@
     "open": "^8.4.0"
   },
   "keywords": [
-    "cdk"
+    "cdk",
+    "aws",
+    "testing",
+    "jest",
+    "serverless",
+    "spy",
+    "vitest",
+    "lambda",
+    "sqs",
+    "sns",
+    "dynamodb",
+    "eventbridge"
   ],
   "bin": {
     "sspy": "lib/cli/cli.js"
