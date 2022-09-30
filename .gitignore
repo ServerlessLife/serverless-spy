@@ -57,7 +57,8 @@ _site/
 
 /_layouts/*
 /_sass/*
-/assets/*
+/assets/css/*
+/_includes/*
 
 !/_layouts/home.html
 !/_layouts/default.html
