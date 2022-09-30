@@ -33,3 +33,4 @@ sass:
 exclude:
   - node_modules
   - test/node_modules  
+  - vendor
