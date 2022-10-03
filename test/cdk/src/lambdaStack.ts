@@ -22,7 +22,7 @@ export class LambdaStack extends Stack {
     });
     const serverlessSpy = new ServerlessSpy(this, 'ServerlessSpy', {
       generateSpyEventsFileLocation: props.generateSpyEventsFile
-        ? '.cdkOut/ServerlessSpyEventsLambda.ts'
+        ? 'serverlessSpyEvents/ServerlessSpyEventsLambda.ts'
         : undefined,
       debugMode: true,
     });

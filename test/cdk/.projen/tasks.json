@@ -66,7 +66,7 @@
       "description": "Deploys your CDK app to the AWS cloud",
       "steps": [
         {
-          "exec": "cdk deploy --all --require-approval never  --outputs-file ./.cdkOut/cdkExports.json"
+          "exec": "cdk deploy --all --require-approval never  --outputs-file cdkOutput.json"
         }
       ]
     },

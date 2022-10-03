@@ -34,7 +34,7 @@ export class SnsToSqsStack extends Stack {
 
     const serverlessSpy = new ServerlessSpy(this, 'ServerlessSpy', {
       generateSpyEventsFileLocation: props.generateSpyEventsFile
-        ? '.cdkOut/ServerlessSpyEventsSnsToSqs.ts'
+        ? 'serverlessSpyEvents/ServerlessSpyEventsSnsToSqs.ts'
         : undefined,
       debugMode: true,
     });

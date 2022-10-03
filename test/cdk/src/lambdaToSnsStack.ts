@@ -28,7 +28,7 @@ export class LambdaToSnsStack extends Stack {
 
     const serverlessSpy = new ServerlessSpy(this, 'ServerlessSpy', {
       generateSpyEventsFileLocation: props.generateSpyEventsFile
-        ? '.cdkOut/ServerlessSpyEventsLambdaToSns.ts'
+        ? 'serverlessSpyEvents/ServerlessSpyEventsLambdaToSns.ts'
         : undefined,
       debugMode: true,
     });

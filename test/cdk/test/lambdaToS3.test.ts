@@ -6,18 +6,18 @@ import { Template } from 'aws-cdk-lib/assertions';
 import { v4 as uuidv4 } from 'uuid';
 import { createServerlessSpyListener } from '../../../listener/createServerlessSpyListener';
 import { ServerlessSpyListener } from '../../../listener/ServerlessSpyListener';
-import { ServerlessSpyEvents } from '../.cdkOut/ServerlessSpyEventsLambdaToS3';
+import { ServerlessSpyEvents } from '../serverlessSpyEvents/ServerlessSpyEventsLambdaToS3';
 import { LambdaToS3Stack } from '../src/lambdaToS3Stack';
 import { TestData } from './TestData';
 
 jest.setTimeout(30000);
 
 describe('Lambda to S3', () => {
-  const exportLocation = path.join(__dirname, '../.cdkOut/cdkExports.json');
+  const exportLocation = path.join(__dirname, '../cdkOutput.json');
   let serverlessSpyListener: ServerlessSpyListener<ServerlessSpyEvents>;
 
   if (!fs.existsSync(exportLocation)) {
-    throw new Error(`File ${exportLocation} doen not exists.`);
+    throw new Error(`File ${exportLocation} does not exists.`);
   }
   const output = JSON.parse(fs.readFileSync(exportLocation).toString())[
     'ServerlessSpyLambdaToS3'

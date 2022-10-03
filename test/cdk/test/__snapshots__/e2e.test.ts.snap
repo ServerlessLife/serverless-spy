@@ -248,7 +248,6 @@ def submit_response(event: dict, context, response_status: str, error_message: s
             "SQS_URL": Object {
               "Ref": "MyQueueNo27A959A93",
             },
-            "SSPY_DEBUG": "true",
             "SSPY_FUNCTION_NAME": "FromSnsToSqsAndS3",
             "SSPY_INFRA_MAPPING": "{}",
             "SSPY_WS_ENDPOINT": Object {
@@ -498,7 +497,6 @@ def submit_response(event: dict, context, response_status: str, error_message: s
               "Ref": "MyEventBus251E60F8",
             },
             "NODE_OPTIONS": "--enable-source-maps",
-            "SSPY_DEBUG": "true",
             "SSPY_FUNCTION_NAME": "FromSqsToEventBridge",
             "SSPY_INFRA_MAPPING": Object {
               "Fn::Join": Array [
@@ -956,7 +954,6 @@ def submit_response(event: dict, context, response_status: str, error_message: s
             "AWS_LAMBDA_EXEC_WRAPPER": "/opt/spy-wrapper",
             "AWS_NODEJS_CONNECTION_REUSE_ENABLED": "1",
             "NODE_OPTIONS": "--enable-source-maps",
-            "SSPY_DEBUG": "true",
             "SSPY_FUNCTION_NAME": "ReceiveEventBridge",
             "SSPY_INFRA_MAPPING": "{}",
             "SSPY_WS_ENDPOINT": Object {
@@ -1135,7 +1132,6 @@ def submit_response(event: dict, context, response_status: str, error_message: s
             "AWS_LAMBDA_EXEC_WRAPPER": "/opt/spy-wrapper",
             "AWS_NODEJS_CONNECTION_REUSE_ENABLED": "1",
             "NODE_OPTIONS": "--enable-source-maps",
-            "SSPY_DEBUG": "true",
             "SSPY_FUNCTION_NAME": "ReceiveSqs",
             "SSPY_INFRA_MAPPING": Object {
               "Fn::Join": Array [
@@ -1662,7 +1658,6 @@ def submit_response(event: dict, context, response_status: str, error_message: s
           "Variables": Object {
             "AWS_NODEJS_CONNECTION_REUSE_ENABLED": "1",
             "NODE_OPTIONS": "--enable-source-maps",
-            "SSPY_DEBUG": "true",
             "SSPY_WS_TABLE_NAME": Object {
               "Ref": "ServerlessSpyWebSocketB4D8CE14",
             },
@@ -1765,7 +1760,6 @@ def submit_response(event: dict, context, response_status: str, error_message: s
           "Variables": Object {
             "AWS_NODEJS_CONNECTION_REUSE_ENABLED": "1",
             "NODE_OPTIONS": "--enable-source-maps",
-            "SSPY_DEBUG": "true",
             "SSPY_WS_TABLE_NAME": Object {
               "Ref": "ServerlessSpyWebSocketB4D8CE14",
             },
@@ -2633,7 +2627,6 @@ def submit_response(event: dict, context, response_status: str, error_message: s
             "SNS_TOPIC_ARN": Object {
               "Ref": "MyTopicNo10D152776",
             },
-            "SSPY_DEBUG": "true",
             "SSPY_FUNCTION_NAME": "ToSnsAndDynamoDb",
             "SSPY_INFRA_MAPPING": "{}",
             "SSPY_WS_ENDPOINT": Object {

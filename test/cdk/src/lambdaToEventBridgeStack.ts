@@ -28,7 +28,7 @@ export class LambdaToEventBridgeStack extends Stack {
 
     const serverlessSpy = new ServerlessSpy(this, 'ServerlessSpy', {
       generateSpyEventsFileLocation: props.generateSpyEventsFile
-        ? '.cdkOut/ServerlessSpyEventsLambdaToEventBridge.ts'
+        ? 'serverlessSpyEvents/ServerlessSpyEventsLambdaToEventBridge.ts'
         : undefined,
       debugMode: true,
     });

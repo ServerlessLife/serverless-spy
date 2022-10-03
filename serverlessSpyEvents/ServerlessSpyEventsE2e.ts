@@ -1,0 +1,32 @@
+/* eslint-disable */
+export class ServerlessSpyEvents {
+  S3MyBucket: 'S3#MyBucket' = 'S3#MyBucket';
+  SnsSubscriptionMyTopicNo1MyQueueNo1: 'SnsSubscription#MyTopicNo1#MyQueueNo1' = 'SnsSubscription#MyTopicNo1#MyQueueNo1';
+  SnsTopicMyTopicNo1: 'SnsTopic#MyTopicNo1' = 'SnsTopic#MyTopicNo1';
+  EventBridgeMyEventBus: 'EventBridge#MyEventBus' = 'EventBridge#MyEventBus';
+  DynamoDBMyTable: 'DynamoDB#MyTable' = 'DynamoDB#MyTable';
+  FunctionToSnsAndDynamoDbRequest: 'Function#ToSnsAndDynamoDb#Request' = 'Function#ToSnsAndDynamoDb#Request';
+  FunctionToSnsAndDynamoDbError: 'Function#ToSnsAndDynamoDb#Error' = 'Function#ToSnsAndDynamoDb#Error';
+  FunctionToSnsAndDynamoDbConsole: 'Function#ToSnsAndDynamoDb#Console' = 'Function#ToSnsAndDynamoDb#Console';
+  FunctionToSnsAndDynamoDbResponse: 'Function#ToSnsAndDynamoDb#Response' = 'Function#ToSnsAndDynamoDb#Response';
+  FunctionFromSnsToSqsAndS3Request: 'Function#FromSnsToSqsAndS3#Request' = 'Function#FromSnsToSqsAndS3#Request';
+  FunctionFromSnsToSqsAndS3Error: 'Function#FromSnsToSqsAndS3#Error' = 'Function#FromSnsToSqsAndS3#Error';
+  FunctionFromSnsToSqsAndS3Console: 'Function#FromSnsToSqsAndS3#Console' = 'Function#FromSnsToSqsAndS3#Console';
+  FunctionFromSnsToSqsAndS3Response: 'Function#FromSnsToSqsAndS3#Response' = 'Function#FromSnsToSqsAndS3#Response';
+  SnsSubscriptionMyTopicNo1FromSnsToSqsAndS3: 'SnsSubscription#MyTopicNo1#FromSnsToSqsAndS3' = 'SnsSubscription#MyTopicNo1#FromSnsToSqsAndS3';
+  FunctionFromSqsToEventBridgeRequest: 'Function#FromSqsToEventBridge#Request' = 'Function#FromSqsToEventBridge#Request';
+  FunctionFromSqsToEventBridgeError: 'Function#FromSqsToEventBridge#Error' = 'Function#FromSqsToEventBridge#Error';
+  FunctionFromSqsToEventBridgeConsole: 'Function#FromSqsToEventBridge#Console' = 'Function#FromSqsToEventBridge#Console';
+  FunctionFromSqsToEventBridgeResponse: 'Function#FromSqsToEventBridge#Response' = 'Function#FromSqsToEventBridge#Response';
+  SqsMyQueueNo2: 'Sqs#MyQueueNo2' = 'Sqs#MyQueueNo2';
+  FunctionReceiveSqsRequest: 'Function#ReceiveSqs#Request' = 'Function#ReceiveSqs#Request';
+  FunctionReceiveSqsError: 'Function#ReceiveSqs#Error' = 'Function#ReceiveSqs#Error';
+  FunctionReceiveSqsConsole: 'Function#ReceiveSqs#Console' = 'Function#ReceiveSqs#Console';
+  FunctionReceiveSqsResponse: 'Function#ReceiveSqs#Response' = 'Function#ReceiveSqs#Response';
+  SqsMyQueueNo1: 'Sqs#MyQueueNo1' = 'Sqs#MyQueueNo1';
+  FunctionReceiveEventBridgeRequest: 'Function#ReceiveEventBridge#Request' = 'Function#ReceiveEventBridge#Request';
+  FunctionReceiveEventBridgeError: 'Function#ReceiveEventBridge#Error' = 'Function#ReceiveEventBridge#Error';
+  FunctionReceiveEventBridgeConsole: 'Function#ReceiveEventBridge#Console' = 'Function#ReceiveEventBridge#Console';
+  FunctionReceiveEventBridgeResponse: 'Function#ReceiveEventBridge#Response' = 'Function#ReceiveEventBridge#Response';
+  EventBridgeRuleMyEventBusMyEventBridge: 'EventBridgeRule#MyEventBus#MyEventBridge' = 'EventBridgeRule#MyEventBus#MyEventBridge';
+}

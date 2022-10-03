@@ -163,10 +163,8 @@ export class E2eStack extends Stack {
     });
 
     const serverlessSpy = new ServerlessSpy(this, 'ServerlessSpy', {
-      generateSpyEventsFileLocation: props.generateSpyEventsFile
-        ? '.cdkOut/ServerlessSpyEventsE2e.ts'
-        : undefined,
-      debugMode: true,
+      generateSpyEventsFileLocation:
+        'serverlessSpyEvents/ServerlessSpyEventsE2e.ts',
     });
 
     serverlessSpy.spy();

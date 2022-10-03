@@ -1,11 +1,62 @@
 # Quick Start
 
-Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Quis risus sed vulputate odio ut. Vel pretium lectus quam id leo in vitae turpis massa. Sed vulputate odio ut enim blandit volutpat maecenas. Etiam dignissim diam quis enim lobortis scelerisque fermentum. Tortor consequat id porta nibh. Risus ultricies tristique nulla aliquet enim tortor. Elit pellentesque habitant morbi tristique senectus et. Proin sed libero enim sed faucibus turpis in. Mauris ultrices eros in cursus turpis massa tincidunt. Orci ac auctor augue mauris augue. Cras ornare arcu dui vivamus arcu felis bibendum. Dolor sed viverra ipsum nunc aliquet bibendum enim facilisis gravida. Non arcu risus quis varius quam. Ullamcorper morbi tincidunt ornare massa.
+You should use ServerlessSpy in the following environments:
+ - Development environment: so you can write tests. Web console helps you with insight into what is happening in the system.
+ - Automatic test environment: You execute written tests via CI.
 
-Augue mauris augue neque gravida. Fusce ut placerat orci nulla pellentesque dignissim enim. Duis ut diam quam nulla. Proin sagittis nisl rhoncus mattis rhoncus urna neque viverra. Parturient montes nascetur ridiculus mus mauris vitae ultricies leo integer. Cursus sit amet dictum sit amet. Eu turpis egestas pretium aenean pharetra magna ac. Et netus et malesuada fames ac turpis egestas integer eget. Mi ipsum faucibus vitae aliquet nec ullamcorper sit amet. Non nisi est sit amet facilisis magna etiam. Adipiscing bibendum est ultricies integer quis auctor. Ac tincidunt vitae semper quis lectus. Tortor aliquam nulla facilisi cras fermentum odio. Et magnis dis parturient montes nascetur ridiculus mus mauris. Tempor orci dapibus ultrices in iaculis nunc sed augue lacus. Pellentesque massa placerat duis ultricies lacus sed turpis. Ipsum consequat nisl vel pretium. Venenatis tellus in metus vulputate eu scelerisque felis imperdiet proin. Laoreet id donec ultrices tincidunt arcu. Ac turpis egestas sed tempus urna.
+## Step 1: Install
+```bash
+npm install serverless-spy
+```
 
-Vitae tortor condimentum lacinia quis vel eros donec ac. Non arcu risus quis varius quam quisque. Varius duis at consectetur lorem donec massa sapien faucibus. Rhoncus urna neque viverra justo nec ultrices dui sapien eget. Tellus cras adipiscing enim eu. Laoreet id donec ultrices tincidunt arcu non sodales neque. Tempor nec feugiat nisl pretium fusce id velit. Lacinia at quis risus sed vulputate odio ut. Malesuada proin libero nunc consequat interdum varius. Vulputate dignissim suspendisse in est ante in nibh mauris cursus. Malesuada bibendum arcu vitae elementum curabitur vitae nunc. Orci eu lobortis elementum nibh tellus molestie nunc non. Eget velit aliquet sagittis id consectetur purus ut faucibus pulvinar. At consectetur lorem donec massa sapien faucibus et molestie ac.
+## Step 2: Include ServerlessSpy in the CDK stack 
+```typescript
+const serverlessSpy = new ServerlessSpy(this, 'ServerlessSpy', {
+  generateSpyEventsFileLocation: 'serverlessSpyEvents/ServerlessSpyEvents.ts'              
+});
+serverlessSpy.spy();
+```
+[more](CDK_construct.md)
 
-Cras fermentum odio eu feugiat pretium nibh. Est pellentesque elit ullamcorper dignissim cras tincidunt lobortis feugiat vivamus. Tortor at auctor urna nunc id cursus. Mi ipsum faucibus vitae aliquet nec. Vitae semper quis lectus nulla at volutpat diam ut venenatis. Enim neque volutpat ac tincidunt vitae. Enim sit amet venenatis urna. Ultrices vitae auctor eu augue ut. Dolor sit amet consectetur adipiscing elit pellentesque habitant. Quis eleifend quam adipiscing vitae proin sagittis nisl rhoncus. Volutpat sed cras ornare arcu. Aliquam nulla facilisi cras fermentum odio eu feugiat pretium nibh. Sit amet tellus cras adipiscing enim eu turpis egestas pretium. Mauris rhoncus aenean vel elit scelerisque mauris pellentesque pulvinar. Elit duis tristique sollicitudin nibh sit. Arcu dui vivamus arcu felis bibendum ut tristique et.
+## Step 3: Deploy CDK stack with exporting CloudFormation outputs
+```bash
+cdk deploy --outputs-file cdkOutput.json
+```
 
-Morbi enim nunc faucibus a pellentesque sit amet. Nulla facilisi morbi tempus iaculis urna id. Nec tincidunt praesent semper feugiat nibh. Vitae tempus quam pellentesque nec. Massa massa ultricies mi quis. Eget felis eget nunc lobortis mattis aliquam. Sollicitudin tempor id eu nisl nunc mi. At urna condimentum mattis pellentesque. Tincidunt tortor aliquam nulla facilisi. Et ligula ullamcorper malesuada proin. Augue mauris augue neque gravida in fermentum et sollicitudin ac. Sit amet massa vitae tortor condimentum lacinia quis vel eros.
+The key part of the output is `ServerlessSpyWsUrl`, which is the URL to the websocket where the testing library and web console receive events. Exclude the `cdkOutput.json` file from `git` (like you always do), especially if it has secrets.
+
+Apart from CF output, the ServerlessSpy generates the TypeScript file `serverlessSpyEvents/ServerlessSpyEvents.ts` specified in the first step. This makes your test strongly typed 💪.
+
+## Step 4: Write tests 🔨
+Initialize the `ServerlessSpyListener`
+```typescript
+import { ServerlessSpyEvents } from '../serverlessSpyEvents/ServerlessSpyEvents';
+
+let serverlessSpyListener: ServerlessSpyListener<ServerlessSpyEvents>;
+beforeEach(async () => {
+  serverlessSpyListener =
+    await createServerlessSpyListener<ServerlessSpyEvents>({
+      serverlessSpyWsUrl: output.ServerlessSpyWsUrl, // ServerlessSpy WebSocket URL from CloudFormation output
+    });
+});
+```  
+
+Write test:
+```typescript
+(
+  await serverlessSpyListener.waitForSnsTopicMyTopic<TestData>()
+).toMatchObject({ message: data });
+```
+Close the `ServerlessSpyListener`
+```typescript
+afterEach(async () => {
+  serverlessSpyListener.stop();
+});
+```
+[more](writing_tests.md)
+
+## Step 5: Start local web console to gain more insights 🕵
+```bash
+npx sspy --cdkoutput cdkOutput.json
+```
+[more](web_console.md)

@@ -7,18 +7,18 @@ import { SNSEvent, SQSEvent, EventBridgeEvent, SNSMessage } from 'aws-lambda';
 import { v4 as uuidv4 } from 'uuid';
 import { createServerlessSpyListener } from '../../../listener/createServerlessSpyListener';
 import { ServerlessSpyListener } from '../../../listener/ServerlessSpyListener';
-import { ServerlessSpyEvents } from '../.cdkOut/ServerlessSpyEventsE2e';
+import { ServerlessSpyEvents } from '../serverlessSpyEvents/ServerlessSpyEventsE2e';
 import { E2eStack } from '../src/e2eStack';
 import { TestData } from './TestData';
 
 jest.setTimeout(30000);
 
 describe('E2e', () => {
-  const exportLocation = path.join(__dirname, '../.cdkOut/cdkExports.json');
+  const exportLocation = path.join(__dirname, '../cdkOutput.json');
   let serverlessSpyListener: ServerlessSpyListener<ServerlessSpyEvents>;
 
   if (!fs.existsSync(exportLocation)) {
-    throw new Error(`File ${exportLocation} doen not exists.`);
+    throw new Error(`File ${exportLocation} does not exists.`);
   }
   const output = JSON.parse(fs.readFileSync(exportLocation).toString())[
     'ServerlessSpyE2e'

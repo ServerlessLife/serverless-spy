@@ -12,7 +12,7 @@ export class SqsStack extends Stack {
 
     const serverlessSpy = new ServerlessSpy(this, 'ServerlessSpy', {
       generateSpyEventsFileLocation: props.generateSpyEventsFile
-        ? '.cdkOut/ServerlessSpyEventsSqs.ts'
+        ? 'serverlessSpyEvents/ServerlessSpyEventsSqs.ts'
         : undefined,
       debugMode: true,
       spySqsWithNoSubscriptionAndDropAllMessages: true,
