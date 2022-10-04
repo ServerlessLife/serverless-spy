@@ -17,12 +17,16 @@ img[src$="/logo/full_logo.svg"] {
 }
 
 .logo-serverlesslife {
-  width: 10%;
+  width: 7%;
+  text-decoration: none !important;
 }
 
 .link-author
 { 
   margin-top: -60px !important;
-  text-align: right;
+  text-align: right;  
+}
+
+.link-author a{
   text-decoration: none !important;
 }

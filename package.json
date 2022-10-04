@@ -34,7 +34,8 @@
     "lint-fix": "eslint --fix './**/*.ts'",
     "pretty": "prettier --write '**/*.ts'",
     "bundle-extension": "scripts/run-task bundle-extension",
-    "cli": "scripts/run-task cli"
+    "cli": "scripts/run-task cli",
+    "homepage": "bundle exec jekyll serve --watch"
   },
   "author": {
     "name": "Marko (ServerlessLife.com)",

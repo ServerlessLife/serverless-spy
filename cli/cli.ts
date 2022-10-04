@@ -22,7 +22,7 @@ async function run() {
   let options: any;
 
   progam
-    .description('ServerlessSpy')
+    .description('ServerlessSpy web console')
     .option('--ws <ws>', 'Websocket link')
     .option(
       '--cdkoutput <cdkoutput>',
@@ -35,7 +35,7 @@ async function run() {
     .option('--open <open>', 'Open browser', progam.BOOL, true)
     .option(
       '--port <p>',
-      `CDK stack in cdk output file. If not specified the first one is picked.`,
+      `A port on localhost where ServerlessSpy web console is accessible.`,
       progam.INT,
       '3456'
     )

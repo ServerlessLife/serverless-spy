@@ -165,7 +165,7 @@
           "spawn": "compile-cli-web"
         },    
         {
-          "exec": "esr cli/cli.ts --cdkoutput ../test/cdk/.cdkOut/cdkExports.json"
+          "exec": "esr cli/cli.ts --cdkoutput ../test/cdk/cdkOutput.json"
         }      
       ]
     },

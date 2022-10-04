@@ -63,6 +63,8 @@ await serverlessSpyListener.waitForSnsTopicMyTopic<TestData>({
 ```
 This way, you can run tests in parallel and handle cases when a similar event occurs multiple times as part of the same test.
 
+**💡Recommendation: Try not to use condition for validating the event. Just find the event with help of conditions and than validate it with Jest. Test are easier to debug this way, because the error shows which part of the data does not match. But if you like using just conditions so tests are easily to read, go ahead.**
+
 ## Extracting the event data with `getData()`
 ```typescript
 const event = (await serverlessSpyListener.waitForXXX<TestData>()).getData();
