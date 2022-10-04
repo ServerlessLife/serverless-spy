@@ -1,29 +1,25 @@
-title: "ServerlessSpy"
-project: "ServerlessSpy"
-description: "ServerlessSpy"
+title: 'ServerlessSpy'
+project: 'ServerlessSpy'
+description: 'CDK-based library for writing elegant integration tests on AWS serverless architecture and additional web console to monitor events in real-time.'
 author: Marko (ServerlessLife)
 email: marko@serverlesslife.com
+image: logo/full_logo.png
 twitter_username: ServerlessL
-github_username:  serverlesslife
+github_username: serverlesslife
 show_downloads: false
 encoding: UTF-8
 kramdown:
   input: GFM
   hard_wrap: false
+  auto_ids: true # Auto-generate ID's for headings
 future: true
 jailed: false
 gfm_quirks: paragraph_end
-# theme: jekyll-theme-primer
-# remote_theme: pages-themes/primer
-# remote_theme: mmistakes/minimal-mistakes
 theme: minimal-mistakes-jekyll
 minimal_mistakes_skin: dark
 teaser: /logo/full_logo.svg
 logo: /logo/full_logo.svg
 markdown: kramdown
-kramdown:
-  input: GFM
-  auto_ids: true # Auto-generate ID's for headings
 sass:
   # Where you keep your scss files
   sass_dir: assets/css/
@@ -32,10 +28,14 @@ sass:
     - node_modules/
 exclude:
   - node_modules
-  - test/node_modules  
+  - test/node_modules
   - vendor
 repository: ServerlessLife/serverless-spy
 baseurl: /
-include: 
+include:
   - CONTRIBUTING.md
   - CODE_OF_CONDUCT.md
+analytics:
+  provider: 'google-gtag'
+  google:
+    tracking_id: 'G-C2PHH6WYPP'

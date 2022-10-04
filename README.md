@@ -6,7 +6,7 @@ CDK-based library for writing elegant, fast executing integration tests on AWS s
 
 **Add ServerlessSpy construct to your CDK stack, which creates infrastructure to intercept events in Lambda, SNS, SQS, EventBridge, DynamoDB, S3... and send it to a testing library or your local web console via API Gateway websocket. The testing library subscribes to events so tests can be executed fast without checking/retrying if the process has finished. The testing library is integrated with Jest but can also be used with another library. The web console can be used to see and inspect events in real-time.**
 
-![Concept](./doc/concept.svg)
+[![Concept](./doc/concept.svg)](https://serverlessspy.com/)
 
 ![Web console](./doc/web_console.gif)
 
