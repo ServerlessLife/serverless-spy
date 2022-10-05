@@ -27,7 +27,7 @@ export class E2eStack extends Stack {
 
     const queueNo2 = new sqs.Queue(this, 'MyQueueNo2');
 
-    const topicNo1 = new sns.Topic(this, 'MyTopicNo1', {});
+    const topicNo1 = new sns.Topic(this, 'MyTopicNo1');
 
     // TODO - integrate SST
     // new SstFunction(this, 'SstLambda1', {

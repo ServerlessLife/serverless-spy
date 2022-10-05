@@ -75,7 +75,7 @@ CDK-based library for writing elegant, fast-executing integration tests on AWS s
    - Step Functions (work in progress)
  - [Web Console](doc/web_console.md)  
  - [Frequently Asked Questions (FAQ)](doc/FAQ.md)  
- - [Sample Application](doc/sample_app.md)   
+ - [Sample Application](https://github.com/ServerlessLife/serverless-spy-example){:target="_blank"}
  - [Roadmap](doc/roadmap.md)   
  - [Code of Conduct](doc/CODE_OF_CONDUCT.md) 
  - [Contributing Guide](doc/CONTRIBUTING.md) 

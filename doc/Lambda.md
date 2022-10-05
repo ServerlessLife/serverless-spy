@@ -1,5 +1,7 @@
 # Lambda
 
+Under the cover, ServerlessSpy intercepts Lambda events with [Lambda internal extension](https://lumigo.io/blog/aws-lambda-extensions-what-are-they-and-why-do-they-matter/).
+
 Basic example:
 
 ```typescript
