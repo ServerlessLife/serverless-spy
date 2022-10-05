@@ -87,7 +87,7 @@ export class ServerlessSpy extends Construct {
       timeout: Duration.seconds(5),
       runtime: lambda.Runtime.NODEJS_16_X,
       handler: 'handler',
-      entry: this.getAssetLocation('functions/onConnect.ts'),
+      entry: this.getAssetLocation('functions/onConnect.js'),
       environment: envVars,
     });
     this.table.grantWriteData(functionOnConnect);
@@ -101,7 +101,7 @@ export class ServerlessSpy extends Construct {
         timeout: Duration.seconds(5),
         runtime: lambda.Runtime.NODEJS_16_X,
         handler: 'handler',
-        entry: this.getAssetLocation('functions/onDisconnect.ts'),
+        entry: this.getAssetLocation('functions/onDisconnect.js'),
         environment: envVars,
       }
     );
@@ -404,7 +404,7 @@ export class ServerlessSpy extends Construct {
         runtime: lambda.Runtime.NODEJS_16_X,
         handler: 'handler',
         entry: this.getAssetLocation(
-          'functions/sqsSubscriptionAndDropAllMessages.ts'
+          'functions/sqsSubscriptionAndDropAllMessages.js'
         ),
         environment: this.getDafaultLambdaEnvironmentVariables(),
       }
@@ -479,7 +479,7 @@ export class ServerlessSpy extends Construct {
       timeout: Duration.seconds(5),
       runtime: lambda.Runtime.NODEJS_16_X,
       handler: 'handler',
-      entry: this.getAssetLocation('functions/sendMessage.ts'),
+      entry: this.getAssetLocation('functions/sendMessage.js'),
       environment: {
         [envVariableNames.SSPY_WS_TABLE_NAME]: this.table.tableName,
         NODE_OPTIONS: '--enable-source-maps',
@@ -766,13 +766,13 @@ export class ServerlessSpy extends Construct {
   }
 
   private getAssetLocation(location: string) {
-    const loc = path.join(__dirname, '../' + location);
+    const loc = path.join(__dirname, '../lib/' + location);
 
     if (fs.existsSync(loc)) {
       return loc;
     }
 
-    const loc2 = path.join(__dirname, '../../' + location);
+    const loc2 = path.join(__dirname, '../../lib/' + location);
 
     if (fs.existsSync(loc2)) {
       return loc2;

@@ -46,6 +46,7 @@
     "common/**/*.ts",        
     "listener/**/*.ts",    
     "cli/**/*.ts",        
+    "functions/**/*.ts",            
     "index.ts",    
   ],
   "exclude": ["cli/webServerlessSpy.ts"]

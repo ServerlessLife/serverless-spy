@@ -83,8 +83,8 @@
     "cli"
   ],
   "peerDependencies": {
-    "aws-cdk-lib": "^2.43.1",
-    "constructs": "^10.1.115"
+    "aws-cdk-lib": "^2",
+    "constructs": "^10"
   },
   "dependencies": {
     "@aws-cdk/aws-apigatewayv2-alpha": "2.43.1-alpha.0",
