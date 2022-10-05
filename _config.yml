@@ -35,6 +35,7 @@ baseurl: /
 include:
   - CONTRIBUTING.md
   - CODE_OF_CONDUCT.md
+  - LICENSE.md
 analytics:
   provider: 'google-gtag'
   google:

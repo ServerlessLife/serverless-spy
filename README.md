@@ -80,3 +80,4 @@ CDK-based library for writing elegant, fast executing integration tests on AWS s
  - [Code of Conduct](doc/CODE_OF_CONDUCT.md) 
  - [Contributing Guide](doc/CONTRIBUTING.md) 
  - [Contributors](doc/Contributors.md)  
+ - [License](./LICENSE.md)   
