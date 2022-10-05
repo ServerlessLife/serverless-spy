@@ -35,7 +35,7 @@ await (
 
 The condition `condition: (d) => d.request.id === myData.id` finds the correct request and than you can use on each part `getData()` to get the event or any Jest functions to validate.
 
-So fully blown test would look like this:
+So a fully blown test would look like this:
 ```typescript
 (
   await (

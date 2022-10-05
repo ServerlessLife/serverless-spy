@@ -1,7 +1,7 @@
 # Quick Start
 
 ServerlessSpy is meant for the following environments:
- - Development environment: so you can write tests. The web console helps you gain insight into what is happening in the system.
+ - Development environment: So you can write tests. The web console helps you gain insight into what is happening in the system.
  - Automatic test environment: You execute written tests in CI/CD.
 
 ## Step 1: Install
@@ -25,7 +25,7 @@ cdk deploy --outputs-file cdkOutput.json
 
 The key part of the output is `ServerlessSpyWsUrl`, which is the URL to the WebSocket where the testing library and web console receive events. Exclude the `cdkOutput.json` file from `git` (like you always do), especially if it has secrets.
 
-Apart from CF output, the ServerlessSpy generates the TypeScript file `serverlessSpyEvents/ServerlessSpyEvents.ts` specified in the first step. This makes your tests strongly typed 💪 thanks to TypeScript.
+Apart from CF output, ServerlessSpy generates the TypeScript file `serverlessSpyEvents/ServerlessSpyEvents.ts` specified in the first step. This makes your tests strongly typed 💪 thanks to TypeScript.
 
 ## Step 4: Write tests 🔨
 Initialize the `ServerlessSpyListener`

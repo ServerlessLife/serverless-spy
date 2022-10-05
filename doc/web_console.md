@@ -23,5 +23,5 @@ The browser window will open [http://localhost:3456/](http://localhost:3456/).
 
 `--open <open>` - Open browser (optional, default: true)
 
-`--port` - A port on localhost where ServerlessSpy web console is accessible (optional, default: "3456")  
+`--port` - A port on localhost where the ServerlessSpy web console is accessible (optional, default: "3456")  
 

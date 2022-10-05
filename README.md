@@ -1,14 +1,14 @@
 ![ServerlessSpy](./logo/full_logo.svg)
 
-CDK-based library for writing elegant, fast executing integration tests on AWS serverless architecture and additional web console to monitor events in real-time. 
+CDK-based library for writing elegant, fast-executing integration tests on AWS serverless architecture and an additional web console to monitor events in real time. 
 
 # How it works
 
-**ServerlessSpy CDK construct creates infrastructure to intercept events in Lambda, SNS, SQS, EventBridge, DynamoDB, S3... and sends it to a testing library or your local web console via API Gateway WebSocket. The testing library subscribes to events so tests can be executed fast without checking/retrying if the process has finished. The testing library is integrated with Jest but can also be used with any other testing library. The web console can be used to see and inspect events in real-time.**
+**ServerlessSpy CDK construct creates infrastructure to intercept events in Lambda, SNS, SQS, EventBridge, DynamoDB, S3... and sends it to a testing library or your local web console via API Gateway WebSocket. The testing library subscribes to events so tests can be executed fast without checking/retrying if the process has finished. The testing library is integrated with Jest but can also be used with any other testing library. The web console can be used to see and inspect events in real time.**
 
 [![Concept](./doc/concept.svg)](https://serverlessspy.com/)
 
-**Your test for the example above would look like something this:**
+**Your test for the example above would look something like this:**
 ```typescript
 (
   await serverlessSpyListener.waitForEventBridgeMyEventBus<TestData>({

@@ -35,7 +35,7 @@ afterEach(async () => {
 ```
 ## Writing test
 
-There are several ways how can you write a test.
+There are several ways that you can use to write a test.
 
 ## Waiting for the event to occur
 

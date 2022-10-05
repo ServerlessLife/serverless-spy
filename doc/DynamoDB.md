@@ -34,7 +34,7 @@ Validating the data with Jest would look like this:
 });
 ```
 
-**⚠️Warning: DynamoDB can have only two Lambdas subscribed to DynamoDB Streams. If your primary stack already has two, you could not use DynamoDB interception. You should [exclude DynamoDB interception in your CDK stack](./CDK_construct.md):
+**⚠️Warning: DynamoDB can have only two Lambdas subscribed to DynamoDB Streams. If your primary stack already has two, you can not use DynamoDB interception. You should [exclude DynamoDB interception in your CDK stack](./CDK_construct.md):
 ```typescript
 serverlessSpy.spy({
   spyDynamoDB: false,
