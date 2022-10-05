@@ -1,12 +1,12 @@
 # DynamoDB
 
-DynamoDB integration subscribes to DynamoDb Stream and intercept events. The event has following properties
+DynamoDB integration subscribes to DynamoDb Stream and intercepts events. The event has the following properties:
  - `keys`
  - `newImage`
  - `oldImage`
  - `eventName` (`INSERT`, `MODIFY`, `REMOVE`) 
  
- You can use `eventName` and compare `newImage` and `oldImage` to validate if the correct operation has been executed.
+You can use `eventName` and compare `newImage` and `oldImage` to validate if the correct operation has been executed.
 
 Basic example:
 
@@ -14,7 +14,7 @@ Basic example:
 await serverlessSpyListener.waitForDynamoDBMyTable<TestData>();
 ```
 
-You can use conditions to wait for particular event. You can also use generic (`TestData`) to strongly type the event.
+You can use conditions to wait for a particular event. You can also use generic (`TestData`) to strongly type the event.
 
 ```typescript    
 await serverlessSpyListener.waitForDynamoDBMyTable<TestData>({

@@ -1,8 +1,8 @@
 # Web console
 
-The web console runs on your local computer and displays all events that ServerlessSpy intercepts in the environment. That is useful when developing to investigate what is happening in the system. The web console receives events via web socket and displays them in the table with a timestamp, event name, and data. You can filter events by event name and data. You can use regular expressions.
+The web console runs on your local computer and displays all events that ServerlessSpy intercepts in the environment. That is useful when developing to investigate what is happening in the system. The web console receives events via WebSocket and displays them in the table with a timestamp, event name, and data. You can filter events by event name and data. You can use regular expressions.
 
-If events are hierarchical like Lambda request & response, you can see an arrow from a parent to child event.
+If events are hierarchical, like Lambda request & response, you can see an arrow from a parent to child event.
 
 ![Web console](./web_console.gif)
 
@@ -17,9 +17,9 @@ The browser window will open [http://localhost:3456/](http://localhost:3456/).
 ## Parameters:
 `--ws <ws>` - Websocket link (optional)
 
-`--cdkoutput <cdkoutput>` - CDK output file that contains Websocket link in a property ServerlessSpyWsUrl (optional)
+`--cdkoutput <cdkoutput>` - CDK output file that contains Websocket link in a property `ServerlessSpyWsUrl` (optional)
 
-`--cdkstack <cdkstack>` - CDK stack in cdk output file. If not specified the first one is picked (optional)
+`--cdkstack <cdkstack>` - CDK stack in CDK output file. If not specified, the first one is picked (optional)
 
 `--open <open>` - Open browser (optional, default: true)
 

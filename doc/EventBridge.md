@@ -1,8 +1,8 @@
 # EventBridge
 
 EventBridge integration has two types of methods:
- - `waitForEventBridgeXxx()` - Intercept all events on EventBridge.
- - `waitForEventBridgeRuleXxxYyy` - Intercept only events on Rule.
+ - `waitForEventBridgeXxx()` - Intercept all events received by EventBridge.
+ - `waitForEventBridgeRuleXxxYyy` - Intercept only events received by Rule.
 
 Basic example:
 
@@ -12,7 +12,7 @@ await serverlessSpyListener.waitForEventBridgeMyEventBus<TestData>();
 await serverlessSpyListener.waitForEventBridgeRuleMyEventBusMyRule<TestData>();
 ```
 
-You can use conditions to wait for particular event. You can also use generic (`TestData`) to strongly type the event.
+You can use conditions to wait for a particular event. You can also use generic (`TestData`) to strongly type the event.
 
 ```typescript     
 await serverlessSpyListener.waitForEventBridgeMyEventBus<TestData>({

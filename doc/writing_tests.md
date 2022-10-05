@@ -2,7 +2,7 @@
 
 ## Creating `ServerlessSpyListener`
 
-### Include the typescript file that was generated when deploying.
+### Include the TypeScript file that was generated when deploying
 
 ```typescript
 import { ServerlessSpyEvents } from '../serverlessSpyEvents/ServerlessSpyEvents';
@@ -47,11 +47,11 @@ or
 await serverlessSpyListener.waitForXXX()
 ```
 
-`WaitFor` methods are generated with TypeScript. You should name your resources in CDK so that these methods are easy to read.
+`WaitFor` methods are generated with TypeScript. You should name your resources in CDK in a way that these methods are easy to read.
 
 Please note that there is no order enforced on events. The same event can match with multiple `WaitFor` calls. When `WaitFor` is called, it checks for a matching event in the bucket of all received events since initializing `ServerlessSpyListener`. The matching event will not be removed. If the event is not found, it starts to wait for one. So if you write  `await serverlessSpyListener.waitForXXX<TestData>()` twice, because you expect events to occur twice, it will not work. The first event will satisfy both `WaitFor` calls. 
 
-`TestData` is an optional generic argument that makes things all parameters strongly typed. If that is useful, decide based on your use case.
+`TestData` is an optional generic argument that makes all parameters strongly typed. If that is useful, decide based on your use case.
 
 ## Filtering the events
 
@@ -63,7 +63,7 @@ await serverlessSpyListener.waitForSnsTopicMyTopic<TestData>({
 ```
 This way, you can run tests in parallel and handle cases when a similar event occurs multiple times as part of the same test.
 
-**💡Recommendation: Try not to use condition for validating the event. Just find the event with help of conditions and than validate it with Jest. Test are easier to debug this way, because the error shows which part of the data does not match. But if you like using just conditions so tests are easily to read, go ahead.**
+**💡Recommendation: Try not to use conditions for validating the event. Just find the event with the help of conditions and then validate it with Jest. Tests are easier to debug this way because the error shows which part of the data does not match. But if you like using just conditions, so tests are easy to read, go ahead.**
 
 ## Extracting the event data with `getData()`
 ```typescript
@@ -112,4 +112,5 @@ Tests for the same Lambda request can be chained together:
   },
 ```
 That is useful when you expect a Lambda request that will produce some data. You can also validate intermediate steps of processing with console log events.
+
 [more on spying on Lambda](Lambda.md)

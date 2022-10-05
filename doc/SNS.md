@@ -1,8 +1,8 @@
 # SNS
 
 SNS integration has two types of methods:
- - `waitForSnsTopicXxx()` - Intercept all events on SNS.
- - `waitForSnsSubscriptionXxxYyy` - Intercept all events for SNS subscription. If the subscription has no filters it is the same as previous method.
+ - `waitForSnsTopicXxx()` - Intercept all events received by SNS.
+ - `waitForSnsSubscriptionXxxYyy` - Intercept all events received by SNS subscription. If the subscription has no filters, it is the same as the previous method.
 
 Basic example:
 
@@ -12,7 +12,7 @@ await serverlessSpyListener.waitForSnsTopicMyTopic();
 await serverlessSpyListener.waitForSnsSubscriptionMyTopicMyLambda();    
 ```
 
-You can use conditions to wait for particular event. You can also use generic (`TestData`) to strongly type the event.
+You can use conditions to wait for a particular event. You can also use generic (`TestData`) to strongly type the event.
 
 ```typescript    
 await serverlessSpyListener.waitForSnsTopicMyTopic<TestData>({

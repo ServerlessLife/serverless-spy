@@ -6,7 +6,7 @@ Basic example:
 await serverlessSpyListener.waitForFunctionMyLambdaRequest();
 ```
 
-You can use conditions to wait for particular event. You can also use generic (`TestData`) to strongly type the event.
+You can use conditions to wait for a particular event. You can also use generic (`TestData`) to strongly type the event.
 
 ```typescript
 await serverlessSpyListener.waitForFunctionMyLambdaRequest<TestData>({
@@ -14,13 +14,13 @@ await serverlessSpyListener.waitForFunctionMyLambdaRequest<TestData>({
 });
 ```
 
-Lambda produce three kind of events: **Request, Console, Response**
+Lambda produces three kinds of events: **Request, Console, Response**
 ```typescript
 await serverlessSpyListener.waitForFunctionMyLambdaRequest();
 await serverlessSpyListener.waitForFunctionMyLambdaConsole();
 await serverlessSpyListener.waitForFunctionMyLambdaResponse();
 ```
-Console can be useful to validate intermediate steps of processing.
+The `Console` event can be useful to validate intermediate processing steps. You write events with a simple `console.log()` method in the Lambda code.
 
 You can chain calls for the same request:
 ```typescript
