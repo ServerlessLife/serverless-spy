@@ -50,7 +50,7 @@ async function run() {
   }
 
   if (options.cdkoutput) {
-    const rawdata = fs.readFileSync(path.join(__dirname, options.cdkoutput));
+    const rawdata = fs.readFileSync(options.cdkoutput);
     cdkOutput = JSON.parse(rawdata.toString());
     stackList = Object.keys(cdkOutput);
   }
