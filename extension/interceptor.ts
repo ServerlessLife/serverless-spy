@@ -7,6 +7,7 @@ import { FunctionResponseSpyEvent } from '../common/spyEvents/FunctionResponseSp
 import { SpyEventSender } from '../common/SpyEventSender';
 import { envVariableNames } from '../src/common/envVariableNames';
 import { load } from './aws/UserFunction';
+import { serializeError } from 'serialize-error';
 
 const ORIGINAL_HANDLER_KEY = 'ORIGINAL_HANDLER';
 
@@ -73,12 +74,15 @@ export const handler = (
 
   const fail = (error: any) => {
     logError(error);
+
+    const errorSerialized = serializeError(error);
+
     const key = `Function#${
       process.env[envVariableNames.SSPY_FUNCTION_NAME]
     }#Error`;
     const p = sendLambdaSpyEvent(key, <FunctionErrorSpyEvent>{
       request: event,
-      error,
+      error: errorSerialized,
       context: contextSpy,
     });
     promises.push(p);

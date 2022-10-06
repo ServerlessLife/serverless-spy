@@ -103,12 +103,13 @@
     "@aws-sdk/util-dynamodb": "^3.180.0",
     "aws-lambda": "^1.0.7",
     "aws4": "^1.11.0",
-    "ws": "^8.9.0",
     "bootstrap": "^5.2.1",
     "bootstrap-icons": "^1.9.1",
     "caporal": "^1.4.0",
     "json-format-highlight": "^1.0.4",
-    "open": "^8.4.0"
+    "open": "^8.4.0",
+    "serialize-error": "^11.0.0",
+    "ws": "^8.9.0"
   },
   "keywords": [
     "cdk",
@@ -167,7 +168,8 @@
     "bootstrap-icons",
     "caporal",
     "json-format-highlight",
-    "open"
+    "open",
+    "serialize-error"
   ],
   "jest": {
     "testMatch": [
