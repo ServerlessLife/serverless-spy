@@ -3,11 +3,11 @@ project: 'ServerlessSpy'
 description: 'CDK-based library for writing elegant integration tests on AWS serverless architecture and an additional web console to monitor events in real time.'
 author: Marko (ServerlessLife)
 email: marko@serverlesslife.com
-image: logo/full_logo.png
+image: https://serverlessspy.com/logo/full_logo.svg
 twitter_username: ServerlessL
 twitter:
   username: ServerlessL
-og_image: /logo/full_logo.svg
+og_image: https://serverlessspy.com/logo/full_logo.svg
 github_username: serverlesslife
 show_downloads: false
 encoding: UTF-8
@@ -20,8 +20,8 @@ jailed: false
 gfm_quirks: paragraph_end
 theme: minimal-mistakes-jekyll
 minimal_mistakes_skin: dark
-teaser: /logo/full_logo.svg
-logo: /logo/full_logo.svg
+teaser: https://serverlessspy.com/logo/full_logo.svg
+logo: https://serverlessspy.com/logo/full_logo.svg
 markdown: kramdown
 sass:
   # Where you keep your scss files
