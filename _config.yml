@@ -5,6 +5,9 @@ author: Marko (ServerlessLife)
 email: marko@serverlesslife.com
 image: logo/full_logo.png
 twitter_username: ServerlessL
+twitter:
+  username: ServerlessL
+og_image: /logo/full_logo.svg
 github_username: serverlesslife
 show_downloads: false
 encoding: UTF-8
@@ -40,3 +43,11 @@ analytics:
   provider: 'google-gtag'
   google:
     tracking_id: 'G-C2PHH6WYPP'
+social:
+  links:
+    - 'https://twitter.com/ServerlessL'
+    - 'https://www.linkedin.com/in/marko-serverlesslife/'
+author:
+  name     : Marko (ServerlessLife)
+  avatar   : "/logo/marko_serverlesslife.jpg"
+  bio      : "Full-stack Software Developer | AWS Certified Professional | Serverless Specialist"
