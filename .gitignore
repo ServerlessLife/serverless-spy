@@ -58,10 +58,13 @@ _site/
 /_layouts/*
 /_sass/*
 /assets/css/*
-/_includes/*
+/_includes/**/*
 
 !/_layouts/home.html
 !/_layouts/default.html
 !/_layouts/archive.html
 !/assets/css/main.scss
+!_includes/head/
+!_includes/head/custom.html
+
 cdkOutput.json

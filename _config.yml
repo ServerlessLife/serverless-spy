@@ -1,6 +1,7 @@
 title: 'ServerlessSpy'
 project: 'ServerlessSpy'
 description: 'CDK-based library for writing elegant integration tests on AWS serverless architecture and an additional web console to monitor events in real time.'
+keywords: 'serverless-spy, serverlessspy, cdk, aws, integration testing, testing, jest, serverless'
 author: Marko (ServerlessLife)
 email: marko@serverlesslife.com
 image: https://serverlessspy.com/logo/full_logo.svg
