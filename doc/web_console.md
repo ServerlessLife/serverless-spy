@@ -1,4 +1,4 @@
-# Web console
+# Web Console
 
 The web console runs on your local computer and displays all events that ServerlessSpy intercepts in the environment. That is useful when developing to investigate what is happening in the system. The web console receives events via WebSocket and displays them in the table with a timestamp, event name, and data. You can filter events by event name and data. You can use regular expressions.
 

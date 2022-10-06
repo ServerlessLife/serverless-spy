@@ -1,4 +1,4 @@
-# Frequently asked questions (FAQ)
+# Frequently Asked Questions (FAQ)
 
 ## In which environment should ServerlessSpy be used?
  - Development environment: So you can write tests. The web console helps you gain insight into what is happening in the system.

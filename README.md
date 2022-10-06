@@ -64,7 +64,7 @@ CDK-based library for writing elegant, fast-executing integration tests on AWS s
 # Documentation
  - [Quick Start](doc/quick_start.md)
  - [CDK Construct](doc/CDK_construct.md)
- - [Writing tests](doc/writing_tests.md) 
+ - [Writing Tests](doc/writing_tests.md) 
    - [Lambda](doc/Lambda.md) 
    - [SQS](doc/SQS.md)
    - [SNS](doc/SNS.md)
