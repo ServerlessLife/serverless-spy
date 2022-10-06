@@ -1,6 +1,7 @@
 {
   "name": "serverless-spy",
   "homepage": "https://serverlessspy.com",
+  "description": "CDK-based library for writing elegant integration tests on AWS serverless architecture and an additional web console to monitor events in real time.",
   "repository": {
     "type": "git",
     "url": "git@github.com:ServerlessLife/serverless-spy.git"
@@ -134,7 +135,7 @@
     "require": "./lib/index.js"
   },
   "license": "MPL-2.0",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "types": "lib/index.d.ts",
   "stability": "stable",
   "jsii": {
