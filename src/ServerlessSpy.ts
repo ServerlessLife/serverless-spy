@@ -694,13 +694,22 @@ export class ServerlessSpy extends Construct {
   }
 
   public getConstructName(construct: IConstruct) {
-    let functionName = construct.node.path;
+    let constructName = construct.node.path;
     const { stackName } = Stack.of(this);
 
-    if (functionName.startsWith(stackName)) {
-      functionName = functionName.substring(stackName.length + 1);
+    if (constructName.startsWith(stackName)) {
+      constructName = constructName.substring(stackName.length + 1);
     }
-    return functionName;
+
+    //snake case to camel case including dash and first letter to upper case
+    constructName = constructName
+      .replace(/[-_]+/g, ' ')
+      .replace(/[^\w\s]/g, '')
+      .replace(/\s(.)/g, ($1) => $1.toUpperCase())
+      .replace(/\s/g, '')
+      .replace(/^(.)/, ($1) => $1.toUpperCase());
+
+    return constructName;
   }
 
   private getTopic(topicArn: string): sns.Topic | undefined {

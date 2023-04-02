@@ -117,6 +117,63 @@ describe('Lambda', () => {
         message: `${myData2.message} ServerlessSpy`,
       },
     });
+
+    //************** Test Lambda with uncommon name **************************
+
+    const myData3 = <TestData>{
+      id: uuidv4(),
+      message: 'Hello 3',
+    };
+
+    await lambdaClient.send(
+      new InvokeCommand({
+        FunctionName: output.FunctionNameMyLambdaTestName2,
+        InvocationType: 'RequestResponse',
+        LogType: 'Tail',
+        Payload: JSON.stringify(myData3) as any,
+      })
+    );
+
+    await testWithConditionsAndWithChaining2(serverlessSpyListener, myData3);
+    await testFullyChained2(serverlessSpyListener, myData3);
+
+    const followedResponse3 = await (
+      await serverlessSpyListener.waitForFunctionMyLambdaTestName2Request<TestData>(
+        {
+          condition: (d) => d.request.id === myData3.id,
+        }
+      )
+    ).followedByResponse();
+
+    followedResponse3.toMatchObject({
+      request: myData3,
+      response: {
+        ...myData3,
+        message: `${myData3.message} ServerlessSpy`,
+      },
+    });
+
+    const responseDataSameRequest3 = followedResponse3.getData();
+
+    expect(responseDataSameRequest3.request).toMatchObject(myData3);
+    expect(responseDataSameRequest3.response).toMatchObject({
+      ...myData3,
+      message: `${myData3.message} ServerlessSpy`,
+    });
+
+    (
+      await await serverlessSpyListener.waitForFunctionMyLambdaTestName2Response<TestData>(
+        {
+          condition: (d) => d.response.id === myData3.id,
+        }
+      )
+    ).toMatchObject({
+      request: myData3,
+      response: {
+        ...myData3,
+        message: `${myData3.message} ServerlessSpy`,
+      },
+    });
   });
 
   test('Snapshot', () => {
@@ -343,4 +400,108 @@ async function testWithConditionsAndWithoutChaining(
     ...data,
     message: `${data.message} ServerlessSpy`,
   });
+}
+
+async function testWithConditionsAndWithChaining2(
+  serverlessSpyListener: ServerlessSpyListener<ServerlessSpyEvents>,
+  myData: TestData
+) {
+  // request
+  const awaitedRequest =
+    await serverlessSpyListener.waitForFunctionMyLambdaTestName2Request<TestData>(
+      {
+        condition: (d) => d.request.id === myData.id,
+      }
+    );
+
+  awaitedRequest.toMatchObject({
+    request: myData,
+  });
+
+  const requestData = awaitedRequest.getData();
+
+  expect(requestData.request).toMatchObject(myData);
+
+  //console log
+  const awaitedFollowedConsole = await awaitedRequest.followedByConsole();
+
+  awaitedFollowedConsole.toMatchObject({
+    request: myData,
+    console: {
+      message: 'My console log message',
+      optionalParams: [myData],
+    },
+  });
+
+  const consoleData = awaitedFollowedConsole.getData();
+
+  expect(consoleData.console).toMatchObject({
+    message: 'My console log message',
+    optionalParams: [myData],
+  });
+
+  //response
+  const awaitedFollowedResponse = await awaitedRequest.followedByResponse();
+
+  awaitedFollowedResponse.toMatchObject({
+    request: myData,
+    response: {
+      ...myData,
+      message: `${myData.message} ServerlessSpy`,
+    },
+  });
+
+  const responseData = awaitedFollowedResponse.getData();
+
+  expect(responseData.request).toMatchObject(myData);
+  expect(responseData.response).toMatchObject({
+    ...myData,
+    message: `${myData.message} ServerlessSpy`,
+  });
+}
+
+async function testFullyChained2(
+  serverlessSpyListener: ServerlessSpyListener<ServerlessSpyEvents>,
+  myData: TestData
+) {
+  (
+    await (
+      await (
+        await serverlessSpyListener.waitForFunctionMyLambdaTestName2Request<TestData>(
+          {
+            condition: (d) => d.request.id === myData.id,
+          }
+        )
+      )
+        .toMatchObject({
+          request: myData,
+        })
+        .followedByConsole()
+    )
+      .toMatchObject({
+        request: myData,
+        console: {
+          message: 'My console log message',
+          optionalParams: [myData],
+        },
+      })
+      .followedByResponse()
+  ).toMatchObject({
+    request: myData,
+    response: {
+      ...myData,
+      message: `${myData.message} ServerlessSpy`,
+    },
+  });
+
+  //no checking the data
+  await (
+    await (
+      await serverlessSpyListener.waitForFunctionMyLambdaTestName2Request<TestData>(
+        {
+          condition: (d) => d.request.id === myData.id,
+        }
+      )
+    ).followedByConsole()
+  ).followedByResponse();
 }

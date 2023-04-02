@@ -20,6 +20,19 @@ export class LambdaStack extends Stack {
         NODE_OPTIONS: '--enable-source-maps',
       },
     });
+
+    // use uncommon name
+    const func2 = new NodejsFunction(this, 'my_lambda-TestName_2', {
+      memorySize: 512,
+      timeout: Duration.seconds(5),
+      runtime: lambda.Runtime.NODEJS_16_X,
+      handler: 'handler',
+      entry: path.join(__dirname, '../functions/lambda.ts'),
+      environment: {
+        NODE_OPTIONS: '--enable-source-maps',
+      },
+    });
+
     const serverlessSpy = new ServerlessSpy(this, 'ServerlessSpy', {
       generateSpyEventsFileLocation: props.generateSpyEventsFile
         ? 'serverlessSpyEvents/ServerlessSpyEventsLambda.ts'
@@ -32,5 +45,12 @@ export class LambdaStack extends Stack {
     new CfnOutput(this, `FunctionName${serverlessSpy.getConstructName(func)}`, {
       value: func.functionName,
     });
+    new CfnOutput(
+      this,
+      `FunctionName${serverlessSpy.getConstructName(func2)}`,
+      {
+        value: func2.functionName,
+      }
+    );
   }
 }
