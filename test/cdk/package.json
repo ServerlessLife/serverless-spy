@@ -44,7 +44,7 @@
     "@aws-sdk/lib-dynamodb": "^3.180.0",
     "@aws-sdk/util-dynamodb": "^3.180.0",
     "@serverless-stack/node": "^1.15.4",
-    "aws-cdk-lib": "^2.43.1",
+    "aws-cdk-lib": "^2.51.0",
     "aws-lambda": "^1.0.7",
     "aws4": "^1.11.0",
     "constructs": "^10.1.115",

@@ -892,6 +892,9 @@ def submit_response(event: dict, context, response_status: str, error_message: s
       "Type": "AWS::SQS::QueuePolicy",
     },
     "MyQueueNo1TestMyTopicNo1964ECD79AF2A440D": Object {
+      "DependsOn": Array [
+        "MyQueueNo1PolicyD523EAC1",
+      ],
       "Properties": Object {
         "Endpoint": Object {
           "Fn::GetAtt": Array [
@@ -1632,6 +1635,7 @@ def submit_response(event: dict, context, response_status: str, error_message: s
           "nodejs12.x",
           "nodejs14.x",
           "nodejs16.x",
+          "nodejs18.x",
         ],
         "Content": Object {
           "S3Bucket": Object {
@@ -1671,7 +1675,7 @@ def submit_response(event: dict, context, response_status: str, error_message: s
             "Arn",
           ],
         },
-        "Runtime": "nodejs16.x",
+        "Runtime": "nodejs18.x",
         "Timeout": 5,
       },
       "Type": "AWS::Lambda::Function",
@@ -1773,7 +1777,7 @@ def submit_response(event: dict, context, response_status: str, error_message: s
             "Arn",
           ],
         },
-        "Runtime": "nodejs16.x",
+        "Runtime": "nodejs18.x",
         "Timeout": 5,
       },
       "Type": "AWS::Lambda::Function",
@@ -1900,7 +1904,7 @@ def submit_response(event: dict, context, response_status: str, error_message: s
           "S3Bucket": Object {
             "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
           },
-          "S3Key": "512a2d9fe861e62c9be7d64778ff024ebd06c6d7992a1349b948c50aed43f9d7.zip",
+          "S3Key": "b9b766ecfb7a00b14e4605f25e02ebeeca0e85d9996a77cf5266884f16bc057e.zip",
         },
         "Environment": Object {
           "Variables": Object {
@@ -1961,7 +1965,7 @@ def submit_response(event: dict, context, response_status: str, error_message: s
             "Arn",
           ],
         },
-        "Runtime": "nodejs16.x",
+        "Runtime": "nodejs18.x",
         "Timeout": 5,
       },
       "Type": "AWS::Lambda::Function",
@@ -2163,7 +2167,7 @@ def submit_response(event: dict, context, response_status: str, error_message: s
           "S3Bucket": Object {
             "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
           },
-          "S3Key": "512a2d9fe861e62c9be7d64778ff024ebd06c6d7992a1349b948c50aed43f9d7.zip",
+          "S3Key": "b9b766ecfb7a00b14e4605f25e02ebeeca0e85d9996a77cf5266884f16bc057e.zip",
         },
         "Environment": Object {
           "Variables": Object {
@@ -2210,7 +2214,7 @@ def submit_response(event: dict, context, response_status: str, error_message: s
             "Arn",
           ],
         },
-        "Runtime": "nodejs16.x",
+        "Runtime": "nodejs18.x",
         "Timeout": 5,
       },
       "Type": "AWS::Lambda::Function",
@@ -2392,7 +2396,7 @@ def submit_response(event: dict, context, response_status: str, error_message: s
           "S3Bucket": Object {
             "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
           },
-          "S3Key": "512a2d9fe861e62c9be7d64778ff024ebd06c6d7992a1349b948c50aed43f9d7.zip",
+          "S3Key": "b9b766ecfb7a00b14e4605f25e02ebeeca0e85d9996a77cf5266884f16bc057e.zip",
         },
         "Environment": Object {
           "Variables": Object {
@@ -2439,7 +2443,7 @@ def submit_response(event: dict, context, response_status: str, error_message: s
             "Arn",
           ],
         },
-        "Runtime": "nodejs16.x",
+        "Runtime": "nodejs18.x",
         "Timeout": 5,
       },
       "Type": "AWS::Lambda::Function",

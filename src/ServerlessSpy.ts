@@ -62,6 +62,7 @@ export class ServerlessSpy extends Construct {
         lambda.Runtime.NODEJS_12_X,
         lambda.Runtime.NODEJS_14_X,
         lambda.Runtime.NODEJS_16_X,
+        lambda.Runtime.NODEJS_18_X,
       ],
       code: lambda.Code.fromAsset(this.getExtensionAssetLocation()),
     });
@@ -85,7 +86,7 @@ export class ServerlessSpy extends Construct {
     const functionOnConnect = new lambdaNode.NodejsFunction(this, 'OnConnect', {
       memorySize: 512,
       timeout: Duration.seconds(5),
-      runtime: lambda.Runtime.NODEJS_16_X,
+      runtime: lambda.Runtime.NODEJS_18_X,
       handler: 'handler',
       entry: this.getAssetLocation('functions/onConnect.js'),
       environment: envVars,
@@ -99,7 +100,7 @@ export class ServerlessSpy extends Construct {
       {
         memorySize: 512,
         timeout: Duration.seconds(5),
-        runtime: lambda.Runtime.NODEJS_16_X,
+        runtime: lambda.Runtime.NODEJS_18_X,
         handler: 'handler',
         entry: this.getAssetLocation('functions/onDisconnect.js'),
         environment: envVars,
@@ -401,7 +402,7 @@ export class ServerlessSpy extends Construct {
       {
         memorySize: 512,
         timeout: Duration.seconds(5),
-        runtime: lambda.Runtime.NODEJS_16_X,
+        runtime: lambda.Runtime.NODEJS_18_X,
         handler: 'handler',
         entry: this.getAssetLocation(
           'functions/sqsSubscriptionAndDropAllMessages.js'
@@ -477,7 +478,7 @@ export class ServerlessSpy extends Construct {
     const func = new lambdaNode.NodejsFunction(this, `Subscription${index}`, {
       memorySize: 512,
       timeout: Duration.seconds(5),
-      runtime: lambda.Runtime.NODEJS_16_X,
+      runtime: lambda.Runtime.NODEJS_18_X,
       handler: 'handler',
       entry: this.getAssetLocation('functions/sendMessage.js'),
       environment: {
