@@ -744,7 +744,10 @@ export class ServerlessSpy extends Construct {
       if (filterFunc(node)) {
         return node as T;
       }
-      this.findElement<T>(filterFunc, node);
+      const elementFoundInChild = this.findElement<T>(filterFunc, node);
+      if (elementFoundInChild) {
+        return elementFoundInChild;
+      }
     }
 
     return undefined;
