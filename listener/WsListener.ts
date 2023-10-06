@@ -12,6 +12,7 @@ export class WsListener<TSpyEvents> {
   private trackers: Tracker[] = [];
 
   private connectionOpenResolve?: () => void;
+  private connectionOpenReject?: (reason?: any) => void;
   private waitForConnection?: Promise<void>;
   private ws?: WebSocket;
   private closed = true;
@@ -21,8 +22,9 @@ export class WsListener<TSpyEvents> {
   public async start(params: ServerlessSpyListenerParams) {
     this.debugMode = !!params.debugMode;
 
-    this.waitForConnection = new Promise((resolve) => {
+    this.waitForConnection = new Promise((resolve, reject) => {
       this.connectionOpenResolve = resolve;
+      this.connectionOpenReject = reject;
     });
 
     const urlSigned = await getSignedWebSocketUrl(
@@ -58,6 +60,11 @@ export class WsListener<TSpyEvents> {
       this.log('Connection closed');
 
       this.closed = true;
+    });
+
+    this.ws.on('error', (error) => {
+      this.log('Connection error:', error);
+      this.connectionOpenReject?.(error);
     });
 
     await this.waitForConnection;
