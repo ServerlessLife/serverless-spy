@@ -46,7 +46,7 @@ async function run() {
   progam.parse(process.argv);
 
   if (!options.ws && !options.cdkoutput) {
-    throw new Error('--ws or --cdkstack parameter not specified');
+    throw new Error('--ws or --cdkoutput parameter not specified');
   }
 
   if (options.cdkoutput) {
@@ -190,6 +190,13 @@ function getNpmModuleInstalledPath(npm: string) {
   }
 
   let folderAsPackage = path.join(__dirname, '../../', 'node_modules', npm);
+
+  if (fs.existsSync(folderAsPackage)) {
+    return folderAsPackage;
+  }
+
+  // When boostrap ends up in importing projects root node_modules and not in serverless-spys node_modules
+  folderAsPackage = path.join(__dirname, '../../../../', 'node_modules', npm);
 
   if (fs.existsSync(folderAsPackage)) {
     return folderAsPackage;
