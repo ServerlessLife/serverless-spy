@@ -14,6 +14,7 @@
 
 import fs from 'fs';
 import path from 'path';
+import { submodulePath } from 'jsii-docgen';
 import { HandlerFunction } from './Common';
 import {
   HandlerNotFound,
@@ -56,20 +57,86 @@ function _splitHandlerString(handler: string): [string, string] {
 /**
  * Resolve the user's handler function from the module.
  */
-function _resolveHandler(object: any, nestedProperty: string): any {
+function _resolveHandler(
+  object: any,
+  nestedProperty: string,
+  log: (message: string, ...optionalParams: any[]) => void
+): any {
+  log(object);
   return nestedProperty.split('.').reduce((nested, key) => {
     return nested && nested[key];
   }, object);
 }
 
-/**
- * Verify that the provided path can be loaded as a file per:
- * https://nodejs.org/dist/latest-v10.x/docs/api/modules.html#modules_all_together
- * @param string - the fully resolved file path to the module
- * @return bool
- */
-function _canLoadAsFile(modulePath: string): boolean {
-  return fs.existsSync(modulePath) || fs.existsSync(modulePath + '.js');
+function _hasFolderPackageJsonTypeModule(folder: string): boolean {
+  // Check if package.json exists, return true if type === "module" in package json.
+  // If there is no package.json, and there is a node_modules, return false.
+  // Check parent folder otherwise, if there is one.
+  if (folder.endsWith('/node_modules')) {
+    return false;
+  }
+
+  const pj = path.join(folder, '/package.json');
+  if (fs.existsSync(pj)) {
+    try {
+      const pkg = JSON.parse(fs.readFileSync(pj).toString());
+      if (pkg) {
+        if (pkg.type === 'module') {
+          console.log('type: module detected in', pj);
+          return true;
+        } else {
+          console.log('type: module not detected in', pj);
+          return false;
+        }
+      }
+    } catch (e) {
+      console.warn(
+        `${pj} cannot be read, it will be ignored for ES module detection purposes.`,
+        e
+      );
+      return false;
+    }
+  }
+
+  if (folder === '/') {
+    // We have reached root without finding either a package.json or a node_modules.
+    return false;
+  }
+
+  return _hasFolderPackageJsonTypeModule(path.resolve(folder, '..'));
+}
+
+function _hasPackageJsonTypeModule(file: string) {
+  // File must have a .js extension
+  const jsPath = file + '.js';
+  return fs.existsSync(jsPath)
+    ? _hasFolderPackageJsonTypeModule(path.resolve(path.dirname(jsPath)))
+    : false;
+}
+
+function _tryRequireFile(
+  log: (message: string, ...optionalParams: any[]) => void,
+  file: string,
+  extension?: string
+) {
+  const path = file + (extension || '');
+  log('Try loading as commonjs:', path);
+  return fs.existsSync(path) ? require(path) : undefined;
+}
+
+async function _tryAwaitImport(
+  log: (message: string, ...optionalParams: any[]) => void,
+  file: string,
+  extension?: string
+) {
+  const path = file + (extension || '');
+  log('Try loading as esmodule:', path);
+
+  if (fs.existsSync(path)) {
+    return import(path);
+  }
+
+  return undefined;
 }
 
 /**
@@ -77,18 +144,59 @@ function _canLoadAsFile(modulePath: string): boolean {
  * Attempts to directly resolve the module relative to the application root,
  * then falls back to the more general require().
  */
-function _tryRequire(appRoot: string, moduleRoot: string, module: string): any {
+async function _tryRequire(
+  appRoot: string,
+  moduleRoot: string,
+  module: string,
+  log: (message: string, ...optionalParams: any[]) => void
+): Promise<any> {
   const lambdaStylePath = path.resolve(appRoot, moduleRoot, module);
-  if (_canLoadAsFile(lambdaStylePath)) {
-    return require(lambdaStylePath);
-  } else {
-    // Why not just require(module)?
-    // Because require() is relative to __dirname, not process.cwd()
-    const nodeStylePath = require.resolve(module, {
-      paths: [appRoot, moduleRoot],
-    });
-    return require(nodeStylePath);
+
+  // Extensionless files are loaded via require.
+  const extensionless = _tryRequireFile(log, lambdaStylePath);
+  if (extensionless) {
+    return extensionless;
   }
+
+  // If package.json type != module, .js files are loaded via require.
+  const pjHasModule = _hasPackageJsonTypeModule(lambdaStylePath);
+  if (!pjHasModule) {
+    const loaded = _tryRequireFile(log, lambdaStylePath, '.js');
+    if (loaded) {
+      return loaded;
+    }
+  }
+
+  // If still not loaded, try .js, .mjs, and .cjs in that order.
+  // Files ending with .js are loaded as ES modules when the nearest parent package.json
+  // file contains a top-level field "type" with a value of "module".
+  // https://nodejs.org/api/packages.html#packages_type
+  const loaded =
+    (pjHasModule && (await _tryAwaitImport(log, lambdaStylePath, '.js'))) ||
+    (await _tryAwaitImport(log, lambdaStylePath, '.mjs')) ||
+    _tryRequireFile(log, lambdaStylePath, '.cjs');
+  if (loaded) {
+    return loaded;
+  }
+
+  log(
+    'Try loading as commonjs: ',
+    module,
+    ' with path(s): ',
+    appRoot,
+    moduleRoot
+  );
+
+  // Why not just require(module)?
+  // Because require() is relative to __dirname, not process.cwd(). And the
+  // runtime implementation is not located in /var/task
+  // This won't work (yet) for esModules as import.meta.resolve is still experimental
+  // See: https://nodejs.org/api/esm.html#esm_import_meta_resolve_specifier_parent
+  const nodeStylePath = require.resolve(module, {
+    paths: [appRoot, moduleRoot],
+  });
+
+  return require(nodeStylePath);
 }
 
 /**
@@ -97,13 +205,14 @@ function _tryRequire(appRoot: string, moduleRoot: string, module: string): any {
  *   1 - UserCodeSyntaxError if there's a syntax error while loading the module
  *   2 - ImportModuleError if the module cannot be found
  */
-function _loadUserApp(
+async function _loadUserApp(
   appRoot: string,
   moduleRoot: string,
-  module: string
-): any {
+  module: string,
+  log: (message: string, ...optionalParams: any[]) => void
+): Promise<any> {
   try {
-    return _tryRequire(appRoot, moduleRoot, module);
+    return await _tryRequire(appRoot, moduleRoot, module, log);
   } catch (e: any) {
     if (e instanceof SyntaxError) {
       throw new UserCodeSyntaxError(<any>e);
@@ -127,8 +236,10 @@ function _throwIfInvalidHandler(fullHandlerString: string): void {
  * Load the user's function with the approot and the handler string.
  * @param appRoot {string}
  *   The path to the application root.
- * @param handlerString {string}
+ * @param fullHandlerString {string}
  *   The user-provided handler function in the form 'module.function'.
+ * @param log {function}
+ *   Just a logger
  * @return userFuction {function}
  *   The user's handler function. This function will be passed the event body,
  *   the context object, and the callback function.
@@ -142,18 +253,19 @@ function _throwIfInvalidHandler(fullHandlerString: string): void {
  *       for traversing up the filesystem '..')
  *   Errors for scenarios known by the runtime, will be wrapped by Runtime.* errors.
  */
-export const load = function (
+export const load = async function (
   appRoot: string,
-  fullHandlerString: string
-): HandlerFunction {
+  fullHandlerString: string,
+  log: (message: string, ...optionalParams: any[]) => void
+): Promise<HandlerFunction> {
   _throwIfInvalidHandler(fullHandlerString);
 
   const [moduleRoot, moduleAndHandler] =
     _moduleRootAndHandler(fullHandlerString);
   const [module, handlerPath] = _splitHandlerString(moduleAndHandler);
 
-  const userApp = _loadUserApp(appRoot, moduleRoot, module);
-  const handlerFunc = _resolveHandler(userApp, handlerPath);
+  const userApp = await _loadUserApp(appRoot, moduleRoot, module, log);
+  const handlerFunc = _resolveHandler(userApp, handlerPath, log);
 
   if (!handlerFunc) {
     throw new HandlerNotFound(

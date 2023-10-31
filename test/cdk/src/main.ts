@@ -11,6 +11,7 @@ import { SnsToLambdaStack } from './snsToLambdaStack';
 import { SnsToSqsStack } from './snsToSqsStack';
 import { SqsStack } from './sqsStack';
 import { SqsToLambdaStack } from './sqsToLambdaStack';
+import { EsmLambdaStack } from 'serverless-spy/test/cdk/src/esmLambdaStack';
 
 const testEnv = {
   account: process.env.CDK_DEFAULT_ACCOUNT,
@@ -28,6 +29,10 @@ new EventBridgeToLambdaStack(app, 'ServerlessSpyEventBridgeToLambda', {
   generateSpyEventsFile: true,
 });
 new LambdaStack(app, 'ServerlessSpyLambda', {
+  env: testEnv,
+  generateSpyEventsFile: true,
+});
+new EsmLambdaStack(app, 'ServerlessSpyEsmLambda', {
   env: testEnv,
   generateSpyEventsFile: true,
 });

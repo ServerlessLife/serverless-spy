@@ -1,4 +1,5 @@
 import { Callback, Context, Handler } from 'aws-lambda';
+import { serializeError } from 'serialize-error';
 import { FunctionConsoleSpyEvent } from '../common/spyEvents/FunctionConsoleSpyEvent';
 import { FunctionContext } from '../common/spyEvents/FunctionContext';
 import { FunctionErrorSpyEvent } from '../common/spyEvents/FunctionErrorSpyEvent';
@@ -7,7 +8,6 @@ import { FunctionResponseSpyEvent } from '../common/spyEvents/FunctionResponseSp
 import { SpyEventSender } from '../common/SpyEventSender';
 import { envVariableNames } from '../src/common/envVariableNames';
 import { load } from './aws/UserFunction';
-import { serializeError } from 'serialize-error';
 
 const ORIGINAL_HANDLER_KEY = 'ORIGINAL_HANDLER';
 
@@ -35,11 +35,11 @@ const spyEventSender = new SpyEventSender({
 // Wrap original handler.
 // Handler can be async or non-async:
 // https://docs.aws.amazon.com/lambda/latest/dg/nodejs-prog-model-handler.html
-export const handler = (
+export const handler = async (
   event: any,
   context: Context,
   callback: Callback
-): Promise<any> | undefined => {
+): Promise<any | undefined> => {
   const contextSpy: FunctionContext = {
     functionName: context.functionName,
     awsRequestId: context.awsRequestId,
@@ -70,7 +70,7 @@ export const handler = (
   });
   promises.push(p);
 
-  const originalHandler = getOriginalHandler();
+  const originalHandler = await getOriginalHandler();
 
   const fail = (error: any) => {
     logError(error);
@@ -120,7 +120,7 @@ export const handler = (
 
     // Async handler returns Promise
     if (isPromise(result)) {
-      return new Promise((resolve, reject) => {
+      return await new Promise((resolve, reject) => {
         (result as Promise<any>)
           .then((response: any) =>
             // The response is received via Promise
@@ -220,15 +220,16 @@ async function sendRawSpyEvent(data: any) {
   await spyEventSender.publishSpyEvent(data);
 }
 
-function getOriginalHandler(): Handler {
+async function getOriginalHandler(): Promise<Handler> {
   log('Original handler', process.env[ORIGINAL_HANDLER_KEY]);
 
   if (process.env[ORIGINAL_HANDLER_KEY] === undefined)
     throw Error('Missing original handler');
   return load(
     process.env.LAMBDA_TASK_ROOT!,
-    process.env[ORIGINAL_HANDLER_KEY]
-  ) as Handler;
+    process.env[ORIGINAL_HANDLER_KEY],
+    log
+  ) as Promise<Handler>;
 }
 
 function log(message: string, ...optionalParams: any[]) {

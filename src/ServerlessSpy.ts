@@ -2,7 +2,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as apiGwV2 from '@aws-cdk/aws-apigatewayv2-alpha';
 import * as apiGwV2Int from '@aws-cdk/aws-apigatewayv2-integrations-alpha';
-import { CfnOutput, Duration, Stack } from 'aws-cdk-lib';
+import { CfnOutput, Duration, NestedStack, Stack } from 'aws-cdk-lib';
 import * as agw from 'aws-cdk-lib/aws-apigatewayv2';
 import * as dynamoDb from 'aws-cdk-lib/aws-dynamodb';
 import * as events from 'aws-cdk-lib/aws-events';
@@ -302,7 +302,7 @@ export class ServerlessSpy extends Construct {
 
     const extensionAssetLocationCode = path.join(
       extensionAssetLocation,
-      'nodejs/node_modules/interceptor.js'
+      `nodejs/node_modules/interceptor.js`
     );
     if (!fs.existsSync(extensionAssetLocationCode)) {
       throw new Error(
@@ -696,10 +696,10 @@ export class ServerlessSpy extends Construct {
 
   public getConstructName(construct: IConstruct) {
     let constructName = construct.node.path;
-    const { stackName } = Stack.of(this);
+    const { node } = Stack.of(this);
 
-    if (constructName.startsWith(stackName)) {
-      constructName = constructName.substring(stackName.length + 1);
+    if (constructName.startsWith(node.id)) {
+      constructName = constructName.substring(node.id.length + 1);
     }
 
     //snake case to camel case including dash and first letter to upper case
@@ -722,14 +722,25 @@ export class ServerlessSpy extends Construct {
     return topic;
   }
 
-  private getEventBridge(eventBusName: string): events.EventBus | undefined {
-    const eventBridge = this.findElement<events.EventBus>(
+  private getEventBridge(eventBusName: string): events.IEventBus | undefined {
+    const eventBridge = this.findElement<events.IEventBus>(
       (node: IConstruct) =>
-        node instanceof events.EventBus &&
-        (node as events.EventBus).eventBusName === eventBusName
+        (node instanceof events.EventBus ||
+          node.constructor.name === 'ImportedEventBus') &&
+        (node as events.IEventBus).eventBusName === eventBusName
     );
 
     return eventBridge;
+  }
+
+  private findRootStack(stack: Stack): Stack {
+    if (stack.nested) {
+      const parentStack = (stack as NestedStack).nestedStackParent;
+      if (parentStack) return this.findRootStack(parentStack);
+      return stack;
+    } else {
+      return stack;
+    }
   }
 
   private findElement<T extends IConstruct = IConstruct>(
@@ -737,7 +748,7 @@ export class ServerlessSpy extends Construct {
     parent?: IConstruct
   ): T | undefined {
     if (!parent) {
-      parent = Stack.of(this);
+      parent = this.findRootStack(Stack.of(this));
     }
 
     for (const node of parent.node.children) {
