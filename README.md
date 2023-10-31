@@ -81,6 +81,6 @@ CDK-based library for writing elegant, fast-executing integration tests on AWS s
  - [Contributing Guide](doc/CONTRIBUTING.md)
  - [License](./LICENSE.md)
 
- # Contributors
+# Contributors
  - [Hugo Lewenhaupt](https://github.com/Lewenhaupt)
  - ⭐⭐⭐ place for your name ⭐⭐⭐
