@@ -1,10 +1,8 @@
-/* eslint-disable @typescript-eslint/no-require-imports */
-/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * Copyright 2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * This code was copied from:
- * https://raw.githubusercontent.com/aws/aws-lambda-nodejs-runtime-interface-client/main/src/utils/UserFunction.ts
+ * https://github.com/aws/aws-lambda-nodejs-runtime-interface-client
  *
  * This module defines the functions for loading the user's code as specified
  * in a handler string.
@@ -12,19 +10,29 @@
 
 'use strict';
 
-import fs from 'fs';
-import path from 'path';
-import { submodulePath } from 'jsii-docgen';
-import { HandlerFunction } from './Common';
-import {
+const path = require('path');
+const fs = require('fs');
+const {
   HandlerNotFound,
   MalformedHandlerName,
   ImportModuleError,
   UserCodeSyntaxError,
-} from './Errors';
+} = require('./Errors.js');
+const { verbose } = require('./VerboseLog.js').logger('LOADER');
+const { HttpResponseStream } = require('./HttpResponseStream');
 
 const FUNCTION_EXPR = /^([^.]*)\.(.*)$/;
 const RELATIVE_PATH_SUBSTRING = '..';
+const HANDLER_STREAMING = Symbol.for('aws.lambda.runtime.handler.streaming');
+const HANDLER_HIGHWATERMARK = Symbol.for(
+  'aws.lambda.runtime.handler.streaming.highWaterMark'
+);
+const STREAM_RESPONSE = 'response';
+
+// `awslambda.streamifyResponse` function is provided by default.
+const NoGlobalAwsLambda =
+  process.env['AWS_LAMBDA_NODEJS_NO_GLOBAL_AWSLAMBDA'] === '1' ||
+  process.env['AWS_LAMBDA_NODEJS_NO_GLOBAL_AWSLAMBDA'] === 'true';
 
 /**
  * Break the full handler string into two pieces, the module root and the actual
@@ -32,9 +40,9 @@ const RELATIVE_PATH_SUBSTRING = '..';
  * Given './somepath/something/module.nestedobj.handler' this returns
  * ['./somepath/something', 'module.nestedobj.handler']
  */
-function _moduleRootAndHandler(fullHandlerString: string): [string, string] {
-  const handlerString = path.basename(fullHandlerString);
-  const moduleRoot = fullHandlerString.substring(
+function _moduleRootAndHandler(fullHandlerString) {
+  let handlerString = path.basename(fullHandlerString);
+  let moduleRoot = fullHandlerString.substring(
     0,
     fullHandlerString.indexOf(handlerString)
   );
@@ -45,9 +53,8 @@ function _moduleRootAndHandler(fullHandlerString: string): [string, string] {
  * Split the handler string into two pieces: the module name and the path to
  * the handler function.
  */
-function _splitHandlerString(handler: string): [string, string] {
-  const match = handler.match(FUNCTION_EXPR);
-  // eslint-disable-next-line eqeqeq
+function _splitHandlerString(handler) {
+  let match = handler.match(FUNCTION_EXPR);
   if (!match || match.length != 3) {
     throw new MalformedHandlerName('Bad handler');
   }
@@ -57,18 +64,30 @@ function _splitHandlerString(handler: string): [string, string] {
 /**
  * Resolve the user's handler function from the module.
  */
-function _resolveHandler(
-  object: any,
-  nestedProperty: string,
-  log: (message: string, ...optionalParams: any[]) => void
-): any {
-  log(object);
+function _resolveHandler(object, nestedProperty) {
   return nestedProperty.split('.').reduce((nested, key) => {
     return nested && nested[key];
   }, object);
 }
 
-function _hasFolderPackageJsonTypeModule(folder: string): boolean {
+function _tryRequireFile(file, extension) {
+  const path = file + (extension || '');
+  verbose('Try loading as commonjs:', path);
+  return fs.existsSync(path) ? require(path) : undefined;
+}
+
+async function _tryAwaitImport(file, extension) {
+  const path = file + (extension || '');
+  verbose('Try loading as esmodule:', path);
+
+  if (fs.existsSync(path)) {
+    return await import(path);
+  }
+
+  return undefined;
+}
+
+function _hasFolderPackageJsonTypeModule(folder) {
   // Check if package.json exists, return true if type === "module" in package json.
   // If there is no package.json, and there is a node_modules, return false.
   // Check parent folder otherwise, if there is one.
@@ -79,13 +98,13 @@ function _hasFolderPackageJsonTypeModule(folder: string): boolean {
   const pj = path.join(folder, '/package.json');
   if (fs.existsSync(pj)) {
     try {
-      const pkg = JSON.parse(fs.readFileSync(pj).toString());
+      const pkg = JSON.parse(fs.readFileSync(pj));
       if (pkg) {
         if (pkg.type === 'module') {
-          console.log('type: module detected in', pj);
+          verbose('type: module detected in', pj);
           return true;
         } else {
-          console.log('type: module not detected in', pj);
+          verbose('type: module not detected in', pj);
           return false;
         }
       }
@@ -106,7 +125,7 @@ function _hasFolderPackageJsonTypeModule(folder: string): boolean {
   return _hasFolderPackageJsonTypeModule(path.resolve(folder, '..'));
 }
 
-function _hasPackageJsonTypeModule(file: string) {
+function _hasPackageJsonTypeModule(file) {
   // File must have a .js extension
   const jsPath = file + '.js';
   return fs.existsSync(jsPath)
@@ -114,46 +133,24 @@ function _hasPackageJsonTypeModule(file: string) {
     : false;
 }
 
-function _tryRequireFile(
-  log: (message: string, ...optionalParams: any[]) => void,
-  file: string,
-  extension?: string
-) {
-  const path = file + (extension || '');
-  log('Try loading as commonjs:', path);
-  return fs.existsSync(path) ? require(path) : undefined;
-}
-
-async function _tryAwaitImport(
-  log: (message: string, ...optionalParams: any[]) => void,
-  file: string,
-  extension?: string
-) {
-  const path = file + (extension || '');
-  log('Try loading as esmodule:', path);
-
-  if (fs.existsSync(path)) {
-    return import(path);
-  }
-
-  return undefined;
-}
-
 /**
  * Attempt to load the user's module.
  * Attempts to directly resolve the module relative to the application root,
  * then falls back to the more general require().
  */
-async function _tryRequire(
-  appRoot: string,
-  moduleRoot: string,
-  module: string,
-  log: (message: string, ...optionalParams: any[]) => void
-): Promise<any> {
+async function _tryRequire(appRoot, moduleRoot, module) {
+  verbose(
+    'Try loading as commonjs: ',
+    module,
+    ' with paths: ,',
+    appRoot,
+    moduleRoot
+  );
+
   const lambdaStylePath = path.resolve(appRoot, moduleRoot, module);
 
   // Extensionless files are loaded via require.
-  const extensionless = _tryRequireFile(log, lambdaStylePath);
+  const extensionless = _tryRequireFile(lambdaStylePath);
   if (extensionless) {
     return extensionless;
   }
@@ -161,7 +158,7 @@ async function _tryRequire(
   // If package.json type != module, .js files are loaded via require.
   const pjHasModule = _hasPackageJsonTypeModule(lambdaStylePath);
   if (!pjHasModule) {
-    const loaded = _tryRequireFile(log, lambdaStylePath, '.js');
+    const loaded = _tryRequireFile(lambdaStylePath, '.js');
     if (loaded) {
       return loaded;
     }
@@ -172,14 +169,14 @@ async function _tryRequire(
   // file contains a top-level field "type" with a value of "module".
   // https://nodejs.org/api/packages.html#packages_type
   const loaded =
-    (pjHasModule && (await _tryAwaitImport(log, lambdaStylePath, '.js'))) ||
-    (await _tryAwaitImport(log, lambdaStylePath, '.mjs')) ||
-    _tryRequireFile(log, lambdaStylePath, '.cjs');
+    (pjHasModule && (await _tryAwaitImport(lambdaStylePath, '.js'))) ||
+    (await _tryAwaitImport(lambdaStylePath, '.mjs')) ||
+    _tryRequireFile(lambdaStylePath, '.cjs');
   if (loaded) {
     return loaded;
   }
 
-  log(
+  verbose(
     'Try loading as commonjs: ',
     module,
     ' with path(s): ',
@@ -205,18 +202,27 @@ async function _tryRequire(
  *   1 - UserCodeSyntaxError if there's a syntax error while loading the module
  *   2 - ImportModuleError if the module cannot be found
  */
-async function _loadUserApp(
-  appRoot: string,
-  moduleRoot: string,
-  module: string,
-  log: (message: string, ...optionalParams: any[]) => void
-): Promise<any> {
+async function _loadUserApp(appRoot, moduleRoot, module) {
+  if (!NoGlobalAwsLambda) {
+    globalThis.awslambda = {
+      streamifyResponse: (handler, options) => {
+        handler[HANDLER_STREAMING] = STREAM_RESPONSE;
+        if (typeof options?.highWaterMark === 'number') {
+          handler[HANDLER_HIGHWATERMARK] = parseInt(options.highWaterMark);
+        }
+        return handler;
+      },
+      HttpResponseStream: HttpResponseStream,
+    };
+  }
+
   try {
-    return await _tryRequire(appRoot, moduleRoot, module, log);
-  } catch (e: any) {
+    return await _tryRequire(appRoot, moduleRoot, module);
+  } catch (e) {
     if (e instanceof SyntaxError) {
-      throw new UserCodeSyntaxError(<any>e);
+      throw new UserCodeSyntaxError(e);
     } else if (e.code !== undefined && e.code === 'MODULE_NOT_FOUND') {
+      verbose('globalPaths', JSON.stringify(require('module').globalPaths));
       throw new ImportModuleError(e);
     } else {
       throw e;
@@ -224,7 +230,7 @@ async function _loadUserApp(
   }
 }
 
-function _throwIfInvalidHandler(fullHandlerString: string): void {
+function _throwIfInvalidHandler(fullHandlerString) {
   if (fullHandlerString.includes(RELATIVE_PATH_SUBSTRING)) {
     throw new MalformedHandlerName(
       `'${fullHandlerString}' is not a valid handler name. Use absolute paths when specifying root directories in handler names.`
@@ -232,14 +238,43 @@ function _throwIfInvalidHandler(fullHandlerString: string): void {
   }
 }
 
+function _isHandlerStreaming(handler) {
+  if (
+    typeof handler[HANDLER_STREAMING] === 'undefined' ||
+    handler[HANDLER_STREAMING] === null ||
+    handler[HANDLER_STREAMING] === false
+  ) {
+    return false;
+  }
+
+  if (handler[HANDLER_STREAMING] === STREAM_RESPONSE) {
+    return STREAM_RESPONSE;
+  } else {
+    throw new MalformedStreamingHandler(
+      'Only response streaming is supported.'
+    );
+  }
+}
+
+function _highWaterMark(handler) {
+  if (
+    typeof handler[HANDLER_HIGHWATERMARK] === 'undefined' ||
+    handler[HANDLER_HIGHWATERMARK] === null ||
+    handler[HANDLER_HIGHWATERMARK] === false
+  ) {
+    return undefined;
+  }
+
+  const hwm = parseInt(handler[HANDLER_HIGHWATERMARK]);
+  return isNaN(hwm) ? undefined : hwm;
+}
+
 /**
  * Load the user's function with the approot and the handler string.
  * @param appRoot {string}
  *   The path to the application root.
- * @param fullHandlerString {string}
+ * @param handlerString {string}
  *   The user-provided handler function in the form 'module.function'.
- * @param log {function}
- *   Just a logger
  * @return userFuction {function}
  *   The user's handler function. This function will be passed the event body,
  *   the context object, and the callback function.
@@ -253,19 +288,14 @@ function _throwIfInvalidHandler(fullHandlerString: string): void {
  *       for traversing up the filesystem '..')
  *   Errors for scenarios known by the runtime, will be wrapped by Runtime.* errors.
  */
-export const load = async function (
-  appRoot: string,
-  fullHandlerString: string,
-  log: (message: string, ...optionalParams: any[]) => void
-): Promise<HandlerFunction> {
+module.exports.load = async function (appRoot, fullHandlerString) {
   _throwIfInvalidHandler(fullHandlerString);
 
-  const [moduleRoot, moduleAndHandler] =
-    _moduleRootAndHandler(fullHandlerString);
-  const [module, handlerPath] = _splitHandlerString(moduleAndHandler);
+  let [moduleRoot, moduleAndHandler] = _moduleRootAndHandler(fullHandlerString);
+  let [module, handlerPath] = _splitHandlerString(moduleAndHandler);
 
-  const userApp = await _loadUserApp(appRoot, moduleRoot, module, log);
-  const handlerFunc = _resolveHandler(userApp, handlerPath, log);
+  let userApp = await _loadUserApp(appRoot, moduleRoot, module);
+  let handlerFunc = _resolveHandler(userApp, handlerPath);
 
   if (!handlerFunc) {
     throw new HandlerNotFound(
@@ -279,3 +309,16 @@ export const load = async function (
 
   return handlerFunc;
 };
+
+module.exports.isHandlerFunction = function (value) {
+  return typeof value === 'function';
+};
+
+module.exports.getHandlerMetadata = function (handlerFunc) {
+  return {
+    streaming: _isHandlerStreaming(handlerFunc),
+    highWaterMark: _highWaterMark(handlerFunc),
+  };
+};
+
+module.exports.STREAM_RESPONSE = STREAM_RESPONSE;

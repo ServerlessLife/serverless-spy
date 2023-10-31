@@ -7,6 +7,7 @@ import { FunctionRequestSpyEvent } from '../common/spyEvents/FunctionRequestSpyE
 import { FunctionResponseSpyEvent } from '../common/spyEvents/FunctionResponseSpyEvent';
 import { SpyEventSender } from '../common/SpyEventSender';
 import { envVariableNames } from '../src/common/envVariableNames';
+// @ts-ignore
 import { load } from './aws/UserFunction';
 
 const ORIGINAL_HANDLER_KEY = 'ORIGINAL_HANDLER';
@@ -227,8 +228,7 @@ async function getOriginalHandler(): Promise<Handler> {
     throw Error('Missing original handler');
   return load(
     process.env.LAMBDA_TASK_ROOT!,
-    process.env[ORIGINAL_HANDLER_KEY],
-    log
+    process.env[ORIGINAL_HANDLER_KEY]
   ) as Promise<Handler>;
 }
 

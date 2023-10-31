@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Lambda Snapshot 1`] = `
+exports[`EsmLambda Snapshot 1`] = `
 Object {
   "Outputs": Object {
     "FunctionNameToSnsAndDynamoDb": Object {

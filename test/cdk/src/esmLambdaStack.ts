@@ -27,7 +27,7 @@ export class EsmLambdaStack extends Stack {
     const func = new NodejsFunction(this, 'MyLambda', {
       memorySize: 512,
       timeout: Duration.seconds(5),
-      runtime: lambda.Runtime.NODEJS_16_X,
+      runtime: lambda.Runtime.NODEJS_18_X,
       handler: 'handler',
       entry: path.join(__dirname, '../functions/lambda.ts'),
       environment: {
@@ -40,7 +40,7 @@ export class EsmLambdaStack extends Stack {
     const func2 = new NodejsFunction(this, 'my_lambda-TestName_2', {
       memorySize: 512,
       timeout: Duration.seconds(5),
-      runtime: lambda.Runtime.NODEJS_16_X,
+      runtime: lambda.Runtime.NODEJS_18_X,
       handler: 'handler',
       entry: path.join(__dirname, '../functions/lambda.ts'),
       environment: {
