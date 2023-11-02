@@ -8,4 +8,8 @@ export class ServerlessSpyEvents {
   FunctionMyLambdaTestName2Error: 'Function#MyLambdaTestName2#Error' = 'Function#MyLambdaTestName2#Error';
   FunctionMyLambdaTestName2Console: 'Function#MyLambdaTestName2#Console' = 'Function#MyLambdaTestName2#Console';
   FunctionMyLambdaTestName2Response: 'Function#MyLambdaTestName2#Response' = 'Function#MyLambdaTestName2#Response';
+  FunctionMyLambdaThatFailsRequest: 'Function#MyLambdaThatFails#Request' = 'Function#MyLambdaThatFails#Request';
+  FunctionMyLambdaThatFailsError: 'Function#MyLambdaThatFails#Error' = 'Function#MyLambdaThatFails#Error';
+  FunctionMyLambdaThatFailsConsole: 'Function#MyLambdaThatFails#Console' = 'Function#MyLambdaThatFails#Console';
+  FunctionMyLambdaThatFailsResponse: 'Function#MyLambdaThatFails#Response' = 'Function#MyLambdaThatFails#Response';
 }

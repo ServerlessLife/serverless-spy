@@ -2,6 +2,7 @@ import { DynamoDBSpyEvent } from '../common/spyEvents/DynamoDBSpyEvent';
 import { EventBridgeRuleSpyEvent } from '../common/spyEvents/EventBridgeRuleSpyEvent';
 import { EventBridgeSpyEvent } from '../common/spyEvents/EventBridgeSpyEvent';
 import { FunctionConsoleSpyEvent } from '../common/spyEvents/FunctionConsoleSpyEvent';
+import { FunctionErrorSpyEvent } from '../common/spyEvents/FunctionErrorSpyEvent';
 import { FunctionRequestSpyEvent } from '../common/spyEvents/FunctionRequestSpyEvent';
 import { FunctionResponseSpyEvent } from '../common/spyEvents/FunctionResponseSpyEvent';
 import { S3SpyEvent } from '../common/spyEvents/S3SpyEvent';
@@ -20,6 +21,7 @@ import {
   FunctionRequestSpyHandler,
   FunctionConsoleSpyHandler,
   FunctionResponseSpyHandler,
+  FunctionErrorSpyHandler,
 } from './SpyHandlers.ts';
 import { WaitForParams } from './WaitForParams';
 
@@ -84,6 +86,13 @@ export type ServerlessSpyListener<TSpyEvents> = {
       WaitForParams<PrettifyForDisplay<FunctionConsoleSpyEvent<T>>>
     >
   ) => Promise<FunctionConsoleSpyHandler<T>>;
+} & {
+  [P in keyof FilterConditionally<TSpyEvents, `Function#${any}#Error`> &
+    string as `waitFor${P}`]: <T = any>(
+    param?: PrettifyForDisplay<
+      WaitForParams<PrettifyForDisplay<FunctionErrorSpyEvent<T>>>
+    >
+  ) => Promise<FunctionErrorSpyHandler<T>>;
 } & {
   [P in keyof FilterConditionally<TSpyEvents, `Function#${any}#Response`> &
     string as `waitFor${P}`]: <T = any>(

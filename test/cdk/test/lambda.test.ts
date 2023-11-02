@@ -176,6 +176,45 @@ describe('Lambda', () => {
     });
   });
 
+  test('Test error', async () => {
+    const lambdaClient = new LambdaClient({});
+
+    const myData1 = <TestData>{
+      id: uuidv4(),
+      message: 'Hello 1',
+    };
+
+    await lambdaClient.send(
+      new InvokeCommand({
+        FunctionName: output.FunctionNameMyLambdaThatFails,
+        InvocationType: 'RequestResponse',
+        LogType: 'Tail',
+        Payload: JSON.stringify(myData1) as any,
+      })
+    );
+
+    const errorResponse = (
+      await serverlessSpyListener.waitForFunctionMyLambdaThatFailsError()
+    ).getData();
+
+    expect(errorResponse.error).toMatchObject({
+      message: 'My test error',
+      name: 'Error',
+      stack: expect.any(String),
+    });
+
+    (
+      await serverlessSpyListener.waitForFunctionMyLambdaThatFailsError()
+    ).toMatchObject({
+      request: myData1,
+      error: {
+        message: 'My test error',
+        name: 'Error',
+        stack: expect.any(String),
+      },
+    });
+  });
+
   test('Snapshot', () => {
     const app = new App();
     const stack = new E2eStack(app, 'Test', {
