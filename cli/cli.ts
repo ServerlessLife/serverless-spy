@@ -114,7 +114,13 @@ async function run() {
 
           if (request.url === '/stackList') {
             response.writeHead(200, { 'Content-Type': 'application/json' });
-            response.end(JSON.stringify(stackList), 'utf-8');
+
+            const stackListAvailable: string[] | undefined =
+              options.cdkstack && stackList?.includes(options.cdkstack)
+                ? [options.cdkstack]
+                : stackList;
+
+            response.end(JSON.stringify(stackListAvailable), 'utf-8');
           } else if (request.url?.match('^/wsUrl')) {
             let wsUrl: string | undefined;
             if (options.ws) {
@@ -123,10 +129,6 @@ async function run() {
               // options.cdkoutput
               const urlPaths = request.url.split('/');
               let stack = urlPaths[2];
-
-              if (!stack) {
-                stack = options.cdkstack;
-              }
 
               if (stack) {
                 wsUrl = cdkOutput[stack].ServerlessSpyWsUrl;
