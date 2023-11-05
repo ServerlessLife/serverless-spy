@@ -1,8 +1,8 @@
-import { WebSocket } from 'ws';
-import { getSignedWebSocketUrl } from '../common/getWebSocketUrl';
+import { device } from 'aws-iot-device-sdk';
 import { FunctionRequestSpyEvent } from '../common/spyEvents/FunctionRequestSpyEvent';
 import { SpyEvent } from '../common/spyEvents/SpyEvent';
 import { SpyMessage } from '../common/spyEvents/SpyMessage';
+import { fragment, getConnection, SSPY_TOPIC } from './iot-connection';
 import { ServerlessSpyListener } from './ServerlessSpyListener';
 import { ServerlessSpyListenerParams } from './ServerlessSpyListenerParams';
 import { WaitForParams } from './WaitForParams';
@@ -13,66 +13,89 @@ export class WsListener<TSpyEvents> {
 
   private connectionOpenResolve?: () => void;
   private connectionOpenReject?: (reason?: any) => void;
-  private waitForConnection?: Promise<void>;
-  private ws?: WebSocket;
   private closed = true;
   private functionPrefix = 'waitFor';
   private debugMode = false;
+  private connection: device | undefined;
+
+  private fragments = new Map<string, Map<number, fragment>>();
 
   public async start(params: ServerlessSpyListenerParams) {
     this.debugMode = !!params.debugMode;
+    try {
+      this.connection = await getConnection(this.debugMode);
+      const topic = `${SSPY_TOPIC}/${params.scope}`;
+      this.log(`Subscribing to topic ${topic}`);
+      this.closed = false;
+      const connectionOpenResolve = this.connectionOpenResolve;
+      const localConnection = this.connection;
+      this.connection.on('connect', () => {
+        this.closed = false;
+        this.log('Connection opened');
+        localConnection.subscribe(topic);
+        if (connectionOpenResolve) {
+          connectionOpenResolve();
+        }
+      });
+      this.connection.on('message', (_topic, data: Buffer) => {
+        if (this.closed) return;
 
-    this.waitForConnection = new Promise((resolve, reject) => {
-      this.connectionOpenResolve = resolve;
-      this.connectionOpenReject = reject;
-    });
+        this.log('Message received', data.toString());
+        const fragment = JSON.parse(data.toString());
+        let message: SpyMessageStorage | undefined = undefined;
+        if (!fragment.id) {
+          message = JSON.parse(fragment.data) as SpyMessageStorage;
+        }
 
-    const urlSigned = await getSignedWebSocketUrl(
-      params.serverlessSpyWsUrl,
-      params.credentials
-    );
+        let pending = this.fragments.get(fragment.id);
+        if (!pending) {
+          pending = new Map();
+          this.fragments.set(fragment.id, pending);
+        }
+        pending.set(fragment.index, fragment);
 
-    this.ws = new WebSocket(urlSigned);
-    this.closed = false;
-    this.ws.on('open', () => {
-      this.log('Connection oppened');
-      this.connectionOpenResolve!();
-    });
-    this.ws.on('message', (data) => {
-      if (this.closed) return;
+        if (pending.size === fragment.count) {
+          const data = [...pending.values()]
+            .sort((a, b) => a.index - b.index)
+            .map((item) => item.data)
+            .join('');
+          this.fragments.delete(fragment.id);
+          message = JSON.parse(data) as SpyMessageStorage;
+        }
 
-      this.log('Message received', data);
+        if (message) {
+          message.serviceKeyForFunction = message.serviceKey.replace(/#/g, '');
 
-      const message = JSON.parse(data.toString()) as SpyMessageStorage;
+          if (message.serviceKey.startsWith('Function')) {
+            message.functionContextAwsRequestId = (
+              message.data as FunctionRequestSpyEvent
+            ).context.awsRequestId;
+          }
 
-      message.serviceKeyForFunction = message.serviceKey.replace(/#/g, '');
+          this.messages.push(message);
+          this.resolveOldTrackerWithNewMessage(message);
+        }
+      });
+      this.connection.on('close', () => {
+        this.log('Connection closed');
 
-      if (message.serviceKey.startsWith('Function')) {
-        message.functionContextAwsRequestId = (
-          message.data as FunctionRequestSpyEvent
-        ).context.awsRequestId;
-      }
+        this.closed = true;
+      });
 
-      this.messages.push(message);
-      this.resolveOldTrackerWithNewMessage(message);
-    });
-    this.ws.on('close', () => {
-      this.log('Connection closed');
-
-      this.closed = true;
-    });
-
-    this.ws.on('error', (error) => {
-      this.log('Connection error:', error);
-      this.connectionOpenReject?.(error);
-    });
-
-    await this.waitForConnection;
+      const connectionOpenReject = this.connectionOpenReject;
+      this.connection.on('error', (error) => {
+        this.log('Connection error:', error);
+        connectionOpenReject?.(error);
+      });
+    } catch (e) {
+      console.error('Failed to get connection', e);
+      throw e;
+    }
   }
 
   public async stop() {
     this.closed = true;
-    this.ws!.close();
+    this.connection!.end();
   }
 
   private trackerMatchMessage(tracker: Tracker, message: SpyMessageStorage) {
@@ -231,7 +254,7 @@ export class WsListener<TSpyEvents> {
         tracker.promiseReject(new Error(message));
       }, paramsW?.timoutMs || 10000);
 
-      promise.finally(() => {
+      void promise.finally(() => {
         clearTimeout(timer);
       });
 

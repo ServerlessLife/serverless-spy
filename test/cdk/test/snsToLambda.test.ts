@@ -24,7 +24,7 @@ describe('SNS to Lambda', () => {
   beforeEach(async () => {
     serverlessSpyListener =
       await createServerlessSpyListener<ServerlessSpyEvents>({
-        serverlessSpyWsUrl: output.ServerlessSpyWsUrl,
+        scope: 'ServerlessSpySnsToLambda',
       });
   });
 
@@ -68,6 +68,41 @@ describe('SNS to Lambda', () => {
               (r) => JSON.parse(r.Sns.Message) as TestData
             ).find((d) => d.id === data.id),
         })
+      )
+        .toMatchObject({
+          request: {
+            Records: expect.arrayContaining([
+              expect.objectContaining({
+                Sns: expect.objectContaining({
+                  Message: JSON.stringify(data),
+                }),
+              }),
+            ]),
+          },
+        })
+        .followedByResponse({})
+    ).toMatchObject({
+      request: {
+        Records: expect.arrayContaining([
+          expect.objectContaining({
+            Sns: expect.objectContaining({
+              Message: JSON.stringify(data),
+            }),
+          }),
+        ]),
+      },
+    });
+
+    (
+      await (
+        await serverlessSpyListener.waitForFunctionMyPythonLambdaRequest<SNSEvent>(
+          {
+            condition: (d) =>
+              !!d.request.Records.map(
+                (r) => JSON.parse(r.Sns.Message) as TestData
+              ).find((d) => d.id === data.id),
+          }
+        )
       )
         .toMatchObject({
           request: {

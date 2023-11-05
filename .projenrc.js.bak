@@ -25,6 +25,13 @@ const project = new awscdk.AwsCdkConstructLibrary({
       singleQuote: true,
     },
   },
+  jestOptions: {
+    jestConfig: {
+      moduleNameMapper: {
+        ['^aws-cdk-lib/.warnings.jsii.js$']: '<rootDir>/node_modules/aws-cdk-lib/.warnings.jsii.js',
+      },
+    },
+  },
 
   // deps: [],                /* Runtime dependencies of this module. */
   // description: undefined,  /* The description is just a string that helps people understand the purpose of the package. */

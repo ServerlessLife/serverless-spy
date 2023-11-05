@@ -1,0 +1,4 @@
+awslambdaric==2.0.8
+boto3
+awsiotsdk==1.19.0
+awscrt==0.19.*

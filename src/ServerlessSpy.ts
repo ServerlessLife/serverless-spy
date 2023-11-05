@@ -1,12 +1,13 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import * as agw from 'aws-cdk-lib/aws-apigatewayv2';
-import * as agwInt from 'aws-cdk-lib/aws-apigatewayv2-integrations';
-import { CfnOutput, Duration, NestedStack, Stack } from 'aws-cdk-lib';
+import { PythonLayerVersion } from '@aws-cdk/aws-lambda-python-alpha';
+import { aws_iam, Duration, NestedStack, Stack } from 'aws-cdk-lib';
 import * as dynamoDb from 'aws-cdk-lib/aws-dynamodb';
 import * as events from 'aws-cdk-lib/aws-events';
 import * as targets from 'aws-cdk-lib/aws-events-targets';
+import { Effect } from 'aws-cdk-lib/aws-iam';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
+import { ILayerVersion } from 'aws-cdk-lib/aws-lambda';
 import * as dynamoDbStream from 'aws-cdk-lib/aws-lambda-event-sources';
 import { SqsEventSource } from 'aws-cdk-lib/aws-lambda-event-sources';
 import * as lambdaNode from 'aws-cdk-lib/aws-lambda-nodejs';
@@ -37,17 +38,14 @@ export interface SpyFilter {
 }
 
 export class ServerlessSpy extends Construct {
-  private extensionLayer: lambda.LayerVersion;
-  private table: dynamoDb.Table;
-  private webSocketApi: agw.WebSocketApi;
   private createdResourcesBySSpy: IConstruct[] = [];
   private lambdaSubscriptionPool: LambdaSubscription[] = [];
   private lambdaSubscriptionMain: LambdaSubscription;
   private lambdasSpied: LambdaSpied[] = [];
-  private webSocketStage: agw.WebSocketStage;
   public serviceKeys: string[] = [];
   private spiedNodes: IConstruct[] = [];
-  wsUrl: string;
+  private layerMap: Partial<Record<string, ILayerVersion>> = {};
+  private spyWrapperLayer: lambda.ILayerVersion;
 
   constructor(
     scope: Construct,
@@ -56,104 +54,17 @@ export class ServerlessSpy extends Construct {
   ) {
     super(scope, id);
 
-    this.extensionLayer = new lambda.LayerVersion(this, 'Extension', {
-      compatibleRuntimes: [
-        lambda.Runtime.NODEJS_12_X,
-        lambda.Runtime.NODEJS_14_X,
-        lambda.Runtime.NODEJS_16_X,
-        lambda.Runtime.NODEJS_18_X,
-        lambda.Runtime.NODEJS_20_X,
-      ],
-      code: lambda.Code.fromAsset(this.getExtensionAssetLocation()),
-    });
-    this.createdResourcesBySSpy.push(this.extensionLayer);
-
-    this.table = new dynamoDb.Table(this, 'WebSocket', {
-      partitionKey: {
-        name: 'connectionId',
-        type: dynamoDb.AttributeType.STRING,
-      },
-      billingMode: dynamoDb.BillingMode.PAY_PER_REQUEST,
-    });
-    this.createdResourcesBySSpy.push(this.table);
-
-    const envVars = this.getDafaultLambdaEnvironmentVariables();
-
-    if (this.props?.debugMode) {
-      envVars[envVariableNames.SSPY_DEBUG] = 'true';
-    }
-
-    const functionOnConnect = new lambdaNode.NodejsFunction(this, 'OnConnect', {
-      memorySize: 512,
-      timeout: Duration.seconds(5),
-      runtime: lambda.Runtime.NODEJS_20_X,
-      handler: 'handler',
-      entry: this.getAssetLocation('functions/onConnect.js'),
-      environment: envVars,
-    });
-    this.table.grantWriteData(functionOnConnect);
-    this.createdResourcesBySSpy.push(functionOnConnect);
-
-    const functionOnDisconnect = new lambdaNode.NodejsFunction(
-      this,
-      'OnDisconnect',
-      {
-        memorySize: 512,
-        timeout: Duration.seconds(5),
-        runtime: lambda.Runtime.NODEJS_20_X,
-        handler: 'handler',
-        entry: this.getAssetLocation('functions/onDisconnect.js'),
-        environment: envVars,
-      }
-    );
-    this.table.grantWriteData(functionOnDisconnect);
-    this.createdResourcesBySSpy.push(functionOnDisconnect);
-
-    this.webSocketApi = new agw.WebSocketApi(this, 'ApiGwWebSocket');
-    this.createdResourcesBySSpy.push(this.webSocketApi);
-    this.webSocketStage = new agw.WebSocketStage(this, 'ApiGwWebSocketStage', {
-      webSocketApi: this.webSocketApi,
-      stageName: 'prod',
-      autoDeploy: true,
-    });
-    this.createdResourcesBySSpy.push(this.webSocketStage);
-    const webSocketApiRoute = this.webSocketApi.addRoute('$connect', {
-      integration: new agwInt.WebSocketLambdaIntegration(
-        '$connect',
-        functionOnConnect
-      ),
-    });
-    (webSocketApiRoute.node.defaultChild as agw.CfnRoute).authorizationType =
-      'AWS_IAM';
-
-    this.webSocketApi.addRoute('$disconnect', {
-      integration: new agwInt.WebSocketLambdaIntegration(
-        '$disconnect',
-        functionOnDisconnect
+    this.spyWrapperLayer = new lambda.LayerVersion(this, 'SpyWrapperLayer', {
+      code: lambda.Code.fromAsset(
+        this.getLanguageExtensionAssetLocation('spy-wrapper')
       ),
     });
 
     this.lambdaSubscriptionMain = this.provideFunctionForSubscription();
-
-    this.webSocketApi.addRoute('sendmessage', {
-      integration: new agwInt.WebSocketLambdaIntegration(
-        'SendMessage',
-        this.lambdaSubscriptionMain.function
-      ),
-    });
-
-    this.wsUrl = `wss://${this.webSocketApi.apiId}.execute-api.${
-      Stack.of(this).region
-    }.amazonaws.com/${this.webSocketStage.stageName}`;
-
-    new CfnOutput(Stack.of(this), 'ServerlessSpyWsUrl', {
-      value: this.wsUrl,
-    });
   }
 
   private getDafaultLambdaEnvironmentVariables(): { [key: string]: string } {
     return {
-      [envVariableNames.SSPY_WS_TABLE_NAME]: this.table.tableName,
       NODE_OPTIONS: '--enable-source-maps',
     };
   }
@@ -191,7 +102,10 @@ export class ServerlessSpy extends Construct {
     };
 
     nodes = nodes.filter((node) => {
-      if (filterWithDefaults.spyLambda && node instanceof lambda.Function) {
+      if (
+        filterWithDefaults.spyLambda &&
+        (node instanceof lambda.Function || node instanceof NodejsFunction)
+      ) {
         return true;
       } else if (filterWithDefaults.spySnsTopic && node instanceof sns.Topic) {
         return true;
@@ -286,13 +200,13 @@ export class ServerlessSpy extends Construct {
       }
     }
 
-    const extensionAssetLocationWraper = path.join(
+    const extensionAssetLocationWrapper = path.join(
       extensionAssetLocation,
       'spy-wrapper'
     );
-    if (!fs.existsSync(extensionAssetLocationWraper)) {
+    if (!fs.existsSync(extensionAssetLocationWrapper)) {
       throw new Error(
-        `Wraper script for extension does not exists ${extensionAssetLocation}`
+        `Wrapper script for extension does not exists ${extensionAssetLocation}`
       );
     }
 
@@ -305,6 +219,29 @@ export class ServerlessSpy extends Construct {
         `Code for extension does not exists ${extensionAssetLocationCode}`
       );
     }
+    return extensionAssetLocation;
+  }
+
+  private getLanguageExtensionAssetLocation(language: string) {
+    const rootDir = path.join(__dirname, '..');
+
+    let extensionAssetLocation = path.join(rootDir, `extensions/${language}`);
+
+    const extensionAssetLocationAlt = path.join(
+      rootDir,
+      `lib/extension${language}`
+    );
+
+    if (!fs.existsSync(extensionAssetLocation)) {
+      if (!fs.existsSync(extensionAssetLocationAlt)) {
+        throw new Error(
+          `Folder with assets for extension for ${language} does not exists at ${extensionAssetLocation} or at ${extensionAssetLocationAlt} `
+        );
+      } else {
+        extensionAssetLocation = extensionAssetLocationAlt;
+      }
+    }
+
     return extensionAssetLocation;
   }
 
@@ -380,6 +317,52 @@ export class ServerlessSpy extends Construct {
     }
   }
 
+  private getExtensionForRuntime(
+    runtime: lambda.Runtime,
+    architecture: lambda.Architecture
+  ) {
+    const layerKey = (r: lambda.Runtime, a: lambda.Architecture) =>
+      `${r.toString()}_${a.name.toString()}`;
+    let layer = this.layerMap[layerKey(runtime, architecture)];
+    if (layer) {
+      return layer;
+    }
+
+    switch (runtime) {
+      case lambda.Runtime.PYTHON_3_8:
+      case lambda.Runtime.PYTHON_3_9:
+      case lambda.Runtime.PYTHON_3_10:
+      case lambda.Runtime.PYTHON_3_11:
+      case lambda.Runtime.PYTHON_3_12:
+        layer = new PythonLayerVersion(this, 'PythonExtension', {
+          compatibleRuntimes: [runtime],
+          compatibleArchitectures: [architecture],
+          entry: this.getLanguageExtensionAssetLocation('python'),
+        });
+        break;
+      case lambda.Runtime.NODEJS_12_X:
+      case lambda.Runtime.NODEJS_14_X:
+      case lambda.Runtime.NODEJS_16_X:
+      case lambda.Runtime.NODEJS_18_X:
+      case lambda.Runtime.NODEJS_20_X:
+        layer = new lambda.LayerVersion(this, 'Extension', {
+          compatibleRuntimes: [runtime],
+          compatibleArchitectures: [architecture],
+          code: lambda.Code.fromAsset(this.getExtensionAssetLocation()),
+        });
+        break;
+      default:
+        console.log(`No extensions available for ${runtime.toString()}`);
+        return undefined;
+    }
+
+    for (const compatibleRuntime of layer.compatibleRuntimes!) {
+      this.layerMap[layerKey(compatibleRuntime, architecture)] = layer;
+    }
+    this.createdResourcesBySSpy.push(layer);
+    return layer;
+  }
+
   private internalSpySpySqsWithNoSubscription(queue: sqs.Queue) {
     const subscription = this.findElement<lambda.CfnEventSourceMapping>(
       (n: IConstruct) =>
@@ -407,27 +390,24 @@ export class ServerlessSpy extends Construct {
       }
     );
     func.addEventSource(new SqsEventSource(queue));
-
+    this.setupForIoT(func);
     //
-    func.addLayers(this.extensionLayer);
+    func.addLayers(
+      this.getExtensionForRuntime(
+        lambda.Runtime.NODEJS_20_X,
+        func.architecture
+      )!
+    );
+    func.addLayers(this.spyWrapperLayer);
 
     //const functionName = this.getConstructName(func);
 
     //func.addEnvironment(envVariableNames.SSPY_FUNCTION_NAME, functionName);
     func.addEnvironment('AWS_LAMBDA_EXEC_WRAPPER', '/opt/spy-wrapper');
-    func.addEnvironment(
-      envVariableNames.SSPY_WS_ENDPOINT,
-      this.getWsEndpoint()
-    );
 
     if (this.props?.debugMode) {
       func.addEnvironment(envVariableNames.SSPY_DEBUG, 'true');
     }
-
-    this.table.grantWriteData(func);
-    this.table.grantReadData(func);
-    this.webSocketApi.grantManageConnections(func);
-    //
 
     this.createdResourcesBySSpy.push(func);
 
@@ -477,27 +457,24 @@ export class ServerlessSpy extends Construct {
       runtime: lambda.Runtime.NODEJS_20_X,
       handler: 'handler',
       entry: this.getAssetLocation('functions/sendMessage.js'),
+      // p--out-extension:.js=.mjs --target='node18.13.0' --banner:js=\"import { createRequire } from 'module';const require = createRequire(import.meta.url);\"
+      // bundling: {
+      //   format: OutputFormat.ESM,
+      //   target: 'node18.13.0',
+      //   // See https://github.com/evanw/esbuild/issues/1921#issuecomment-1152991694
+      //   banner:
+      //     "import { createRequire } from 'module';const require = createRequire(import.meta.url);",
+      //   esbuildArgs: {
+      //     '--out-extension:.js': '.mjs',
+      //   },
+      //   tsconfig: path.join(__dirname, 'tsconfig.esm.json'),
+      // },
       environment: {
-        [envVariableNames.SSPY_WS_TABLE_NAME]: this.table.tableName,
         NODE_OPTIONS: '--enable-source-maps',
       },
     });
-
-    this.table.grantWriteData(func);
-    this.table.grantReadData(func);
-    func.addEnvironment(
-      envVariableNames.SSPY_WS_ENDPOINT,
-      this.getWsEndpoint()
-    );
-
-    this.webSocketApi.grantManageConnections(func);
+    this.setupForIoT(func);
     return func;
-  }
-
-  private getWsEndpoint(): string {
-    return `https://${this.webSocketApi.apiId}.execute-api.${
-      Stack.of(this).region
-    }.amazonaws.com/${this.webSocketStage.stageName}`;
   }
 
   private internalSpyS3(s3Bucket: s3.Bucket) {
@@ -657,30 +634,39 @@ export class ServerlessSpy extends Construct {
     }
     return functionSubscription;
   }
+  private setupForIoT(func: lambda.Function) {
+    func.addEnvironment(
+      envVariableNames.SSPY_ROOT_STACK,
+      this.cleanName(this.findRootStack(Stack.of(this)).node.id)
+    );
+
+    func.addToRolePolicy(
+      new aws_iam.PolicyStatement({
+        actions: ['iot:*'],
+        effect: Effect.ALLOW,
+        resources: ['*'],
+      })
+    );
+  }
 
   private internalSpyLambda(func: lambda.Function) {
-    func.addLayers(this.extensionLayer);
+    const layer = this.getExtensionForRuntime(func.runtime, func.architecture);
+    if (!layer) {
+      return;
+    }
+    func.addLayers(layer);
+    func.addLayers(this.spyWrapperLayer);
 
     const functionName = this.getConstructName(func);
 
     func.addEnvironment(envVariableNames.SSPY_FUNCTION_NAME, functionName);
     func.addEnvironment('AWS_LAMBDA_EXEC_WRAPPER', '/opt/spy-wrapper');
-    func.addEnvironment(
-      envVariableNames.SSPY_WS_TABLE_NAME,
-      this.table.tableName
-    );
-    func.addEnvironment(
-      envVariableNames.SSPY_WS_ENDPOINT,
-      this.getWsEndpoint()
-    );
 
     if (this.props?.debugMode) {
       func.addEnvironment(envVariableNames.SSPY_DEBUG, 'true');
     }
 
-    this.table.grantWriteData(func);
-    this.table.grantReadData(func);
-    this.webSocketApi.grantManageConnections(func);
+    this.setupForIoT(func);
 
     this.serviceKeys.push(`Function#${functionName}#Request`);
     this.serviceKeys.push(`Function#${functionName}#Error`);
@@ -698,15 +684,17 @@ export class ServerlessSpy extends Construct {
       constructName = constructName.substring(node.id.length + 1);
     }
 
+    return this.cleanName(constructName);
+  }
+
+  private cleanName(name: string) {
     //snake case to camel case including dash and first letter to upper case
-    constructName = constructName
+    return name
       .replace(/[-_]+/g, ' ')
       .replace(/[^\w\s]/g, '')
       .replace(/\s(.)/g, ($1) => $1.toUpperCase())
       .replace(/\s/g, '')
       .replace(/^(.)/, ($1) => $1.toUpperCase());
-
-    return constructName;
   }
 
   private getTopic(topicArn: string): sns.Topic | undefined {
