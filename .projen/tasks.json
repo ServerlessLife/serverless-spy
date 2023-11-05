@@ -6,7 +6,7 @@
       "steps": [
         {
           "exec": "rm -rf lib"
-        },       
+        },
         {
           "spawn": "pre-compile"
         },
@@ -109,7 +109,7 @@
     "compile-cli-web": {
       "name": "compile-cli-web",
       "description": "Compile TS for CLI web console",
-      "steps": [         
+      "steps": [
         {
           "exec": "esbuild --bundle --platform=browser --sourcemap cli/webServerlessSpy.ts --outdir=lib/cli"
         }
@@ -118,7 +118,7 @@
     "compile": {
       "name": "compile",
       "description": "Only compile",
-      "steps": [         
+      "steps": [
         {
           "exec": "rm -rf lib && rm -rf temp"
         },
@@ -130,7 +130,7 @@
         },
         {
           "exec": "mv lib temp"
-        },      
+        },
         {
           "exec": "tsc --project tsconfig.npm.json --module esnext --outDir lib"
         },
@@ -142,31 +142,37 @@
         },
         {
           "exec": "cp -rlf temp/* lib/src"
-        }, 
+        },
         {
           "spawn": "bundle-extension"
-        }, 
+        },
+        {
+          "exec": "mkdir lib/extensions"
+        },
+        {
+          "spawn": "bundle-python-extension"
+        },
         {
           "spawn": "compile-cli-web"
-        }, 
+        },
         {
           "exec": "cp -rlf cli/* lib/cli"
         },
         {
           "exec": "rm -rf temp"
-        }      
+        }
       ]
     },
     "cli": {
       "name": "cli",
       "description": "Run cli",
-      "steps": [      
+      "steps": [
         {
           "spawn": "compile-cli-web"
-        },    
+        },
         {
           "exec": "esr cli/cli.ts --cdkoutput ../test/cdk/cdkOutput.json"
-        }      
+        }
       ]
     },
     "bundle-extension": {
@@ -175,6 +181,15 @@
       "steps": [
         {
           "exec": "esbuild --bundle --platform=node --sourcemap extension/interceptor.ts --outdir=lib/extension/dist/layer/nodejs/node_modules; cp extension/spy-wrapper lib/extension/dist/layer"
+        }
+      ]
+    },
+    "bundle-python-extension": {
+      "name": "bundle-python-extension",
+      "description": "Bundle ptyhon extension",
+      "steps": [
+        {
+          "exec": "cp -rlf extensions/python lib/extensions/python"
         }
       ]
     },
@@ -328,7 +343,7 @@
         },
         {
           "exec": "npm-check-updates --dep prod --upgrade --target=minor"
-        },   
+        },
         {
           "exec": "npm run upgrade -w test/cdk"
         },
@@ -337,7 +352,7 @@
         },
         {
           "exec": "npm update"
-        },        
+        },
         {
           "spawn": "post-upgrade"
         }

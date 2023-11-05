@@ -66,7 +66,7 @@
       "description": "Deploys your CDK app to the AWS cloud",
       "steps": [
         {
-          "exec": "cdk deploy --all --require-approval never  --outputs-file cdkOutput.json"
+          "exec": "cdk deploy --all --method direct --require-approval never  --outputs-file cdkOutput.json"
         }
       ]
     },
@@ -132,7 +132,7 @@
       "description": "Run tests",
       "steps": [
         {
-          "exec": "jest --passWithNoTests --all --updateSnapshot"
+          "exec": "jest --passWithNoTests --all --updateSnapshot --silent=false"
         }
       ]
     },
@@ -150,7 +150,7 @@
       "description": "Run jest in watch mode",
       "steps": [
         {
-          "exec": "jest --watch"
+          "exec": "jest --watch --silent=false"
         }
       ]
     },

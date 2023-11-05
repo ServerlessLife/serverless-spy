@@ -6,37 +6,38 @@ import { Template } from 'aws-cdk-lib/assertions';
 import { v4 as uuidv4 } from 'uuid';
 import { createServerlessSpyListener } from '../../../listener/createServerlessSpyListener';
 import { ServerlessSpyListener } from '../../../listener/ServerlessSpyListener';
-import { ServerlessSpyEvents } from '../serverlessSpyEvents/ServerlessSpyEventsLambda';
-import { E2eStack } from '../src/e2eStack';
+import { ServerlessSpyEvents } from '../serverlessSpyEvents/ServerlessSpyEventsPythonLambda';
+import { PythonLambdaStack } from '../src/pythonLambdaStack';
 import { TestData } from './TestData';
 
 jest.setTimeout(30000);
 
-describe('EsmLambda', () => {
+describe('PythonLambda', () => {
   const exportLocation = path.join(__dirname, '../cdkOutput.json');
   let serverlessSpyListener: ServerlessSpyListener<ServerlessSpyEvents>;
+  let lambdaClient: LambdaClient;
 
   if (!fs.existsSync(exportLocation)) {
     throw new Error(`File ${exportLocation} does not exists.`);
   }
   const output = JSON.parse(fs.readFileSync(exportLocation).toString())[
-    'ServerlessSpyEsmLambda'
+    'ServerlessSpyPythonLambda'
   ];
 
   beforeEach(async () => {
+    lambdaClient = new LambdaClient({});
     serverlessSpyListener =
       await createServerlessSpyListener<ServerlessSpyEvents>({
-        scope: 'ServerlessSpyEsmLambda',
+        scope: 'ServerlessSpyPythonLambda',
       });
   });
 
   afterEach(async () => {
     serverlessSpyListener.stop();
+    lambdaClient.destroy();
   });
 
   test('Basic test', async () => {
-    const lambdaClient = new LambdaClient({});
-
     const myData1 = <TestData>{
       id: uuidv4(),
       message: 'Hello 1',
@@ -55,6 +56,7 @@ describe('EsmLambda', () => {
       serverlessSpyListener,
       myData1
     );
+
     await testWithConditionsAndWithoutChaining(serverlessSpyListener, myData1);
     await testWithConditionsAndWithChaining(serverlessSpyListener, myData1);
     await testFullyChained(serverlessSpyListener, myData1);
@@ -105,11 +107,9 @@ describe('EsmLambda', () => {
     });
 
     (
-      await await serverlessSpyListener.waitForFunctionMyLambdaResponse<TestData>(
-        {
-          condition: (d) => d.response.id === myData2.id,
-        }
-      )
+      await serverlessSpyListener.waitForFunctionMyLambdaResponse<TestData>({
+        condition: (d) => d.response.id === myData2.id,
+      })
     ).toMatchObject({
       request: myData2,
       response: {
@@ -117,68 +117,50 @@ describe('EsmLambda', () => {
         message: `${myData2.message} ServerlessSpy`,
       },
     });
+  });
 
-    //************** Test Lambda with uncommon name **************************
+  test('Test error', async () => {
+    const lambdaClient = new LambdaClient({});
 
-    const myData3 = <TestData>{
+    const myData1 = <TestData>{
       id: uuidv4(),
-      message: 'Hello 3',
+      message: 'Hello 1',
     };
 
     await lambdaClient.send(
       new InvokeCommand({
-        FunctionName: output.FunctionNameMyLambdaTestName2,
+        FunctionName: output.FunctionNameMyLambdaThatFails,
         InvocationType: 'RequestResponse',
         LogType: 'Tail',
-        Payload: JSON.stringify(myData3) as any,
+        Payload: JSON.stringify(myData1) as any,
       })
     );
 
-    await testWithConditionsAndWithChaining2(serverlessSpyListener, myData3);
-    await testFullyChained2(serverlessSpyListener, myData3);
+    const errorResponse = (
+      await serverlessSpyListener.waitForFunctionMyLambdaThatFailsError()
+    ).getData();
 
-    const followedResponse3 = await (
-      await serverlessSpyListener.waitForFunctionMyLambdaTestName2Request<TestData>(
-        {
-          condition: (d) => d.request.id === myData3.id,
-        }
-      )
-    ).followedByResponse();
-
-    followedResponse3.toMatchObject({
-      request: myData3,
-      response: {
-        ...myData3,
-        message: `${myData3.message} ServerlessSpy`,
-      },
-    });
-
-    const responseDataSameRequest3 = followedResponse3.getData();
-
-    expect(responseDataSameRequest3.request).toMatchObject(myData3);
-    expect(responseDataSameRequest3.response).toMatchObject({
-      ...myData3,
-      message: `${myData3.message} ServerlessSpy`,
+    expect(errorResponse.error).toMatchObject({
+      message: 'My test error',
+      name: 'Error',
+      stack: expect.any(String),
     });
 
     (
-      await await serverlessSpyListener.waitForFunctionMyLambdaTestName2Response<TestData>(
-        {
-          condition: (d) => d.response.id === myData3.id,
-        }
-      )
+      await serverlessSpyListener.waitForFunctionMyLambdaThatFailsError()
     ).toMatchObject({
-      request: myData3,
-      response: {
-        ...myData3,
-        message: `${myData3.message} ServerlessSpy`,
+      request: myData1,
+      error: {
+        message: 'My test error',
+        name: 'Error',
+        stack: expect.any(String),
       },
     });
   });
 
   test('Snapshot', () => {
     const app = new App();
-    const stack = new E2eStack(app, 'Test', {
+    const stack = new PythonLambdaStack(app, 'Test', {
       generateSpyEventsFile: false,
     });
     const template = Template.fromStack(stack);
@@ -295,11 +277,14 @@ async function testWithoutConditionsAndWithoutChaining(
   awaitedRequest.toMatchObject({
     request: data,
   });
+  console.log('request found');
 
   const requestData = awaitedRequest.getData();
 
   expect(requestData.request).toMatchObject(data);
+  console.log('matched data');
 
+  //TODO: Pretty sure it's the console logs that aren't set up properly
   //console log
   const awaitedConsole =
     await serverlessSpyListener.waitForFunctionMyLambdaConsole<TestData>();
@@ -331,7 +316,7 @@ async function testWithoutConditionsAndWithoutChaining(
     },
   });
 
-  const responseData = await awaitedResponse.getData();
+  const responseData = awaitedResponse.getData();
 
   expect(responseData.request).toMatchObject(data);
   expect(responseData.response).toMatchObject({
@@ -393,115 +378,11 @@ async function testWithConditionsAndWithoutChaining(
     },
   });
 
-  const responseData = await awaitedResponse.getData();
+  const responseData = awaitedResponse.getData();
 
   expect(responseData.request).toMatchObject(data);
   expect(responseData.response).toMatchObject({
     ...data,
     message: `${data.message} ServerlessSpy`,
   });
-}
-
-async function testWithConditionsAndWithChaining2(
-  serverlessSpyListener: ServerlessSpyListener<ServerlessSpyEvents>,
-  myData: TestData
-) {
-  // request
-  const awaitedRequest =
-    await serverlessSpyListener.waitForFunctionMyLambdaTestName2Request<TestData>(
-      {
-        condition: (d) => d.request.id === myData.id,
-      }
-    );
-
-  awaitedRequest.toMatchObject({
-    request: myData,
-  });
-
-  const requestData = awaitedRequest.getData();
-
-  expect(requestData.request).toMatchObject(myData);
-
-  //console log
-  const awaitedFollowedConsole = await awaitedRequest.followedByConsole();
-
-  awaitedFollowedConsole.toMatchObject({
-    request: myData,
-    console: {
-      message: 'My console log message',
-      optionalParams: [myData],
-    },
-  });
-
-  const consoleData = awaitedFollowedConsole.getData();
-
-  expect(consoleData.console).toMatchObject({
-    message: 'My console log message',
-    optionalParams: [myData],
-  });
-
-  //response
-  const awaitedFollowedResponse = await awaitedRequest.followedByResponse();
-
-  awaitedFollowedResponse.toMatchObject({
-    request: myData,
-    response: {
-      ...myData,
-      message: `${myData.message} ServerlessSpy`,
-    },
-  });
-
-  const responseData = awaitedFollowedResponse.getData();
-
-  expect(responseData.request).toMatchObject(myData);
-  expect(responseData.response).toMatchObject({
-    ...myData,
-    message: `${myData.message} ServerlessSpy`,
-  });
-}
-
-async function testFullyChained2(
-  serverlessSpyListener: ServerlessSpyListener<ServerlessSpyEvents>,
-  myData: TestData
-) {
-  (
-    await (
-      await (
-        await serverlessSpyListener.waitForFunctionMyLambdaTestName2Request<TestData>(
-          {
-            condition: (d) => d.request.id === myData.id,
-          }
-        )
-      )
-        .toMatchObject({
-          request: myData,
-        })
-        .followedByConsole()
-    )
-      .toMatchObject({
-        request: myData,
-        console: {
-          message: 'My console log message',
-          optionalParams: [myData],
-        },
-      })
-      .followedByResponse()
-  ).toMatchObject({
-    request: myData,
-    response: {
-      ...myData,
-      message: `${myData.message} ServerlessSpy`,
-    },
-  });
-
-  //no checking the data
-  await (
-    await (
-      await serverlessSpyListener.waitForFunctionMyLambdaTestName2Request<TestData>(
-        {
-          condition: (d) => d.request.id === myData.id,
-        }
-      )
-    ).followedByConsole()
-  ).followedByResponse();
 }

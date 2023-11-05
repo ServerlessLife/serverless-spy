@@ -1,93 +1,60 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`Lambda to SNS Snapshot 1`] = `
-Object {
-  "Outputs": Object {
-    "FunctionNameMyLambda": Object {
-      "Value": Object {
+{
+  "Outputs": {
+    "FunctionNameMyLambda": {
+      "Value": {
         "Ref": "MyLambdaCCE802FB",
       },
     },
-    "ServerlessSpyWsUrl": Object {
-      "Value": Object {
-        "Fn::Join": Array [
-          "",
-          Array [
-            "wss://",
-            Object {
-              "Ref": "ServerlessSpyApiGwWebSocketB4986709",
-            },
-            ".execute-api.",
-            Object {
-              "Ref": "AWS::Region",
-            },
-            ".amazonaws.com/prod",
-          ],
-        ],
-      },
-    },
   },
-  "Parameters": Object {
-    "BootstrapVersion": Object {
+  "Parameters": {
+    "BootstrapVersion": {
       "Default": "/cdk-bootstrap/hnb659fds/version",
       "Description": "Version of the CDK Bootstrap resources in this environment, automatically retrieved from SSM Parameter Store. [cdk:skip]",
       "Type": "AWS::SSM::Parameter::Value<String>",
     },
   },
-  "Resources": Object {
-    "MyLambdaCCE802FB": Object {
-      "DependsOn": Array [
+  "Resources": {
+    "MyLambdaCCE802FB": {
+      "DependsOn": [
         "MyLambdaServiceRoleDefaultPolicy5BBC6F68",
         "MyLambdaServiceRole4539ECB6",
       ],
-      "Properties": Object {
-        "Code": Object {
-          "S3Bucket": Object {
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
             "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
           },
-          "S3Key": "2ccc2c3d7fa5133214c161796fff8886a847b72d047c6ee8a9a14dd4ef3f7770.zip",
+          "S3Key": "4678d12034c31aa3affdd08f3d5d4160683cf76ad4210e7530993add568e0c25.zip",
         },
-        "Environment": Object {
-          "Variables": Object {
+        "Environment": {
+          "Variables": {
             "AWS_LAMBDA_EXEC_WRAPPER": "/opt/spy-wrapper",
             "AWS_NODEJS_CONNECTION_REUSE_ENABLED": "1",
             "NODE_OPTIONS": "--enable-source-maps",
-            "SNS_TOPIC_ARN": Object {
+            "SNS_TOPIC_ARN": {
               "Ref": "MyTopic86869434",
             },
             "SSPY_DEBUG": "true",
             "SSPY_FUNCTION_NAME": "MyLambda",
             "SSPY_INFRA_MAPPING": "{}",
-            "SSPY_WS_ENDPOINT": Object {
-              "Fn::Join": Array [
-                "",
-                Array [
-                  "https://",
-                  Object {
-                    "Ref": "ServerlessSpyApiGwWebSocketB4986709",
-                  },
-                  ".execute-api.",
-                  Object {
-                    "Ref": "AWS::Region",
-                  },
-                  ".amazonaws.com/prod",
-                ],
-              ],
-            },
-            "SSPY_WS_TABLE_NAME": Object {
-              "Ref": "ServerlessSpyWebSocketB4D8CE14",
-            },
+            "SSPY_ROOT_STACK": "Test",
           },
         },
         "Handler": "index.handler",
-        "Layers": Array [
-          Object {
+        "Layers": [
+          {
             "Ref": "ServerlessSpyExtensionEA4873A0",
+          },
+          {
+            "Ref": "ServerlessSpySpyWrapperLayerBE5627BF",
           },
         ],
         "MemorySize": 512,
-        "Role": Object {
-          "Fn::GetAtt": Array [
+        "Role": {
+          "Fn::GetAtt": [
             "MyLambdaServiceRole4539ECB6",
             "Arn",
           ],
@@ -97,27 +64,27 @@ Object {
       },
       "Type": "AWS::Lambda::Function",
     },
-    "MyLambdaServiceRole4539ECB6": Object {
-      "Properties": Object {
-        "AssumeRolePolicyDocument": Object {
-          "Statement": Array [
-            Object {
+    "MyLambdaServiceRole4539ECB6": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
               "Action": "sts:AssumeRole",
               "Effect": "Allow",
-              "Principal": Object {
+              "Principal": {
                 "Service": "lambda.amazonaws.com",
               },
             },
           ],
           "Version": "2012-10-17",
         },
-        "ManagedPolicyArns": Array [
-          Object {
-            "Fn::Join": Array [
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
               "",
-              Array [
+              [
                 "arn:",
-                Object {
+                {
                   "Ref": "AWS::Partition",
                 },
                 ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
@@ -128,669 +95,100 @@ Object {
       },
       "Type": "AWS::IAM::Role",
     },
-    "MyLambdaServiceRoleDefaultPolicy5BBC6F68": Object {
-      "Properties": Object {
-        "PolicyDocument": Object {
-          "Statement": Array [
-            Object {
+    "MyLambdaServiceRoleDefaultPolicy5BBC6F68": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
               "Action": "sns:Publish",
               "Effect": "Allow",
-              "Resource": Object {
+              "Resource": {
                 "Ref": "MyTopic86869434",
               },
             },
-            Object {
-              "Action": Array [
-                "dynamodb:BatchWriteItem",
-                "dynamodb:PutItem",
-                "dynamodb:UpdateItem",
-                "dynamodb:DeleteItem",
-                "dynamodb:DescribeTable",
-              ],
+            {
+              "Action": "iot:*",
               "Effect": "Allow",
-              "Resource": Array [
-                Object {
-                  "Fn::GetAtt": Array [
-                    "ServerlessSpyWebSocketB4D8CE14",
-                    "Arn",
-                  ],
-                },
-                Object {
-                  "Ref": "AWS::NoValue",
-                },
-              ],
-            },
-            Object {
-              "Action": Array [
-                "dynamodb:BatchGetItem",
-                "dynamodb:GetRecords",
-                "dynamodb:GetShardIterator",
-                "dynamodb:Query",
-                "dynamodb:GetItem",
-                "dynamodb:Scan",
-                "dynamodb:ConditionCheckItem",
-                "dynamodb:DescribeTable",
-              ],
-              "Effect": "Allow",
-              "Resource": Array [
-                Object {
-                  "Fn::GetAtt": Array [
-                    "ServerlessSpyWebSocketB4D8CE14",
-                    "Arn",
-                  ],
-                },
-                Object {
-                  "Ref": "AWS::NoValue",
-                },
-              ],
-            },
-            Object {
-              "Action": "execute-api:ManageConnections",
-              "Effect": "Allow",
-              "Resource": Object {
-                "Fn::Join": Array [
-                  "",
-                  Array [
-                    "arn:",
-                    Object {
-                      "Ref": "AWS::Partition",
-                    },
-                    ":execute-api:",
-                    Object {
-                      "Ref": "AWS::Region",
-                    },
-                    ":",
-                    Object {
-                      "Ref": "AWS::AccountId",
-                    },
-                    ":",
-                    Object {
-                      "Ref": "ServerlessSpyApiGwWebSocketB4986709",
-                    },
-                    "/*/*/@connections/*",
-                  ],
-                ],
-              },
+              "Resource": "*",
             },
           ],
           "Version": "2012-10-17",
         },
         "PolicyName": "MyLambdaServiceRoleDefaultPolicy5BBC6F68",
-        "Roles": Array [
-          Object {
+        "Roles": [
+          {
             "Ref": "MyLambdaServiceRole4539ECB6",
           },
         ],
       },
       "Type": "AWS::IAM::Policy",
     },
-    "MyTopic86869434": Object {
+    "MyTopic86869434": {
       "Type": "AWS::SNS::Topic",
     },
-    "ServerlessSpyApiGwWebSocketB4986709": Object {
-      "Properties": Object {
-        "Name": "ApiGwWebSocket",
-        "ProtocolType": "WEBSOCKET",
-        "RouteSelectionExpression": "$request.body.action",
-      },
-      "Type": "AWS::ApiGatewayV2::Api",
-    },
-    "ServerlessSpyApiGwWebSocketStageC331FC25": Object {
-      "Properties": Object {
-        "ApiId": Object {
-          "Ref": "ServerlessSpyApiGwWebSocketB4986709",
-        },
-        "AutoDeploy": true,
-        "StageName": "prod",
-      },
-      "Type": "AWS::ApiGatewayV2::Stage",
-    },
-    "ServerlessSpyApiGwWebSocketconnectRoute312F1B97": Object {
-      "Properties": Object {
-        "ApiId": Object {
-          "Ref": "ServerlessSpyApiGwWebSocketB4986709",
-        },
-        "AuthorizationType": "AWS_IAM",
-        "RouteKey": "$connect",
-        "Target": Object {
-          "Fn::Join": Array [
-            "",
-            Array [
-              "integrations/",
-              Object {
-                "Ref": "ServerlessSpyApiGwWebSocketconnectRouteconnectD0BB4267",
-              },
-            ],
-          ],
-        },
-      },
-      "Type": "AWS::ApiGatewayV2::Route",
-    },
-    "ServerlessSpyApiGwWebSocketconnectRouteconnectD0BB4267": Object {
-      "Properties": Object {
-        "ApiId": Object {
-          "Ref": "ServerlessSpyApiGwWebSocketB4986709",
-        },
-        "IntegrationType": "AWS_PROXY",
-        "IntegrationUri": Object {
-          "Fn::Join": Array [
-            "",
-            Array [
-              "arn:",
-              Object {
-                "Ref": "AWS::Partition",
-              },
-              ":apigateway:",
-              Object {
-                "Ref": "AWS::Region",
-              },
-              ":lambda:path/2015-03-31/functions/",
-              Object {
-                "Fn::GetAtt": Array [
-                  "ServerlessSpyOnConnect645F94AB",
-                  "Arn",
-                ],
-              },
-              "/invocations",
-            ],
-          ],
-        },
-      },
-      "Type": "AWS::ApiGatewayV2::Integration",
-    },
-    "ServerlessSpyApiGwWebSocketconnectRouteconnectPermission0ECF9CDC": Object {
-      "Properties": Object {
-        "Action": "lambda:InvokeFunction",
-        "FunctionName": Object {
-          "Fn::GetAtt": Array [
-            "ServerlessSpyOnConnect645F94AB",
-            "Arn",
-          ],
-        },
-        "Principal": "apigateway.amazonaws.com",
-        "SourceArn": Object {
-          "Fn::Join": Array [
-            "",
-            Array [
-              "arn:",
-              Object {
-                "Ref": "AWS::Partition",
-              },
-              ":execute-api:",
-              Object {
-                "Ref": "AWS::Region",
-              },
-              ":",
-              Object {
-                "Ref": "AWS::AccountId",
-              },
-              ":",
-              Object {
-                "Ref": "ServerlessSpyApiGwWebSocketB4986709",
-              },
-              "/*/*$connect",
-            ],
-          ],
-        },
-      },
-      "Type": "AWS::Lambda::Permission",
-    },
-    "ServerlessSpyApiGwWebSocketdisconnectRoute1A0A3B9C": Object {
-      "Properties": Object {
-        "ApiId": Object {
-          "Ref": "ServerlessSpyApiGwWebSocketB4986709",
-        },
-        "AuthorizationType": "NONE",
-        "RouteKey": "$disconnect",
-        "Target": Object {
-          "Fn::Join": Array [
-            "",
-            Array [
-              "integrations/",
-              Object {
-                "Ref": "ServerlessSpyApiGwWebSocketdisconnectRoutedisconnect27020FD4",
-              },
-            ],
-          ],
-        },
-      },
-      "Type": "AWS::ApiGatewayV2::Route",
-    },
-    "ServerlessSpyApiGwWebSocketdisconnectRoutedisconnect27020FD4": Object {
-      "Properties": Object {
-        "ApiId": Object {
-          "Ref": "ServerlessSpyApiGwWebSocketB4986709",
-        },
-        "IntegrationType": "AWS_PROXY",
-        "IntegrationUri": Object {
-          "Fn::Join": Array [
-            "",
-            Array [
-              "arn:",
-              Object {
-                "Ref": "AWS::Partition",
-              },
-              ":apigateway:",
-              Object {
-                "Ref": "AWS::Region",
-              },
-              ":lambda:path/2015-03-31/functions/",
-              Object {
-                "Fn::GetAtt": Array [
-                  "ServerlessSpyOnDisconnect798FB62E",
-                  "Arn",
-                ],
-              },
-              "/invocations",
-            ],
-          ],
-        },
-      },
-      "Type": "AWS::ApiGatewayV2::Integration",
-    },
-    "ServerlessSpyApiGwWebSocketdisconnectRoutedisconnectPermission49C4B30D": Object {
-      "Properties": Object {
-        "Action": "lambda:InvokeFunction",
-        "FunctionName": Object {
-          "Fn::GetAtt": Array [
-            "ServerlessSpyOnDisconnect798FB62E",
-            "Arn",
-          ],
-        },
-        "Principal": "apigateway.amazonaws.com",
-        "SourceArn": Object {
-          "Fn::Join": Array [
-            "",
-            Array [
-              "arn:",
-              Object {
-                "Ref": "AWS::Partition",
-              },
-              ":execute-api:",
-              Object {
-                "Ref": "AWS::Region",
-              },
-              ":",
-              Object {
-                "Ref": "AWS::AccountId",
-              },
-              ":",
-              Object {
-                "Ref": "ServerlessSpyApiGwWebSocketB4986709",
-              },
-              "/*/*$disconnect",
-            ],
-          ],
-        },
-      },
-      "Type": "AWS::Lambda::Permission",
-    },
-    "ServerlessSpyApiGwWebSocketsendmessageRouteCA382280": Object {
-      "Properties": Object {
-        "ApiId": Object {
-          "Ref": "ServerlessSpyApiGwWebSocketB4986709",
-        },
-        "AuthorizationType": "NONE",
-        "RouteKey": "sendmessage",
-        "Target": Object {
-          "Fn::Join": Array [
-            "",
-            Array [
-              "integrations/",
-              Object {
-                "Ref": "ServerlessSpyApiGwWebSocketsendmessageRouteSendMessage655C76E3",
-              },
-            ],
-          ],
-        },
-      },
-      "Type": "AWS::ApiGatewayV2::Route",
-    },
-    "ServerlessSpyApiGwWebSocketsendmessageRouteSendMessage655C76E3": Object {
-      "Properties": Object {
-        "ApiId": Object {
-          "Ref": "ServerlessSpyApiGwWebSocketB4986709",
-        },
-        "IntegrationType": "AWS_PROXY",
-        "IntegrationUri": Object {
-          "Fn::Join": Array [
-            "",
-            Array [
-              "arn:",
-              Object {
-                "Ref": "AWS::Partition",
-              },
-              ":apigateway:",
-              Object {
-                "Ref": "AWS::Region",
-              },
-              ":lambda:path/2015-03-31/functions/",
-              Object {
-                "Fn::GetAtt": Array [
-                  "ServerlessSpySubscription0036DF4AB",
-                  "Arn",
-                ],
-              },
-              "/invocations",
-            ],
-          ],
-        },
-      },
-      "Type": "AWS::ApiGatewayV2::Integration",
-    },
-    "ServerlessSpyApiGwWebSocketsendmessageRouteSendMessagePermission603B5AE9": Object {
-      "Properties": Object {
-        "Action": "lambda:InvokeFunction",
-        "FunctionName": Object {
-          "Fn::GetAtt": Array [
-            "ServerlessSpySubscription0036DF4AB",
-            "Arn",
-          ],
-        },
-        "Principal": "apigateway.amazonaws.com",
-        "SourceArn": Object {
-          "Fn::Join": Array [
-            "",
-            Array [
-              "arn:",
-              Object {
-                "Ref": "AWS::Partition",
-              },
-              ":execute-api:",
-              Object {
-                "Ref": "AWS::Region",
-              },
-              ":",
-              Object {
-                "Ref": "AWS::AccountId",
-              },
-              ":",
-              Object {
-                "Ref": "ServerlessSpyApiGwWebSocketB4986709",
-              },
-              "/*/*sendmessage",
-            ],
-          ],
-        },
-      },
-      "Type": "AWS::Lambda::Permission",
-    },
-    "ServerlessSpyExtensionEA4873A0": Object {
-      "Properties": Object {
-        "CompatibleRuntimes": Array [
-          "nodejs12.x",
-          "nodejs14.x",
-          "nodejs16.x",
-          "nodejs18.x",
+    "ServerlessSpyExtensionEA4873A0": {
+      "Properties": {
+        "CompatibleArchitectures": [
+          "x86_64",
         ],
-        "Content": Object {
-          "S3Bucket": Object {
+        "CompatibleRuntimes": [
+          "nodejs16.x",
+        ],
+        "Content": {
+          "S3Bucket": {
             "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
           },
-          "S3Key": "1ae5bd4e741c0b4b5309e11738f23752e1bc35a43dffda96210f41c0e322a512.zip",
+          "S3Key": "babbb172503f6a6ffc178f8d107bae18937392efdbc57c9a729dd35ef6228e53.zip",
         },
       },
       "Type": "AWS::Lambda::LayerVersion",
     },
-    "ServerlessSpyOnConnect645F94AB": Object {
-      "DependsOn": Array [
-        "ServerlessSpyOnConnectServiceRoleDefaultPolicy3DA62E46",
-        "ServerlessSpyOnConnectServiceRoleFC57701A",
-      ],
-      "Properties": Object {
-        "Code": Object {
-          "S3Bucket": Object {
+    "ServerlessSpySpyWrapperLayerBE5627BF": {
+      "Properties": {
+        "Content": {
+          "S3Bucket": {
             "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
           },
-          "S3Key": "b4b02377de150bf7e6dfe0fdc41c2e02d54f01740b28ddffc04701aea77173d4.zip",
+          "S3Key": "bf2df0858ecef77ac31b1994b46cd25f69a84fea5d58e9b5e5c6e458c33012f6.zip",
         },
-        "Environment": Object {
-          "Variables": Object {
-            "AWS_NODEJS_CONNECTION_REUSE_ENABLED": "1",
-            "NODE_OPTIONS": "--enable-source-maps",
-            "SSPY_DEBUG": "true",
-            "SSPY_WS_TABLE_NAME": Object {
-              "Ref": "ServerlessSpyWebSocketB4D8CE14",
-            },
-          },
-        },
-        "Handler": "index.handler",
-        "MemorySize": 512,
-        "Role": Object {
-          "Fn::GetAtt": Array [
-            "ServerlessSpyOnConnectServiceRoleFC57701A",
-            "Arn",
-          ],
-        },
-        "Runtime": "nodejs18.x",
-        "Timeout": 5,
       },
-      "Type": "AWS::Lambda::Function",
+      "Type": "AWS::Lambda::LayerVersion",
     },
-    "ServerlessSpyOnConnectServiceRoleDefaultPolicy3DA62E46": Object {
-      "Properties": Object {
-        "PolicyDocument": Object {
-          "Statement": Array [
-            Object {
-              "Action": Array [
-                "dynamodb:BatchWriteItem",
-                "dynamodb:PutItem",
-                "dynamodb:UpdateItem",
-                "dynamodb:DeleteItem",
-                "dynamodb:DescribeTable",
-              ],
-              "Effect": "Allow",
-              "Resource": Array [
-                Object {
-                  "Fn::GetAtt": Array [
-                    "ServerlessSpyWebSocketB4D8CE14",
-                    "Arn",
-                  ],
-                },
-                Object {
-                  "Ref": "AWS::NoValue",
-                },
-              ],
-            },
-          ],
-          "Version": "2012-10-17",
-        },
-        "PolicyName": "ServerlessSpyOnConnectServiceRoleDefaultPolicy3DA62E46",
-        "Roles": Array [
-          Object {
-            "Ref": "ServerlessSpyOnConnectServiceRoleFC57701A",
-          },
-        ],
-      },
-      "Type": "AWS::IAM::Policy",
-    },
-    "ServerlessSpyOnConnectServiceRoleFC57701A": Object {
-      "Properties": Object {
-        "AssumeRolePolicyDocument": Object {
-          "Statement": Array [
-            Object {
-              "Action": "sts:AssumeRole",
-              "Effect": "Allow",
-              "Principal": Object {
-                "Service": "lambda.amazonaws.com",
-              },
-            },
-          ],
-          "Version": "2012-10-17",
-        },
-        "ManagedPolicyArns": Array [
-          Object {
-            "Fn::Join": Array [
-              "",
-              Array [
-                "arn:",
-                Object {
-                  "Ref": "AWS::Partition",
-                },
-                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
-              ],
-            ],
-          },
-        ],
-      },
-      "Type": "AWS::IAM::Role",
-    },
-    "ServerlessSpyOnDisconnect798FB62E": Object {
-      "DependsOn": Array [
-        "ServerlessSpyOnDisconnectServiceRoleDefaultPolicy908DBF32",
-        "ServerlessSpyOnDisconnectServiceRoleD2185195",
-      ],
-      "Properties": Object {
-        "Code": Object {
-          "S3Bucket": Object {
-            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
-          },
-          "S3Key": "e3398e4b8f1ae3417d5afa7ec1158778b906c8238d308303c7bf9a72726d8041.zip",
-        },
-        "Environment": Object {
-          "Variables": Object {
-            "AWS_NODEJS_CONNECTION_REUSE_ENABLED": "1",
-            "NODE_OPTIONS": "--enable-source-maps",
-            "SSPY_DEBUG": "true",
-            "SSPY_WS_TABLE_NAME": Object {
-              "Ref": "ServerlessSpyWebSocketB4D8CE14",
-            },
-          },
-        },
-        "Handler": "index.handler",
-        "MemorySize": 512,
-        "Role": Object {
-          "Fn::GetAtt": Array [
-            "ServerlessSpyOnDisconnectServiceRoleD2185195",
-            "Arn",
-          ],
-        },
-        "Runtime": "nodejs18.x",
-        "Timeout": 5,
-      },
-      "Type": "AWS::Lambda::Function",
-    },
-    "ServerlessSpyOnDisconnectServiceRoleD2185195": Object {
-      "Properties": Object {
-        "AssumeRolePolicyDocument": Object {
-          "Statement": Array [
-            Object {
-              "Action": "sts:AssumeRole",
-              "Effect": "Allow",
-              "Principal": Object {
-                "Service": "lambda.amazonaws.com",
-              },
-            },
-          ],
-          "Version": "2012-10-17",
-        },
-        "ManagedPolicyArns": Array [
-          Object {
-            "Fn::Join": Array [
-              "",
-              Array [
-                "arn:",
-                Object {
-                  "Ref": "AWS::Partition",
-                },
-                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
-              ],
-            ],
-          },
-        ],
-      },
-      "Type": "AWS::IAM::Role",
-    },
-    "ServerlessSpyOnDisconnectServiceRoleDefaultPolicy908DBF32": Object {
-      "Properties": Object {
-        "PolicyDocument": Object {
-          "Statement": Array [
-            Object {
-              "Action": Array [
-                "dynamodb:BatchWriteItem",
-                "dynamodb:PutItem",
-                "dynamodb:UpdateItem",
-                "dynamodb:DeleteItem",
-                "dynamodb:DescribeTable",
-              ],
-              "Effect": "Allow",
-              "Resource": Array [
-                Object {
-                  "Fn::GetAtt": Array [
-                    "ServerlessSpyWebSocketB4D8CE14",
-                    "Arn",
-                  ],
-                },
-                Object {
-                  "Ref": "AWS::NoValue",
-                },
-              ],
-            },
-          ],
-          "Version": "2012-10-17",
-        },
-        "PolicyName": "ServerlessSpyOnDisconnectServiceRoleDefaultPolicy908DBF32",
-        "Roles": Array [
-          Object {
-            "Ref": "ServerlessSpyOnDisconnectServiceRoleD2185195",
-          },
-        ],
-      },
-      "Type": "AWS::IAM::Policy",
-    },
-    "ServerlessSpySubscription0036DF4AB": Object {
-      "DependsOn": Array [
+    "ServerlessSpySubscription0036DF4AB": {
+      "DependsOn": [
         "ServerlessSpySubscription0ServiceRoleDefaultPolicyD8FA77F4",
         "ServerlessSpySubscription0ServiceRoleF955D76C",
       ],
-      "Properties": Object {
-        "Code": Object {
-          "S3Bucket": Object {
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
             "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
           },
-          "S3Key": "b9b766ecfb7a00b14e4605f25e02ebeeca0e85d9996a77cf5266884f16bc057e.zip",
+          "S3Key": "2fc02cc64fedb8a5c7c3049c58656172132663d36b541073ada7da4078957efa.zip",
         },
-        "Environment": Object {
-          "Variables": Object {
+        "Environment": {
+          "Variables": {
             "AWS_NODEJS_CONNECTION_REUSE_ENABLED": "1",
             "NODE_OPTIONS": "--enable-source-maps",
-            "SSPY_INFRA_MAPPING": Object {
-              "Fn::Join": Array [
+            "SSPY_INFRA_MAPPING": {
+              "Fn::Join": [
                 "",
-                Array [
-                  "{\\"",
-                  Object {
+                [
+                  "{"",
+                  {
                     "Ref": "MyTopic86869434",
                   },
-                  "\\":\\"SnsTopic#MyTopic\\"}",
+                  "":"SnsTopic#MyTopic"}",
                 ],
               ],
             },
-            "SSPY_WS_ENDPOINT": Object {
-              "Fn::Join": Array [
-                "",
-                Array [
-                  "https://",
-                  Object {
-                    "Ref": "ServerlessSpyApiGwWebSocketB4986709",
-                  },
-                  ".execute-api.",
-                  Object {
-                    "Ref": "AWS::Region",
-                  },
-                  ".amazonaws.com/prod",
-                ],
-              ],
-            },
-            "SSPY_WS_TABLE_NAME": Object {
-              "Ref": "ServerlessSpyWebSocketB4D8CE14",
-            },
+            "SSPY_ROOT_STACK": "Test",
           },
         },
         "Handler": "index.handler",
         "MemorySize": 512,
-        "Role": Object {
-          "Fn::GetAtt": Array [
+        "Role": {
+          "Fn::GetAtt": [
             "ServerlessSpySubscription0ServiceRoleF955D76C",
             "Arn",
           ],
@@ -800,147 +198,79 @@ Object {
       },
       "Type": "AWS::Lambda::Function",
     },
-    "ServerlessSpySubscription0AllowInvokeTestMyTopic06942AEAB4AEE620": Object {
-      "Properties": Object {
+    "ServerlessSpySubscription0AllowInvokeTestMyTopic06942AEAB4AEE620": {
+      "Properties": {
         "Action": "lambda:InvokeFunction",
-        "FunctionName": Object {
-          "Fn::GetAtt": Array [
+        "FunctionName": {
+          "Fn::GetAtt": [
             "ServerlessSpySubscription0036DF4AB",
             "Arn",
           ],
         },
         "Principal": "sns.amazonaws.com",
-        "SourceArn": Object {
+        "SourceArn": {
           "Ref": "MyTopic86869434",
         },
       },
       "Type": "AWS::Lambda::Permission",
     },
-    "ServerlessSpySubscription0MyTopic191FC9F5": Object {
-      "Properties": Object {
-        "Endpoint": Object {
-          "Fn::GetAtt": Array [
+    "ServerlessSpySubscription0MyTopic191FC9F5": {
+      "Properties": {
+        "Endpoint": {
+          "Fn::GetAtt": [
             "ServerlessSpySubscription0036DF4AB",
             "Arn",
           ],
         },
         "Protocol": "lambda",
-        "TopicArn": Object {
+        "TopicArn": {
           "Ref": "MyTopic86869434",
         },
       },
       "Type": "AWS::SNS::Subscription",
     },
-    "ServerlessSpySubscription0ServiceRoleDefaultPolicyD8FA77F4": Object {
-      "Properties": Object {
-        "PolicyDocument": Object {
-          "Statement": Array [
-            Object {
-              "Action": Array [
-                "dynamodb:BatchWriteItem",
-                "dynamodb:PutItem",
-                "dynamodb:UpdateItem",
-                "dynamodb:DeleteItem",
-                "dynamodb:DescribeTable",
-              ],
+    "ServerlessSpySubscription0ServiceRoleDefaultPolicyD8FA77F4": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": "iot:*",
               "Effect": "Allow",
-              "Resource": Array [
-                Object {
-                  "Fn::GetAtt": Array [
-                    "ServerlessSpyWebSocketB4D8CE14",
-                    "Arn",
-                  ],
-                },
-                Object {
-                  "Ref": "AWS::NoValue",
-                },
-              ],
-            },
-            Object {
-              "Action": Array [
-                "dynamodb:BatchGetItem",
-                "dynamodb:GetRecords",
-                "dynamodb:GetShardIterator",
-                "dynamodb:Query",
-                "dynamodb:GetItem",
-                "dynamodb:Scan",
-                "dynamodb:ConditionCheckItem",
-                "dynamodb:DescribeTable",
-              ],
-              "Effect": "Allow",
-              "Resource": Array [
-                Object {
-                  "Fn::GetAtt": Array [
-                    "ServerlessSpyWebSocketB4D8CE14",
-                    "Arn",
-                  ],
-                },
-                Object {
-                  "Ref": "AWS::NoValue",
-                },
-              ],
-            },
-            Object {
-              "Action": "execute-api:ManageConnections",
-              "Effect": "Allow",
-              "Resource": Object {
-                "Fn::Join": Array [
-                  "",
-                  Array [
-                    "arn:",
-                    Object {
-                      "Ref": "AWS::Partition",
-                    },
-                    ":execute-api:",
-                    Object {
-                      "Ref": "AWS::Region",
-                    },
-                    ":",
-                    Object {
-                      "Ref": "AWS::AccountId",
-                    },
-                    ":",
-                    Object {
-                      "Ref": "ServerlessSpyApiGwWebSocketB4986709",
-                    },
-                    "/*/*/@connections/*",
-                  ],
-                ],
-              },
+              "Resource": "*",
             },
           ],
           "Version": "2012-10-17",
         },
         "PolicyName": "ServerlessSpySubscription0ServiceRoleDefaultPolicyD8FA77F4",
-        "Roles": Array [
-          Object {
+        "Roles": [
+          {
             "Ref": "ServerlessSpySubscription0ServiceRoleF955D76C",
           },
         ],
       },
       "Type": "AWS::IAM::Policy",
     },
-    "ServerlessSpySubscription0ServiceRoleF955D76C": Object {
-      "Properties": Object {
-        "AssumeRolePolicyDocument": Object {
-          "Statement": Array [
-            Object {
+    "ServerlessSpySubscription0ServiceRoleF955D76C": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
               "Action": "sts:AssumeRole",
               "Effect": "Allow",
-              "Principal": Object {
+              "Principal": {
                 "Service": "lambda.amazonaws.com",
               },
             },
           ],
           "Version": "2012-10-17",
         },
-        "ManagedPolicyArns": Array [
-          Object {
-            "Fn::Join": Array [
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
               "",
-              Array [
+              [
                 "arn:",
-                Object {
+                {
                   "Ref": "AWS::Partition",
                 },
                 ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
@@ -951,43 +281,23 @@ Object {
       },
       "Type": "AWS::IAM::Role",
     },
-    "ServerlessSpyWebSocketB4D8CE14": Object {
-      "DeletionPolicy": "Retain",
-      "Properties": Object {
-        "AttributeDefinitions": Array [
-          Object {
-            "AttributeName": "connectionId",
-            "AttributeType": "S",
-          },
-        ],
-        "BillingMode": "PAY_PER_REQUEST",
-        "KeySchema": Array [
-          Object {
-            "AttributeName": "connectionId",
-            "KeyType": "HASH",
-          },
-        ],
-      },
-      "Type": "AWS::DynamoDB::Table",
-      "UpdateReplacePolicy": "Retain",
-    },
   },
-  "Rules": Object {
-    "CheckBootstrapVersion": Object {
-      "Assertions": Array [
-        Object {
-          "Assert": Object {
-            "Fn::Not": Array [
-              Object {
-                "Fn::Contains": Array [
-                  Array [
+  "Rules": {
+    "CheckBootstrapVersion": {
+      "Assertions": [
+        {
+          "Assert": {
+            "Fn::Not": [
+              {
+                "Fn::Contains": [
+                  [
                     "1",
                     "2",
                     "3",
                     "4",
                     "5",
                   ],
-                  Object {
+                  {
                     "Ref": "BootstrapVersion",
                   },
                 ],

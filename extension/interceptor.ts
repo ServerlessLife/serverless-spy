@@ -31,6 +31,7 @@ interceptConsole();
 const spyEventSender = new SpyEventSender({
   log,
   logError,
+  scope: process.env['SSPY_ROOT_STACK']!,
 });
 
 // Wrap original handler.
@@ -41,6 +42,8 @@ export const handler = async (
   context: Context,
   callback: Callback
 ): Promise<any | undefined> => {
+  await spyEventSender.connect();
+
   const contextSpy: FunctionContext = {
     functionName: context.functionName,
     awsRequestId: context.awsRequestId,
@@ -138,11 +141,14 @@ export const handler = async (
     }
   } catch (error) {
     // Even if the original handler is not async, we return the promise as an async handler so we can send an error message
+    // eslint-disable-next-line @typescript-eslint/return-await
     return new Promise((_, reject) =>
       fail(error).then(() => {
         reject(error);
       })
     );
+  } finally {
+    await spyEventSender.close();
   }
 };
 

@@ -25,10 +25,22 @@ export class EventBridgeToLambdaStack extends Stack {
       },
     });
 
+    const pythonFunc = new lambda.Function(this, 'MyPythonLambda', {
+      memorySize: 512,
+      timeout: Duration.seconds(5),
+      runtime: lambda.Runtime.PYTHON_3_9,
+      handler: 'dummy.handler',
+      code: lambda.Code.fromAsset(path.join(__dirname, '../functions/python/')),
+      environment: {},
+    });
+
     new events.Rule(this, 'MyRule', {
       eventBus: bus,
       eventPattern: { version: ['0'] },
-      targets: [new targets.LambdaFunction(func)],
+      targets: [
+        new targets.LambdaFunction(func),
+        new targets.LambdaFunction(pythonFunc),
+      ],
     });
 
     const serverlessSpy = new ServerlessSpy(this, 'ServerlessSpy', {

@@ -30,7 +30,7 @@ describe('EventBridge to Lambda', () => {
   beforeEach(async () => {
     serverlessSpyListener =
       await createServerlessSpyListener<ServerlessSpyEvents>({
-        serverlessSpyWsUrl: output.ServerlessSpyWsUrl,
+        scope: 'ServerlessSpyEventBridgeToLambda',
       });
   });
 
@@ -84,6 +84,27 @@ describe('EventBridge to Lambda', () => {
     (
       await (
         await serverlessSpyListener.waitForFunctionMyLambdaRequest<
+          EventBridgeEvent<'test', TestData>
+        >({
+          condition: (d) => d.request.detail.id === id,
+        })
+      )
+        .toMatchObject({
+          request: {
+            detail: data,
+            source: 'test-source',
+          },
+        })
+        .followedByResponse<EventBridgeEvent<'test', TestData>>({})
+    ).toMatchObject({
+      request: {
+        detail: data,
+        source: 'test-source',
+      },
+    });
+    (
+      await (
+        await serverlessSpyListener.waitForFunctionMyPythonLambdaRequest<
           EventBridgeEvent<'test', TestData>
         >({
           condition: (d) => d.request.detail.id === id,

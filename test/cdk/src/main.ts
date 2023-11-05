@@ -7,6 +7,7 @@ import { LambdaToEventBridgeStack } from './lambdaToEventBridgeStack';
 import { LambdaToS3Stack } from './lambdaToS3Stack';
 import { LambdaToSnsStack } from './lambdaToSnsStack';
 import { LambdaToSqsStack } from './lambdaToSqsStack';
+import { PythonLambdaStack } from './pythonLambdaStack';
 import { SnsToLambdaStack } from './snsToLambdaStack';
 import { SnsToSqsStack } from './snsToSqsStack';
 import { SqsStack } from './sqsStack';
@@ -33,6 +34,10 @@ new LambdaStack(app, 'ServerlessSpyLambda', {
   generateSpyEventsFile: true,
 });
 new EsmLambdaStack(app, 'ServerlessSpyEsmLambda', {
+  env: testEnv,
+  generateSpyEventsFile: true,
+});
+new PythonLambdaStack(app, 'ServerlessSpyPythonLambda', {
   env: testEnv,
   generateSpyEventsFile: true,
 });

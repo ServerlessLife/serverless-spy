@@ -1,11 +1,16 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`EventBridge to Lambda Snapshot 1`] = `
+exports[`PythonLambda Snapshot 1`] = `
 {
   "Outputs": {
-    "EventBusNameMyEventBus": {
+    "FunctionNameMyLambda": {
       "Value": {
-        "Ref": "MyEventBus251E60F8",
+        "Ref": "MyLambdaCCE802FB",
+      },
+    },
+    "FunctionNameMyLambdaThatFails": {
+      "Value": {
+        "Ref": "MyLambdaThatFails5E489081",
       },
     },
   },
@@ -17,12 +22,6 @@ exports[`EventBridge to Lambda Snapshot 1`] = `
     },
   },
   "Resources": {
-    "MyEventBus251E60F8": {
-      "Properties": {
-        "Name": "TestMyEventBus25AE8456",
-      },
-      "Type": "AWS::Events::EventBus",
-    },
     "MyLambdaCCE802FB": {
       "DependsOn": [
         "MyLambdaServiceRoleDefaultPolicy5BBC6F68",
@@ -33,23 +32,21 @@ exports[`EventBridge to Lambda Snapshot 1`] = `
           "S3Bucket": {
             "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
           },
-          "S3Key": "798d95ca5ea9167fe4c020efbb7df9d7998800b0911757a1ea86cfe4b8fc2c2f.zip",
+          "S3Key": "a34102ca9b461fd6335e146271be5476c61e07b3b0ca21959ff0705dd70432d8.zip",
         },
         "Environment": {
           "Variables": {
             "AWS_LAMBDA_EXEC_WRAPPER": "/opt/spy-wrapper",
-            "AWS_NODEJS_CONNECTION_REUSE_ENABLED": "1",
-            "NODE_OPTIONS": "--enable-source-maps",
             "SSPY_DEBUG": "true",
             "SSPY_FUNCTION_NAME": "MyLambda",
             "SSPY_INFRA_MAPPING": "{}",
             "SSPY_ROOT_STACK": "Test",
           },
         },
-        "Handler": "index.handler",
+        "Handler": "lambda.handler",
         "Layers": [
           {
-            "Ref": "ServerlessSpyExtensionEA4873A0",
+            "Ref": "ServerlessSpyPythonExtension718A6034",
           },
           {
             "Ref": "ServerlessSpySpyWrapperLayerBE5627BF",
@@ -62,7 +59,7 @@ exports[`EventBridge to Lambda Snapshot 1`] = `
             "Arn",
           ],
         },
-        "Runtime": "nodejs16.x",
+        "Runtime": "python3.9",
         "Timeout": 5,
       },
       "Type": "AWS::Lambda::Function",
@@ -119,10 +116,10 @@ exports[`EventBridge to Lambda Snapshot 1`] = `
       },
       "Type": "AWS::IAM::Policy",
     },
-    "MyPythonLambdaBD2BE2C6": {
+    "MyLambdaThatFails5E489081": {
       "DependsOn": [
-        "MyPythonLambdaServiceRoleDefaultPolicyEBB1A269",
-        "MyPythonLambdaServiceRoleE254838E",
+        "MyLambdaThatFailsServiceRoleDefaultPolicyE947DE2E",
+        "MyLambdaThatFailsServiceRole961B78F0",
       ],
       "Properties": {
         "Code": {
@@ -135,12 +132,12 @@ exports[`EventBridge to Lambda Snapshot 1`] = `
           "Variables": {
             "AWS_LAMBDA_EXEC_WRAPPER": "/opt/spy-wrapper",
             "SSPY_DEBUG": "true",
-            "SSPY_FUNCTION_NAME": "MyPythonLambda",
+            "SSPY_FUNCTION_NAME": "MyLambdaThatFails",
             "SSPY_INFRA_MAPPING": "{}",
             "SSPY_ROOT_STACK": "Test",
           },
         },
-        "Handler": "dummy.handler",
+        "Handler": "lambdaFail.handler",
         "Layers": [
           {
             "Ref": "ServerlessSpyPythonExtension718A6034",
@@ -152,7 +149,7 @@ exports[`EventBridge to Lambda Snapshot 1`] = `
         "MemorySize": 512,
         "Role": {
           "Fn::GetAtt": [
-            "MyPythonLambdaServiceRoleE254838E",
+            "MyLambdaThatFailsServiceRole961B78F0",
             "Arn",
           ],
         },
@@ -161,28 +158,7 @@ exports[`EventBridge to Lambda Snapshot 1`] = `
       },
       "Type": "AWS::Lambda::Function",
     },
-    "MyPythonLambdaServiceRoleDefaultPolicyEBB1A269": {
-      "Properties": {
-        "PolicyDocument": {
-          "Statement": [
-            {
-              "Action": "iot:*",
-              "Effect": "Allow",
-              "Resource": "*",
-            },
-          ],
-          "Version": "2012-10-17",
-        },
-        "PolicyName": "MyPythonLambdaServiceRoleDefaultPolicyEBB1A269",
-        "Roles": [
-          {
-            "Ref": "MyPythonLambdaServiceRoleE254838E",
-          },
-        ],
-      },
-      "Type": "AWS::IAM::Policy",
-    },
-    "MyPythonLambdaServiceRoleE254838E": {
+    "MyLambdaThatFailsServiceRole961B78F0": {
       "Properties": {
         "AssumeRolePolicyDocument": {
           "Statement": [
@@ -213,122 +189,26 @@ exports[`EventBridge to Lambda Snapshot 1`] = `
       },
       "Type": "AWS::IAM::Role",
     },
-    "MyRuleA44AB831": {
+    "MyLambdaThatFailsServiceRoleDefaultPolicyE947DE2E": {
       "Properties": {
-        "EventBusName": {
-          "Ref": "MyEventBus251E60F8",
-        },
-        "EventPattern": {
-          "version": [
-            "0",
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": "iot:*",
+              "Effect": "Allow",
+              "Resource": "*",
+            },
           ],
+          "Version": "2012-10-17",
         },
-        "State": "ENABLED",
-        "Targets": [
+        "PolicyName": "MyLambdaThatFailsServiceRoleDefaultPolicyE947DE2E",
+        "Roles": [
           {
-            "Arn": {
-              "Fn::GetAtt": [
-                "MyLambdaCCE802FB",
-                "Arn",
-              ],
-            },
-            "Id": "Target0",
-          },
-          {
-            "Arn": {
-              "Fn::GetAtt": [
-                "MyPythonLambdaBD2BE2C6",
-                "Arn",
-              ],
-            },
-            "Id": "Target1",
-          },
-          {
-            "Arn": {
-              "Fn::GetAtt": [
-                "ServerlessSpySubscription13C6B2B7D",
-                "Arn",
-              ],
-            },
-            "Id": "Target2",
+            "Ref": "MyLambdaThatFailsServiceRole961B78F0",
           },
         ],
       },
-      "Type": "AWS::Events::Rule",
-    },
-    "MyRuleAllowEventRuleTestMyLambda6DF223AB114A1738": {
-      "Properties": {
-        "Action": "lambda:InvokeFunction",
-        "FunctionName": {
-          "Fn::GetAtt": [
-            "MyLambdaCCE802FB",
-            "Arn",
-          ],
-        },
-        "Principal": "events.amazonaws.com",
-        "SourceArn": {
-          "Fn::GetAtt": [
-            "MyRuleA44AB831",
-            "Arn",
-          ],
-        },
-      },
-      "Type": "AWS::Lambda::Permission",
-    },
-    "MyRuleAllowEventRuleTestMyPythonLambda73A81E6CDD62CCB4": {
-      "Properties": {
-        "Action": "lambda:InvokeFunction",
-        "FunctionName": {
-          "Fn::GetAtt": [
-            "MyPythonLambdaBD2BE2C6",
-            "Arn",
-          ],
-        },
-        "Principal": "events.amazonaws.com",
-        "SourceArn": {
-          "Fn::GetAtt": [
-            "MyRuleA44AB831",
-            "Arn",
-          ],
-        },
-      },
-      "Type": "AWS::Lambda::Permission",
-    },
-    "MyRuleAllowEventRuleTestServerlessSpySubscription13F5C56BA3FA7E3FD": {
-      "Properties": {
-        "Action": "lambda:InvokeFunction",
-        "FunctionName": {
-          "Fn::GetAtt": [
-            "ServerlessSpySubscription13C6B2B7D",
-            "Arn",
-          ],
-        },
-        "Principal": "events.amazonaws.com",
-        "SourceArn": {
-          "Fn::GetAtt": [
-            "MyRuleA44AB831",
-            "Arn",
-          ],
-        },
-      },
-      "Type": "AWS::Lambda::Permission",
-    },
-    "ServerlessSpyExtensionEA4873A0": {
-      "Properties": {
-        "CompatibleArchitectures": [
-          "x86_64",
-        ],
-        "CompatibleRuntimes": [
-          "nodejs16.x",
-        ],
-        "Content": {
-          "S3Bucket": {
-            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
-          },
-          "S3Key": "babbb172503f6a6ffc178f8d107bae18937392efdbc57c9a729dd35ef6228e53.zip",
-        },
-      },
-      "Type": "AWS::Lambda::LayerVersion",
+      "Type": "AWS::IAM::Policy",
     },
     "ServerlessSpyPythonExtension718A6034": {
       "Properties": {
@@ -346,50 +226,6 @@ exports[`EventBridge to Lambda Snapshot 1`] = `
         },
       },
       "Type": "AWS::Lambda::LayerVersion",
-    },
-    "ServerlessSpyRuleAllMyEventBus059FF67A": {
-      "Properties": {
-        "EventBusName": {
-          "Ref": "MyEventBus251E60F8",
-        },
-        "EventPattern": {
-          "version": [
-            "0",
-          ],
-        },
-        "State": "ENABLED",
-        "Targets": [
-          {
-            "Arn": {
-              "Fn::GetAtt": [
-                "ServerlessSpySubscription0036DF4AB",
-                "Arn",
-              ],
-            },
-            "Id": "Target0",
-          },
-        ],
-      },
-      "Type": "AWS::Events::Rule",
-    },
-    "ServerlessSpyRuleAllMyEventBusAllowEventRuleTestServerlessSpySubscription037770329EE5AF7D1": {
-      "Properties": {
-        "Action": "lambda:InvokeFunction",
-        "FunctionName": {
-          "Fn::GetAtt": [
-            "ServerlessSpySubscription0036DF4AB",
-            "Arn",
-          ],
-        },
-        "Principal": "events.amazonaws.com",
-        "SourceArn": {
-          "Fn::GetAtt": [
-            "ServerlessSpyRuleAllMyEventBus059FF67A",
-            "Arn",
-          ],
-        },
-      },
-      "Type": "AWS::Lambda::Permission",
     },
     "ServerlessSpySpyWrapperLayerBE5627BF": {
       "Properties": {
@@ -418,7 +254,7 @@ exports[`EventBridge to Lambda Snapshot 1`] = `
           "Variables": {
             "AWS_NODEJS_CONNECTION_REUSE_ENABLED": "1",
             "NODE_OPTIONS": "--enable-source-maps",
-            "SSPY_INFRA_MAPPING": "{"eventBridge":"EventBridge#MyEventBus"}",
+            "SSPY_INFRA_MAPPING": "{}",
             "SSPY_ROOT_STACK": "Test",
           },
         },
@@ -486,91 +322,6 @@ exports[`EventBridge to Lambda Snapshot 1`] = `
         ],
       },
       "Type": "AWS::IAM::Role",
-    },
-    "ServerlessSpySubscription13C6B2B7D": {
-      "DependsOn": [
-        "ServerlessSpySubscription1ServiceRoleDefaultPolicyB2E063F5",
-        "ServerlessSpySubscription1ServiceRoleCB639294",
-      ],
-      "Properties": {
-        "Code": {
-          "S3Bucket": {
-            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
-          },
-          "S3Key": "2fc02cc64fedb8a5c7c3049c58656172132663d36b541073ada7da4078957efa.zip",
-        },
-        "Environment": {
-          "Variables": {
-            "AWS_NODEJS_CONNECTION_REUSE_ENABLED": "1",
-            "NODE_OPTIONS": "--enable-source-maps",
-            "SSPY_INFRA_MAPPING": "{"eventBridge":"EventBridgeRule#MyEventBus#MyRule"}",
-            "SSPY_ROOT_STACK": "Test",
-          },
-        },
-        "Handler": "index.handler",
-        "MemorySize": 512,
-        "Role": {
-          "Fn::GetAtt": [
-            "ServerlessSpySubscription1ServiceRoleCB639294",
-            "Arn",
-          ],
-        },
-        "Runtime": "nodejs18.x",
-        "Timeout": 5,
-      },
-      "Type": "AWS::Lambda::Function",
-    },
-    "ServerlessSpySubscription1ServiceRoleCB639294": {
-      "Properties": {
-        "AssumeRolePolicyDocument": {
-          "Statement": [
-            {
-              "Action": "sts:AssumeRole",
-              "Effect": "Allow",
-              "Principal": {
-                "Service": "lambda.amazonaws.com",
-              },
-            },
-          ],
-          "Version": "2012-10-17",
-        },
-        "ManagedPolicyArns": [
-          {
-            "Fn::Join": [
-              "",
-              [
-                "arn:",
-                {
-                  "Ref": "AWS::Partition",
-                },
-                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
-              ],
-            ],
-          },
-        ],
-      },
-      "Type": "AWS::IAM::Role",
-    },
-    "ServerlessSpySubscription1ServiceRoleDefaultPolicyB2E063F5": {
-      "Properties": {
-        "PolicyDocument": {
-          "Statement": [
-            {
-              "Action": "iot:*",
-              "Effect": "Allow",
-              "Resource": "*",
-            },
-          ],
-          "Version": "2012-10-17",
-        },
-        "PolicyName": "ServerlessSpySubscription1ServiceRoleDefaultPolicyB2E063F5",
-        "Roles": [
-          {
-            "Ref": "ServerlessSpySubscription1ServiceRoleCB639294",
-          },
-        ],
-      },
-      "Type": "AWS::IAM::Policy",
     },
   },
   "Rules": {

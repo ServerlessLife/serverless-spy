@@ -8,7 +8,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { createServerlessSpyListener } from '../../../listener/createServerlessSpyListener';
 import { ServerlessSpyListener } from '../../../listener/ServerlessSpyListener';
 import { ServerlessSpyEvents } from '../serverlessSpyEvents/ServerlessSpyEventsSnsToSqs';
-import { SnsToLambdaStack } from '../src/snsToLambdaStack';
+import { SnsToSqsStack } from '../src/snsToSqsStack';
 import { TestData } from './TestData';
 
 jest.setTimeout(30000);
@@ -27,7 +27,7 @@ describe('SNS to SQS', () => {
   beforeEach(async () => {
     serverlessSpyListener =
       await createServerlessSpyListener<ServerlessSpyEvents>({
-        serverlessSpyWsUrl: output.ServerlessSpyWsUrl,
+        scope: 'ServerlessSpySnsToSqs',
       });
   });
 
@@ -76,7 +76,7 @@ describe('SNS to SQS', () => {
 
   test('Snapshot', () => {
     const app = new App();
-    const stack = new SnsToLambdaStack(app, 'Test', {
+    const stack = new SnsToSqsStack(app, 'Test', {
       generateSpyEventsFile: false,
     });
     const template = Template.fromStack(stack);

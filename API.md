@@ -147,7 +147,6 @@ Any object.
 | --- | --- | --- |
 | <code><a href="#serverless-spy.ServerlessSpy.property.node">node</a></code> | <code>constructs.Node</code> | The tree node. |
 | <code><a href="#serverless-spy.ServerlessSpy.property.serviceKeys">serviceKeys</a></code> | <code>string[]</code> | *No description.* |
-| <code><a href="#serverless-spy.ServerlessSpy.property.wsUrl">wsUrl</a></code> | <code>string</code> | *No description.* |
 
 ---
 
@@ -170,16 +169,6 @@ public readonly serviceKeys: string[];
 ```
 
 - *Type:* string[]
-
----
-
-##### `wsUrl`<sup>Required</sup> <a name="wsUrl" id="serverless-spy.ServerlessSpy.property.wsUrl"></a>
-
-```typescript
-public readonly wsUrl: string;
-```
-
-- *Type:* string
 
 ---
 

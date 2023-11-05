@@ -26,6 +26,16 @@ export class SnsToLambdaStack extends Stack {
     });
     topic.addSubscription(new LambdaSubscription(func));
 
+    const pythonFunc = new lambda.Function(this, 'MyPythonLambda', {
+      memorySize: 512,
+      timeout: Duration.seconds(5),
+      runtime: lambda.Runtime.PYTHON_3_9,
+      handler: 'dummy.handler',
+      code: lambda.Code.fromAsset(path.join(__dirname, '../functions/python/')),
+      environment: {},
+    });
+    topic.addSubscription(new LambdaSubscription(pythonFunc));
+
     const serverlessSpy = new ServerlessSpy(this, 'ServerlessSpy', {
       generateSpyEventsFileLocation: props.generateSpyEventsFile
         ? 'serverlessSpyEvents/ServerlessSpyEventsSnsToLambda.ts'

@@ -19,8 +19,8 @@
     "noEmit": true,
     "baseUrl": ".",
     "paths": {
-      "serverless-spy/*": ["../../*"],
-      "serverless-spy": ["../../"]
+      "serverless-spy/*": ["../*"],
+      "serverless-spy": ["../"]
     }
   },
   "include": ["src/**/*.ts", "test/**/*.ts"],
