@@ -3,6 +3,7 @@ import { SpyEventSender } from '../common/SpyEventSender';
 export const handler = async (event: any) => {
   const spyEventSender = new SpyEventSender({
     scope: process.env['SSPY_ROOT_STACK']!,
+    iotEndpoint: process.env['SSPY_IOT_ENDPOINT']!,
   });
   try {
     await spyEventSender.connect();

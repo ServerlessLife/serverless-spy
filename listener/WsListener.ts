@@ -1,11 +1,12 @@
 import { device } from 'aws-iot-device-sdk';
+import { fragment, getConnection } from './iot-connection';
+import { ServerlessSpyListener } from './ServerlessSpyListener';
+import { ServerlessSpyListenerParams } from './ServerlessSpyListenerParams';
+import { getTopic } from './topic';
+import { WaitForParams } from './WaitForParams';
 import { FunctionRequestSpyEvent } from '../common/spyEvents/FunctionRequestSpyEvent';
 import { SpyEvent } from '../common/spyEvents/SpyEvent';
 import { SpyMessage } from '../common/spyEvents/SpyMessage';
-import { fragment, getConnection, SSPY_TOPIC } from './iot-connection';
-import { ServerlessSpyListener } from './ServerlessSpyListener';
-import { ServerlessSpyListenerParams } from './ServerlessSpyListenerParams';
-import { WaitForParams } from './WaitForParams';
 
 export class WsListener<TSpyEvents> {
   private messages: SpyMessageStorage[] = [];
@@ -23,11 +24,15 @@ export class WsListener<TSpyEvents> {
   public async start(params: ServerlessSpyListenerParams) {
     this.debugMode = !!params.debugMode;
     try {
-      this.connection = await getConnection(this.debugMode);
-      const topic = `${SSPY_TOPIC}/${params.scope}`;
-      this.log(`Subscribing to topic ${topic}`);
+      this.connection = await getConnection(
+        this.debugMode,
+        params.serverlessSpyWsUrl
+      );
       this.closed = false;
-      const connectionOpenResolve = this.connectionOpenResolve;
+      const topic = getTopic(params.scope || '#');
+      this.log(`Subscribing to topic ${topic}`);
+      const connectionOpenResolve =
+        this.connectionOpenResolve || params.connectionOpenResolve;
       const localConnection = this.connection;
       this.connection.on('connect', () => {
         this.closed = false;
@@ -37,7 +42,7 @@ export class WsListener<TSpyEvents> {
           connectionOpenResolve();
         }
       });
-      this.connection.on('message', (_topic, data: Buffer) => {
+      this.connection.on('message', (_topic: string, data: Buffer) => {
         if (this.closed) return;
 
         this.log('Message received', data.toString());
@@ -82,7 +87,8 @@ export class WsListener<TSpyEvents> {
         this.closed = true;
       });
 
-      const connectionOpenReject = this.connectionOpenReject;
+      const connectionOpenReject =
+        this.connectionOpenReject || params.connectionOpenReject;
       this.connection.on('error', (error) => {
         this.log('Connection error:', error);
         connectionOpenReject?.(error);
@@ -95,7 +101,7 @@ export class WsListener<TSpyEvents> {
 
   public async stop() {
     this.closed = true;
-    this.connection!.end();
+    this.connection!.end(true);
   }
 
   private trackerMatchMessage(tracker: Tracker, message: SpyMessageStorage) {
@@ -294,8 +300,13 @@ export class WsListener<TSpyEvents> {
   }
 
   private log(message: string, ...optionalParams: any[]) {
-    if (this.debugMode) {
-      console.debug('SSPY', message, ...optionalParams);
+    if (this.debugMode && !this.closed) {
+      console.debug(
+        'SSPY',
+        message,
+        new Date().toISOString(),
+        ...optionalParams
+      );
     }
   }
 }

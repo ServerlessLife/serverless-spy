@@ -8,12 +8,6 @@ import {
   SQSEvent,
 } from 'aws-lambda';
 import { v4 } from 'uuid';
-import {
-  fragment,
-  getConnection,
-  SSPY_TOPIC,
-} from '../listener/iot-connection';
-import { envVariableNames } from '../src/common/envVariableNames';
 import { DynamoDBSpyEvent } from './spyEvents/DynamoDBSpyEvent';
 import { EventBridgeRuleSpyEvent } from './spyEvents/EventBridgeRuleSpyEvent';
 import { EventBridgeSpyEvent } from './spyEvents/EventBridgeSpyEvent';
@@ -22,16 +16,21 @@ import { SnsSubscriptionSpyEvent } from './spyEvents/SnsSubscriptionSpyEvent';
 import { SnsTopicSpyEvent } from './spyEvents/SnsTopicSpyEvent';
 import { SpyMessage } from './spyEvents/SpyMessage';
 import { SqsSpyEvent } from './spyEvents/SqsSpyEvent';
+import { fragment, getConnection } from '../listener/iot-connection';
+import { getTopic } from '../listener/topic';
+import { envVariableNames } from '../src/common/envVariableNames';
 
 export class SpyEventSender {
   debugMode = process.env[envVariableNames.SSPY_DEBUG] === 'true';
   connection: iot.device | undefined;
   scope: string;
+  iotEndpoint: string;
 
   constructor(params: {
     log?: (message: string, ...optionalParams: any[]) => void;
     logError?: (message: string, ...optionalParams: any[]) => void;
     scope: string;
+    iotEndpoint: string;
   }) {
     if (params.log) {
       this.log = params.log;
@@ -42,6 +41,7 @@ export class SpyEventSender {
     }
 
     this.scope = params.scope;
+    this.iotEndpoint = params.iotEndpoint;
   }
 
   public async close() {
@@ -49,7 +49,7 @@ export class SpyEventSender {
   }
 
   public async connect() {
-    this.connection = await getConnection(this.debugMode);
+    this.connection = await getConnection(this.debugMode, this.iotEndpoint);
   }
 
   public async publishSpyEvent(event: any) {
@@ -231,20 +231,27 @@ export class SpyEventSender {
     }));
   }
 
-  private async postData(spyMessage: Omit<SpyMessage, 'timestamp'>) {
+  private async postData(
+    spyMessage: Omit<SpyMessage, 'timestamp'> & { timestamp?: string }
+  ) {
     if (this.connection === undefined) {
       throw new Error(
         'No IoT connection created yet, did you forget to call connect()?'
       );
     }
 
-    this.log('Post spy message', JSON.stringify(spyMessage));
+    const withTimeStamp = {
+      ...spyMessage,
+      timestamp: spyMessage.timestamp || new Date().toISOString(),
+    };
+
+    this.log('Post spy message', JSON.stringify(withTimeStamp));
 
     const connection = this.connection;
-    const topic = `${SSPY_TOPIC}/${this.scope}`;
+    const topic = getTopic(this.scope);
 
     try {
-      for (const fragment of this.encode(spyMessage)) {
+      for (const fragment of this.encode(withTimeStamp)) {
         await new Promise<void>((resolve) => {
           connection.publish(
             topic,
@@ -253,7 +260,7 @@ export class SpyEventSender {
               qos: 1,
             },
             () => {
-              console.error('Publishing finished');
+              this.log('Publishing finished');
               resolve();
             }
           );

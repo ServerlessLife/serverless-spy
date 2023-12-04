@@ -3,10 +3,10 @@ import * as path from 'path';
 import { SendMessageCommand, SQSClient } from '@aws-sdk/client-sqs';
 import { SQSEvent } from 'aws-lambda';
 import { v4 as uuidv4 } from 'uuid';
+import { TestData } from './TestData';
 import { createServerlessSpyListener } from '../../../listener/createServerlessSpyListener';
 import { ServerlessSpyListener } from '../../../listener/ServerlessSpyListener';
 import { ServerlessSpyEvents } from '../serverlessSpyEvents/ServerlessSpyEventsSqsToLambda';
-import { TestData } from './TestData';
 
 jest.setTimeout(60000);
 
@@ -25,6 +25,7 @@ describe('SQS to Lambda', () => {
     serverlessSpyListener =
       await createServerlessSpyListener<ServerlessSpyEvents>({
         scope: 'ServerlessSpySqsToLambda',
+        serverlessSpyWsUrl: output.ServerlessSpyWsUrl,
       });
   });
 

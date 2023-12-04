@@ -4,8 +4,8 @@ import json
 import os
 import uuid
 from io import StringIO
+import datetime
 
-import boto3
 from awscrt import auth, mqtt5
 from awsiot import mqtt_connection_builder
 from awslambdaric import bootstrap
@@ -15,18 +15,15 @@ try:
 except ImportError:
     import builtins  # Python 3
 
-boto_iot = boto3.client('iot')
-
 subscribed_to_sqs = os.environ.get('SSPY_SUBSCRIBED_TO_SQS', False) == 'true'
 debug_mode = os.environ['SSPY_DEBUG'] == 'true'
 scope = os.environ['SSPY_ROOT_STACK']
 original_handler_name = os.environ['ORIGINAL_HANDLER']
 spied_function_name = os.environ['SSPY_FUNCTION_NAME']
+iot_endpoint = os.environ['SSPY_IOT_ENDPOINT']
 
 _print = print   # keep a local copy of the original print
 
-iot_endpoint_response = boto_iot.describe_endpoint(endpointType='iot:Data-ATS')
-endpoint_address = iot_endpoint_response['endpointAddress']
 credentials_provider = auth.AwsCredentialsProvider.new_default_chain()
 
 
@@ -48,6 +45,7 @@ def new_print(*args, **kwargs):
         [
             {
                 'serviceKey': key,
+                'timestamp': get_timestamp(),
                 'data': {
                     'request': current_event,
                     'context': prepare_lambda_context(current_context),
@@ -77,6 +75,10 @@ def get_spy_event_type(service_key: str) -> str:
     if service_key is None:
         raise Exception('Missing service_key')
     return service_key[0 : service_key.index('#')]
+
+
+def get_timestamp():
+    return datetime.datetime.now(tz=datetime.timezone.utc).isoformat()
 
 
 def unmarshall(data):
@@ -170,6 +172,7 @@ def publish_spy_event(mqtt_connection, event):
                         'messageAttributes': sns_record['MessageAttributes'],
                     },
                     'serviceKey': service_key,
+                    'timestamp': get_timestamp(),
                 }
             )
     elif has_records and event['Records'].get('eventSource') == 'aws:sqs':
@@ -185,6 +188,7 @@ def publish_spy_event(mqtt_connection, event):
             payloads.append(
                 {
                     'serviceKey': service_key,
+                    'timestamp': get_timestamp(),
                     'data': {
                         'spyEventType': 'Sqs',
                         'body': body,
@@ -285,8 +289,8 @@ def handler(event, context):
 
     mqtt_connection = (
         mqtt_connection_builder.websockets_with_default_aws_signing(
-            endpoint=endpoint_address,
-            region=endpoint_address.split('.')[2],
+            endpoint=iot_endpoint,
+            region=iot_endpoint.split('.')[2],
             credentials_provider=credentials_provider,
             on_connection_interrupted=on_connection_interrupted,
             on_connection_resumed=on_connection_resumed,
@@ -310,6 +314,7 @@ def handler(event, context):
         [
             {
                 'serviceKey': f'Function#{spied_function_name}#Request',
+                'timestamp': get_timestamp(),
                 'data': {
                     'request': event,
                     'context': prepare_lambda_context(context),
@@ -324,6 +329,7 @@ def handler(event, context):
             [
                 {
                     'serviceKey': f'Function#{spied_function_name}#Response',
+                    'timestamp': get_timestamp(),
                     'data': {
                         'request': event,
                         'response': response,
@@ -341,6 +347,7 @@ def handler(event, context):
             [
                 {
                     'serviceKey': f'Function#{spied_function_name}#Error',
+                    'timestamp': get_timestamp(),
                     'data': {
                         'request': event,
                         'error': {

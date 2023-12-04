@@ -3,10 +3,10 @@ import * as path from 'path';
 import { PublishCommand, SNSClient } from '@aws-sdk/client-sns';
 import { SNSEvent } from 'aws-lambda';
 import { v4 as uuidv4 } from 'uuid';
+import { TestData } from './TestData';
 import { createServerlessSpyListener } from '../../../listener/createServerlessSpyListener';
 import { ServerlessSpyListener } from '../../../listener/ServerlessSpyListener';
 import { ServerlessSpyEvents } from '../serverlessSpyEvents/ServerlessSpyEventsSnsToLambda';
-import { TestData } from './TestData';
 
 jest.setTimeout(30000);
 
@@ -25,6 +25,7 @@ describe('SNS to Lambda', () => {
     serverlessSpyListener =
       await createServerlessSpyListener<ServerlessSpyEvents>({
         scope: 'ServerlessSpySnsToLambda',
+        serverlessSpyWsUrl: output.ServerlessSpyWsUrl,
       });
   });
 

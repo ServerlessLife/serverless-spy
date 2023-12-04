@@ -1,9 +1,10 @@
 import * as path from 'path';
 import { Duration, Stack, CfnOutput } from 'aws-cdk-lib';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
+import { Architecture } from 'aws-cdk-lib/aws-lambda';
 import { Construct } from 'constructs';
-import { ServerlessSpy } from '../../../src/ServerlessSpy';
 import { GenerateSpyEventsFileProps } from './GenerateSpyEventsFileProps';
+import { ServerlessSpy } from '../../../src/ServerlessSpy';
 
 export class PythonLambdaStack extends Stack {
   constructor(scope: Construct, id: string, props: GenerateSpyEventsFileProps) {
@@ -14,6 +15,7 @@ export class PythonLambdaStack extends Stack {
       timeout: Duration.seconds(5),
       runtime: lambda.Runtime.PYTHON_3_9,
       handler: 'lambda.handler',
+      architecture: Architecture.X86_64,
       code: lambda.Code.fromAsset(path.join(__dirname, '../functions/python/')),
       environment: {},
     });
@@ -23,6 +25,7 @@ export class PythonLambdaStack extends Stack {
       timeout: Duration.seconds(5),
       runtime: lambda.Runtime.PYTHON_3_9,
       handler: 'lambdaFail.handler',
+      architecture: Architecture.X86_64,
       code: lambda.Code.fromAsset(path.join(__dirname, '../functions/python/')),
       environment: {},
     });

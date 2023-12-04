@@ -3,10 +3,10 @@ import * as path from 'path';
 import { LambdaClient, InvokeCommand } from '@aws-sdk/client-lambda';
 import { SNSEvent, SQSEvent, EventBridgeEvent, SNSMessage } from 'aws-lambda';
 import { v4 as uuidv4 } from 'uuid';
+import { TestData } from './TestData';
 import { createServerlessSpyListener } from '../../../listener/createServerlessSpyListener';
 import { ServerlessSpyListener } from '../../../listener/ServerlessSpyListener';
 import { ServerlessSpyEvents } from '../serverlessSpyEvents/ServerlessSpyEventsE2e';
-import { TestData } from './TestData';
 
 jest.setTimeout(30000);
 
@@ -25,6 +25,8 @@ describe('E2e', () => {
     serverlessSpyListener =
       await createServerlessSpyListener<ServerlessSpyEvents>({
         scope: 'ServerlessSpyE2e',
+        serverlessSpyWsUrl: output.ServerlessSpyWsUrl,
+        debugMode: true,
       });
   });
 

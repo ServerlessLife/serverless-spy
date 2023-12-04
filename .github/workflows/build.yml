@@ -30,6 +30,8 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: 16
+      - name: sudo docker
+        run: sudo chmod 777 /var/run/docker.sock
       - name: Install dependencies
         run: npm install
       - name: build

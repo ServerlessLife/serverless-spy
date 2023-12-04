@@ -7,8 +7,8 @@ import {
   BundlingOptions,
 } from 'aws-cdk-lib/aws-lambda-nodejs';
 import { Construct } from 'constructs';
-import { ServerlessSpy } from '../../../src/ServerlessSpy';
 import { GenerateSpyEventsFileProps } from './GenerateSpyEventsFileProps';
+import { ServerlessSpy } from '../../../src/ServerlessSpy';
 
 export class EsmLambdaStack extends Stack {
   constructor(scope: Construct, id: string, props: GenerateSpyEventsFileProps) {

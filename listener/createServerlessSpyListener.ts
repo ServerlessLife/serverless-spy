@@ -5,7 +5,18 @@ export async function createServerlessSpyListener<TSpyEvents>(
   params: ServerlessSpyListenerParams
 ) {
   const wsListener = new WsListener<TSpyEvents>();
-  await wsListener.start(params);
+  let resolve, reject: ((value: void | PromiseLike<void>) => void) | undefined;
+  const promise = new Promise<void>((res, rej) => {
+    resolve = res;
+    reject = rej;
+  });
+  await wsListener.start({
+    ...params,
+    connectionOpenResolve: params.connectionOpenResolve || resolve,
+    connectionOpenReject: params.connectionOpenReject || reject,
+  });
 
-  return wsListener.createProxy();
+  const proxy = wsListener.createProxy();
+  await promise;
+  return proxy;
 }

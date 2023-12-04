@@ -3,9 +3,13 @@ import * as fs from 'fs';
 import * as http from 'http';
 import * as path from 'path';
 import { promisify } from 'util';
+import { device } from 'aws-iot-device-sdk';
 import * as progam from 'caporal';
 import * as open from 'open';
-import { getSignedWebSocketUrl } from '../common/getWebSocketUrl';
+import { WebSocketServer } from 'ws';
+// @ts-ignore
+import { getConnection } from '../listener/iot-connection';
+import { getTopic } from '../listener/topic';
 
 const readFileAsync = promisify(fs.readFile);
 
@@ -26,7 +30,7 @@ async function run() {
     .option('--ws <ws>', 'Websocket link')
     .option(
       '--cdkoutput <cdkoutput>',
-      'CDK output file that contains Websocket link in a property ServerlessSpyWsUrl'
+      'CDK output file that contains IoT Endpoint link in a property ServerlessSpyWsUrl'
     )
     .option(
       '--cdkstack <cdkstack>',
@@ -38,6 +42,12 @@ async function run() {
       `A port on localhost where ServerlessSpy web console is accessible.`,
       progam.INT,
       '3456'
+    )
+    .option(
+      '--wsport <wsp>',
+      `A port on localhost where ServerlessSpy websocket is accessible.`,
+      progam.INT,
+      '3457'
     )
     .action((_args, opt, _logger) => {
       options = opt;
@@ -54,6 +64,54 @@ async function run() {
     cdkOutput = JSON.parse(rawdata.toString());
     stackList = Object.keys(cdkOutput);
   }
+
+  const wss = new WebSocketServer({ port: options.wsport });
+  let connection: device | undefined = undefined;
+
+  wss.on('close', async () => {
+    if (connection) connection.end(true);
+  });
+
+  wss.on('connection', async function connect(ws) {
+    console.log('Connection');
+    ws.on('message', function message(data) {
+      console.log('received: %s', data);
+    });
+
+    let wsUrl: string | undefined;
+    if (options.ws) {
+      wsUrl = options.ws;
+    } else {
+      if (cdkOutput && cdkOutput[Object.keys(cdkOutput)[0]]) {
+        wsUrl = cdkOutput[Object.keys(cdkOutput)[0]].ServerlessSpyWsUrl;
+      }
+    }
+
+    if (!wsUrl) {
+      throw new Error('Missing IoT endpoint url');
+    }
+
+    connection = await getConnection(true, wsUrl);
+
+    const topic = getTopic('#');
+    console.log(`Subscribing to ${topic}`);
+
+    connection.on('connect', () => {
+      console.log('Connection opened');
+      if (connection) {
+        connection.subscribe(topic);
+      }
+    });
+
+    connection.on('message', (topic: string, data: Buffer) => {
+      ws.send(
+        JSON.stringify({
+          ...JSON.parse(JSON.parse(data.toString()).data),
+          topic,
+        })
+      );
+    });
+  });
 
   http
     .createServer((request, response) => {
@@ -122,32 +180,8 @@ async function run() {
 
             response.end(JSON.stringify(stackListAvailable), 'utf-8');
           } else if (request.url?.match('^/wsUrl')) {
-            let wsUrl: string | undefined;
-            if (options.ws) {
-              wsUrl = options.ws;
-            } else {
-              // options.cdkoutput
-              const urlPaths = request.url.split('/');
-              let stack = urlPaths[2];
-
-              if (stack) {
-                wsUrl = cdkOutput[stack].ServerlessSpyWsUrl;
-              } else {
-                if (cdkOutput && cdkOutput[Object.keys(cdkOutput)[0]]) {
-                  wsUrl =
-                    cdkOutput[Object.keys(cdkOutput)[0]].ServerlessSpyWsUrl;
-                }
-              }
-            }
-
-            if (!wsUrl) {
-              throw new Error('Missing websocket url');
-            }
-
-            //console.log(`WS URL: ${wsUrl}`);
-            const signedWSUrl = await getSignedWebSocketUrl(wsUrl);
             response.writeHead(200, { 'Content-Type': 'text/html' });
-            response.end(signedWSUrl, 'utf-8');
+            response.end(`ws:localhost:${options.wsport}`, 'utf-8');
           } else {
             try {
               const content = await readFileAsync(filePath);

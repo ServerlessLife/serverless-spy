@@ -1,5 +1,7 @@
 import { Callback, Context, Handler } from 'aws-lambda';
 import { serializeError } from 'serialize-error';
+// @ts-ignore
+import { load } from './aws/UserFunction';
 import { FunctionConsoleSpyEvent } from '../common/spyEvents/FunctionConsoleSpyEvent';
 import { FunctionContext } from '../common/spyEvents/FunctionContext';
 import { FunctionErrorSpyEvent } from '../common/spyEvents/FunctionErrorSpyEvent';
@@ -8,7 +10,6 @@ import { FunctionResponseSpyEvent } from '../common/spyEvents/FunctionResponseSp
 import { SpyEventSender } from '../common/SpyEventSender';
 import { envVariableNames } from '../src/common/envVariableNames';
 // @ts-ignore
-import { load } from './aws/UserFunction';
 
 const ORIGINAL_HANDLER_KEY = 'ORIGINAL_HANDLER';
 
@@ -32,6 +33,7 @@ const spyEventSender = new SpyEventSender({
   log,
   logError,
   scope: process.env['SSPY_ROOT_STACK']!,
+  iotEndpoint: process.env['SSPY_IOT_ENDPOINT']!,
 });
 
 // Wrap original handler.

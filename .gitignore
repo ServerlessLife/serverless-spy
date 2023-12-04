@@ -47,6 +47,7 @@ junit.xml
 .jsii
 !/API.md
 temp
+.idea
 
 
 ### Jekyll ###
@@ -68,3 +69,5 @@ _site/
 !_includes/head/custom.html
 
 cdkOutput.json
+tsconfig.json
+

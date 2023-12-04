@@ -58,8 +58,11 @@ CDK-based library for writing elegant, fast-executing integration tests on AWS s
 # What ServerlessSpy is not
  - ServerlessSpy can not be used if your infrastructure is not created with CDK.
  - The solution is meant only for the development and (automatic) testing environment. You should **EXCLUDE** ServerlessSpy CDK construct in any other environment, especially a production or a high-load environment. ServerlessSpy is not meant for those; it just induces costs and could contribute to hitting AWS quotas (Lambda concurrent executions, ...).
- - Only Node.js stack is supported. There are no plans to support Python or any other. Use of TypeScript is deeply encouraged.
+ - Node.js and Python stacks are supported. There are no plans to support any other but feel free to contribute. Use of TypeScript is deeply encouraged.
  - Web console only runs on your local computer. No cloud hosting of any kind (for now).
+
+# Troubleshooting
+When first setting up ServerlessSpy for a new account it can take a couple of minutes before AWS has fully activated AWS IoT. You can tell if it's not activated if you cannot connect using the MQTT Test Client in the AWS IoT console.
 
 # Documentation
  - [Quick Start](doc/quick_start.md)
@@ -80,6 +83,10 @@ CDK-based library for writing elegant, fast-executing integration tests on AWS s
  - [Code of Conduct](doc/CODE_OF_CONDUCT.md)
  - [Contributing Guide](doc/CONTRIBUTING.md)
  - [License](./LICENSE.md)
+
+# Co-authors
+ - [Marko Strukelj](https://github.com/ServerlessLife)
+ - [Hugo Lewenhaupt](https://github.com/Lewenhaupt)
 
 # Contributors (alphabetical)
  - [Corentin Doue](https://github.com/CorentinDoue)

@@ -1,7 +1,4 @@
-import { IoTClient, DescribeEndpointCommand } from '@aws-sdk/client-iot';
 import { device } from 'aws-iot-device-sdk';
-
-export const SSPY_TOPIC = 'sspy';
 
 export type fragment = { id: string; index: number; count: number; data: any };
 
@@ -19,32 +16,22 @@ function createErrorLog() {
   };
 }
 
-export async function getConnection(debugMode: boolean): Promise<device> {
+export async function getConnection(
+  debugMode: boolean,
+  iotEndpoint: string
+): Promise<device> {
   const log = createLog(debugMode);
   const logError = createErrorLog();
-  log('Getting IoT endpoint');
-  let response: any;
-  try {
-    const iotClient = new IoTClient({});
-    response = await iotClient.send(
-      new DescribeEndpointCommand({
-        endpointType: 'iot:Data-ATS',
-      })
-    );
-  } catch (e) {
-    logError('failed to get endpoint', e);
-    throw e;
-  }
-  log('Using IoT endpoint:', response.endpointAddress);
+  log('Using IoT endpoint:', iotEndpoint);
 
-  if (!response.endpointAddress) {
+  if (!iotEndpoint) {
     logError('No IoT endpoint could be found');
     throw new Error('IoT Endpoint address not found');
   }
 
   const connection = new device({
     protocol: 'wss',
-    host: response.endpointAddress,
+    host: iotEndpoint,
     region: process.env['AWS_REGION'],
     reconnectPeriod: 1,
   });

@@ -141,7 +141,7 @@
           "exec": "tsc --project tsconfig.npm.json --module commonjs --outDir lib"
         },
         {
-          "exec": "cp -rlf temp/* lib/src"
+          "exec": "cp -rf temp/* lib/src"
         },
         {
           "spawn": "bundle-extension"
@@ -156,7 +156,7 @@
           "spawn": "compile-cli-web"
         },
         {
-          "exec": "cp -rlf cli/* lib/cli"
+          "exec": "cp -rf cli/* lib/cli"
         },
         {
           "exec": "rm -rf temp"
@@ -189,7 +189,7 @@
       "description": "Bundle ptyhon extension",
       "steps": [
         {
-          "exec": "cp -rlf extensions/python lib/extensions/python"
+          "exec": "cp -rf extensions/python lib/extensions/python"
         }
       ]
     },

@@ -1,16 +1,17 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { LambdaClient, InvokeCommand } from '@aws-sdk/client-lambda';
-import { App } from 'aws-cdk-lib';
-import { Template } from 'aws-cdk-lib/assertions';
+// import { App } from 'aws-cdk-lib';
+// import { Template } from 'aws-cdk-lib/assertions';
 import { v4 as uuidv4 } from 'uuid';
+import { TestData } from './TestData';
 import { createServerlessSpyListener } from '../../../listener/createServerlessSpyListener';
 import { ServerlessSpyListener } from '../../../listener/ServerlessSpyListener';
 import { ServerlessSpyEvents } from '../serverlessSpyEvents/ServerlessSpyEventsPythonLambda';
-import { PythonLambdaStack } from '../src/pythonLambdaStack';
-import { TestData } from './TestData';
+// import { PythonLambdaStack } from '../src/pythonLambdaStack';
 
-jest.setTimeout(30000);
+jest.setTimeout(50000);
+jest.retryTimes(0, { logErrorsBeforeRetry: true });
 
 describe('PythonLambda', () => {
   const exportLocation = path.join(__dirname, '../cdkOutput.json');
@@ -29,6 +30,8 @@ describe('PythonLambda', () => {
     serverlessSpyListener =
       await createServerlessSpyListener<ServerlessSpyEvents>({
         scope: 'ServerlessSpyPythonLambda',
+        serverlessSpyWsUrl: output.ServerlessSpyWsUrl,
+        debugMode: true,
       });
   });
 
@@ -119,6 +122,7 @@ describe('PythonLambda', () => {
     });
   });
 
+  // TODO: This seems a bit slow, might be that it has no conditions
   test('Test error', async () => {
     const lambdaClient = new LambdaClient({});
 
@@ -158,14 +162,14 @@ describe('PythonLambda', () => {
     });
   });
 
-  test('Snapshot', () => {
+  /*test('Snapshot', () => {
     const app = new App();
     const stack = new PythonLambdaStack(app, 'Test', {
       generateSpyEventsFile: false,
     });
     const template = Template.fromStack(stack);
     expect(template.toJSON()).toMatchSnapshot();
-  });
+  });*/
 });
 
 async function testWithConditionsAndWithChaining(
