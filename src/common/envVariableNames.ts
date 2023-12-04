@@ -28,4 +28,9 @@ export enum envVariableNames {
    * Log debugging details.
    */
   SSPY_DEBUG = 'SSPY_DEBUG',
+
+  /**
+   * The root stack
+   */
+  SSPY_ROOT_STACK = 'SSPY_ROOT_STACK',
 }

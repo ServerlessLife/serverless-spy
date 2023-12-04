@@ -24,7 +24,7 @@ describe('SQS to Lambda', () => {
   beforeEach(async () => {
     serverlessSpyListener =
       await createServerlessSpyListener<ServerlessSpyEvents>({
-        serverlessSpyWsUrl: output.ServerlessSpyWsUrl,
+        scope: 'ServerlessSpySqsToLambda',
       });
   });
 
@@ -45,6 +45,11 @@ describe('SQS to Lambda', () => {
       QueueUrl: output.QueueUrlMyQueue,
     });
     await sqsClient.send(sendMessageCommand);
+    const sendMessageCommand2 = new SendMessageCommand({
+      MessageBody: JSON.stringify(data),
+      QueueUrl: output.QueueUrlMyQueue2,
+    });
+    await sqsClient.send(sendMessageCommand2);
 
     (
       await serverlessSpyListener.waitForSqsMyQueue<TestData>({
@@ -60,6 +65,37 @@ describe('SQS to Lambda', () => {
               (d) => d.id === data.id
             ),
         })
+      )
+        .toMatchObject({
+          request: {
+            Records: expect.arrayContaining([
+              expect.objectContaining({
+                body: JSON.stringify(data),
+              }),
+            ]),
+          },
+        })
+        .followedByResponse({})
+    ).toMatchObject({
+      request: {
+        Records: expect.arrayContaining([
+          expect.objectContaining({
+            body: JSON.stringify(data),
+          }),
+        ]),
+      },
+    });
+
+    (
+      await (
+        await serverlessSpyListener.waitForFunctionMyPythonLambdaRequest<SQSEvent>(
+          {
+            condition: (d) =>
+              !!d.request.Records.map(
+                (r) => JSON.parse(r.body) as TestData
+              ).find((d) => d.id === data.id),
+          }
+        )
       )
         .toMatchObject({
           request: {

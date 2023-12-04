@@ -132,7 +132,7 @@
       "description": "Run tests",
       "steps": [
         {
-          "exec": "jest --passWithNoTests --all --updateSnapshot"
+          "exec": "jest --passWithNoTests --all --updateSnapshot --silent=false"
         }
       ]
     },
@@ -150,7 +150,7 @@
       "description": "Run jest in watch mode",
       "steps": [
         {
-          "exec": "jest --watch"
+          "exec": "jest --watch --silent=false"
         }
       ]
     },

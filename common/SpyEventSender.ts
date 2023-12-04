@@ -1,15 +1,5 @@
-import {
-  ApiGatewayManagementApi,
-  PostToConnectionCommand,
-} from '@aws-sdk/client-apigatewaymanagementapi';
-import {
-  AttributeValue,
-  DeleteItemCommand,
-  DynamoDBClient,
-  ScanCommand,
-} from '@aws-sdk/client-dynamodb';
-
 import { unmarshall } from '@aws-sdk/util-dynamodb';
+import iot from 'aws-iot-device-sdk';
 import {
   DynamoDBStreamEvent,
   S3Event,
@@ -17,6 +7,12 @@ import {
   EventBridgeEvent,
   SQSEvent,
 } from 'aws-lambda';
+import { v4 } from 'uuid';
+import {
+  fragment,
+  getConnection,
+  SSPY_TOPIC,
+} from '../listener/iot-connection';
 import { envVariableNames } from '../src/common/envVariableNames';
 import { DynamoDBSpyEvent } from './spyEvents/DynamoDBSpyEvent';
 import { EventBridgeRuleSpyEvent } from './spyEvents/EventBridgeRuleSpyEvent';
@@ -28,27 +24,32 @@ import { SpyMessage } from './spyEvents/SpyMessage';
 import { SqsSpyEvent } from './spyEvents/SqsSpyEvent';
 
 export class SpyEventSender {
-  ddb = new DynamoDBClient({
-    region: process.env.AWS_REGION,
-  });
   debugMode = process.env[envVariableNames.SSPY_DEBUG] === 'true';
-  apigwManagementApi = new ApiGatewayManagementApi({
-    apiVersion: '2018-11-29',
-    endpoint: process.env[envVariableNames.SSPY_WS_ENDPOINT]!,
-  });
-  connections: Record<string, AttributeValue>[] | undefined;
+  connection: iot.device | undefined;
+  scope: string;
 
-  constructor(params?: {
-    log: (message: string, ...optionalParams: any[]) => void;
-    logError: (message: string, ...optionalParams: any[]) => void;
+  constructor(params: {
+    log?: (message: string, ...optionalParams: any[]) => void;
+    logError?: (message: string, ...optionalParams: any[]) => void;
+    scope: string;
   }) {
-    if (params?.log) {
+    if (params.log) {
       this.log = params.log;
     }
 
-    if (params?.logError) {
+    if (params.logError) {
       this.logError = params.logError;
     }
+
+    this.scope = params.scope;
+  }
+
+  public async close() {
+    this.connection?.end();
+  }
+
+  public async connect() {
+    this.connection = await getConnection(this.debugMode);
   }
 
   public async publishSpyEvent(event: any) {
@@ -58,17 +59,6 @@ export class SpyEventSender {
       process.env[envVariableNames.SSPY_INFRA_MAPPING]!
     );
     this.log('ARN to names mapping', JSON.stringify(mapping));
-
-    let connectionData;
-
-    const scanParams = new ScanCommand({
-      TableName: process.env[envVariableNames.SSPY_WS_TABLE_NAME] as string,
-      ProjectionExpression: 'connectionId',
-    });
-
-    connectionData = await this.ddb.send(scanParams);
-
-    this.connections = connectionData.Items;
 
     const postDataPromises: Promise<any>[] = [];
 
@@ -227,45 +217,55 @@ export class SpyEventSender {
     await Promise.all(postDataPromises);
   }
 
-  private async postData(spyMessage: Omit<SpyMessage, 'timestamp'>) {
-    this.log('Post spy message', JSON.stringify(spyMessage));
+  private encode(input: any): fragment[] {
+    const payload = JSON.stringify(input);
+    const parts = payload.match(/.{1,50000}/g);
+    if (!parts) return [];
+    this.log(`Encoded iot message, ${parts.length}`);
+    const id = v4();
+    return parts.map((part, index) => ({
+      id,
+      index,
+      count: parts.length,
+      data: part,
+    }));
+  }
 
-    if (!this.connections) {
-      return;
+  private async postData(spyMessage: Omit<SpyMessage, 'timestamp'>) {
+    if (this.connection === undefined) {
+      throw new Error(
+        'No IoT connection created yet, did you forget to call connect()?'
+      );
     }
 
-    const postCalls = this.connections.map(async ({ connectionId }) => {
-      this.log(`Sending message to client: ${connectionId.S}`);
+    this.log('Post spy message', JSON.stringify(spyMessage));
 
-      try {
-        const postToConnectionCommand = new PostToConnectionCommand({
-          ConnectionId: connectionId.S,
-          Data: JSON.stringify({
-            timestamp: new Date().toISOString(),
-            serviceKey: spyMessage.serviceKey,
-            data: spyMessage.data,
-          }) as any,
+    const connection = this.connection;
+    const topic = `${SSPY_TOPIC}/${this.scope}`;
+
+    try {
+      for (const fragment of this.encode(spyMessage)) {
+        await new Promise<void>((resolve) => {
+          connection.publish(
+            topic,
+            JSON.stringify(fragment),
+            {
+              qos: 1,
+            },
+            () => {
+              console.error('Publishing finished');
+              resolve();
+            }
+          );
         });
-
-        await this.apigwManagementApi.send(postToConnectionCommand);
-      } catch (e) {
-        this.logError(`Faild sending spy message to: ${connectionId.S}`, e);
-        if ((e as any).$metadata.httpStatusCode === 410) {
-          this.log(`Found stale connection, deleting ${connectionId}`);
-
-          const deleteParams = new DeleteItemCommand({
-            TableName: process.env[envVariableNames.SSPY_WS_TABLE_NAME],
-            Key: { connectionId },
-          });
-
-          await this.ddb.send(deleteParams);
-        } else {
-          throw e;
-        }
+        this.log(
+          `Published fragment ${fragment.index} out of ${fragment.count} to topic ${topic}`
+        );
       }
-    });
+    } catch (e) {
+      this.logError(`Failed to send payload to iot: ${e}`);
+    }
 
-    await Promise.all(postCalls);
     this.log('Send spy message finish');
   }
 

@@ -8,7 +8,13 @@ const project = new awscdk.AwsCdkTypeScriptApp({
   name: 'serverless-spy-test-e2e',
   eslint: false,
   packageManager: 'npm',
-
+  jestOptions: {
+    jestConfig: {
+      moduleNameMapper: {
+        ['^aws-cdk-lib/.warnings.jsii.js$']: '<rootDir>/node_modules/aws-cdk-lib/.warnings.jsii.js',
+      },
+    },
+  },
   // deps: [],                /* Runtime dependencies of this module. */
   // description: undefined,  /* The description is just a string that helps people understand the purpose of the package. */
   // devDeps: [],             /* Build dependencies for this module. */

@@ -3,8 +3,8 @@ import { EventBridgeRuleSpyEvent } from '../common/spyEvents/EventBridgeRuleSpyE
 import { EventBridgeSpyEvent } from '../common/spyEvents/EventBridgeSpyEvent';
 import { FunctionConsole } from '../common/spyEvents/FunctionConsole';
 import { FunctionConsoleSpyEvent } from '../common/spyEvents/FunctionConsoleSpyEvent';
-import { FunctionErrorSpyEvent } from '../common/spyEvents/FunctionErrorSpyEvent';
 import { FunctionContext } from '../common/spyEvents/FunctionContext';
+import { FunctionErrorSpyEvent } from '../common/spyEvents/FunctionErrorSpyEvent';
 import { FunctionRequestSpyEvent } from '../common/spyEvents/FunctionRequestSpyEvent';
 import { FunctionResponseSpyEvent } from '../common/spyEvents/FunctionResponseSpyEvent';
 import { S3SpyEvent } from '../common/spyEvents/S3SpyEvent';
