@@ -63,6 +63,7 @@ export class ServerlessSpy extends Construct {
         lambda.Runtime.NODEJS_14_X,
         lambda.Runtime.NODEJS_16_X,
         lambda.Runtime.NODEJS_18_X,
+        lambda.Runtime.NODEJS_20_X,
       ],
       code: lambda.Code.fromAsset(this.getExtensionAssetLocation()),
     });
