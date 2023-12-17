@@ -1,24 +1,24 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`Lambda to S3 Snapshot 1`] = `
-Object {
-  "Outputs": Object {
-    "FunctionNameMyLambda": Object {
-      "Value": Object {
+{
+  "Outputs": {
+    "FunctionNameMyLambda": {
+      "Value": {
         "Ref": "MyLambdaCCE802FB",
       },
     },
-    "ServerlessSpyWsUrl": Object {
-      "Value": Object {
-        "Fn::Join": Array [
+    "ServerlessSpyWsUrl": {
+      "Value": {
+        "Fn::Join": [
           "",
-          Array [
+          [
             "wss://",
-            Object {
+            {
               "Ref": "ServerlessSpyApiGwWebSocketB4986709",
             },
             ".execute-api.",
-            Object {
+            {
               "Ref": "AWS::Region",
             },
             ".amazonaws.com/prod",
@@ -27,40 +27,40 @@ Object {
       },
     },
   },
-  "Parameters": Object {
-    "BootstrapVersion": Object {
+  "Parameters": {
+    "BootstrapVersion": {
       "Default": "/cdk-bootstrap/hnb659fds/version",
       "Description": "Version of the CDK Bootstrap resources in this environment, automatically retrieved from SSM Parameter Store. [cdk:skip]",
       "Type": "AWS::SSM::Parameter::Value<String>",
     },
   },
-  "Resources": Object {
-    "BucketNotificationsHandler050a0587b7544547bf325f094a3db8347ECC3691": Object {
-      "DependsOn": Array [
+  "Resources": {
+    "BucketNotificationsHandler050a0587b7544547bf325f094a3db8347ECC3691": {
+      "DependsOn": [
         "BucketNotificationsHandler050a0587b7544547bf325f094a3db834RoleDefaultPolicy2CF63D36",
         "BucketNotificationsHandler050a0587b7544547bf325f094a3db834RoleB6FB88EC",
       ],
-      "Properties": Object {
-        "Code": Object {
+      "Properties": {
+        "Code": {
           "ZipFile": "import boto3  # type: ignore
 import json
 import logging
 import urllib.request
 
-s3 = boto3.client(\\"s3\\")
+s3 = boto3.client("s3")
 
 EVENTBRIDGE_CONFIGURATION = 'EventBridgeConfiguration'
 
-CONFIGURATION_TYPES = [\\"TopicConfigurations\\", \\"QueueConfigurations\\", \\"LambdaFunctionConfigurations\\"]
+CONFIGURATION_TYPES = ["TopicConfigurations", "QueueConfigurations", "LambdaFunctionConfigurations"]
 
 def handler(event: dict, context):
-  response_status = \\"SUCCESS\\"
-  error_message = \\"\\"
+  response_status = "SUCCESS"
+  error_message = ""
   try:
-    props = event[\\"ResourceProperties\\"]
-    bucket = props[\\"BucketName\\"]
-    notification_configuration = props[\\"NotificationConfiguration\\"]
-    request_type = event[\\"RequestType\\"]
+    props = event["ResourceProperties"]
+    bucket = props["BucketName"]
+    notification_configuration = props["NotificationConfiguration"]
+    request_type = event["RequestType"]
     managed = props.get('Managed', 'true').lower() == 'true'
     stack_id = event['StackId']
 
@@ -71,9 +71,9 @@ def handler(event: dict, context):
 
     put_bucket_notification_configuration(bucket, config)
   except Exception as e:
-    logging.exception(\\"Failed to put bucket notification configuration\\")
-    response_status = \\"FAILED\\"
-    error_message = f\\"Error: {str(e)}. \\"
+    logging.exception("Failed to put bucket notification configuration")
+    response_status = "FAILED"
+    error_message = f"Error: {str(e)}. "
   finally:
     submit_response(event, context, response_status, error_message)
 
@@ -89,7 +89,7 @@ def handle_unmanaged(bucket, stack_id, request_type, notification_configuration)
     return external_notifications
 
   def with_id(notification):
-    notification['Id'] = f\\"{stack_id}-{hash(json.dumps(notification, sort_keys=True))}\\"
+    notification['Id'] = f"{stack_id}-{hash(json.dumps(notification, sort_keys=True))}"
     return notification
 
   notifications = {}
@@ -109,7 +109,7 @@ def find_external_notifications(bucket, stack_id):
   existing_notifications = get_bucket_notification_configuration(bucket)
   external_notifications = {}
   for t in CONFIGURATION_TYPES:
-    external_notifications[t] = [n for n in existing_notifications.get(t, []) if not n['Id'].startswith(f\\"{stack_id}-\\")]
+    external_notifications[t] = [n for n in existing_notifications.get(t, []) if not n['Id'].startswith(f"{stack_id}-")]
 
   if EVENTBRIDGE_CONFIGURATION in existing_notifications:
     external_notifications[EVENTBRIDGE_CONFIGURATION] = existing_notifications[EVENTBRIDGE_CONFIGURATION]
@@ -125,59 +125,59 @@ def put_bucket_notification_configuration(bucket, notification_configuration):
 def submit_response(event: dict, context, response_status: str, error_message: str):
   response_body = json.dumps(
     {
-      \\"Status\\": response_status,
-      \\"Reason\\": f\\"{error_message}See the details in CloudWatch Log Stream: {context.log_stream_name}\\",
-      \\"PhysicalResourceId\\": event.get(\\"PhysicalResourceId\\") or event[\\"LogicalResourceId\\"],
-      \\"StackId\\": event[\\"StackId\\"],
-      \\"RequestId\\": event[\\"RequestId\\"],
-      \\"LogicalResourceId\\": event[\\"LogicalResourceId\\"],
-      \\"NoEcho\\": False,
+      "Status": response_status,
+      "Reason": f"{error_message}See the details in CloudWatch Log Stream: {context.log_stream_name}",
+      "PhysicalResourceId": event.get("PhysicalResourceId") or event["LogicalResourceId"],
+      "StackId": event["StackId"],
+      "RequestId": event["RequestId"],
+      "LogicalResourceId": event["LogicalResourceId"],
+      "NoEcho": False,
     }
-  ).encode(\\"utf-8\\")
-  headers = {\\"content-type\\": \\"\\", \\"content-length\\": str(len(response_body))}
+  ).encode("utf-8")
+  headers = {"content-type": "", "content-length": str(len(response_body))}
   try:
-    req = urllib.request.Request(url=event[\\"ResponseURL\\"], headers=headers, data=response_body, method=\\"PUT\\")
+    req = urllib.request.Request(url=event["ResponseURL"], headers=headers, data=response_body, method="PUT")
     with urllib.request.urlopen(req) as response:
-      print(response.read().decode(\\"utf-8\\"))
-    print(\\"Status code: \\" + response.reason)
+      print(response.read().decode("utf-8"))
+    print("Status code: " + response.reason)
   except Exception as e:
-      print(\\"send(..) failed executing request.urlopen(..): \\" + str(e))
+      print("send(..) failed executing request.urlopen(..): " + str(e))
 ",
         },
-        "Description": "AWS CloudFormation handler for \\"Custom::S3BucketNotifications\\" resources (@aws-cdk/aws-s3)",
+        "Description": "AWS CloudFormation handler for "Custom::S3BucketNotifications" resources (@aws-cdk/aws-s3)",
         "Handler": "index.handler",
-        "Role": Object {
-          "Fn::GetAtt": Array [
+        "Role": {
+          "Fn::GetAtt": [
             "BucketNotificationsHandler050a0587b7544547bf325f094a3db834RoleB6FB88EC",
             "Arn",
           ],
         },
-        "Runtime": "python3.7",
+        "Runtime": "python3.9",
         "Timeout": 300,
       },
       "Type": "AWS::Lambda::Function",
     },
-    "BucketNotificationsHandler050a0587b7544547bf325f094a3db834RoleB6FB88EC": Object {
-      "Properties": Object {
-        "AssumeRolePolicyDocument": Object {
-          "Statement": Array [
-            Object {
+    "BucketNotificationsHandler050a0587b7544547bf325f094a3db834RoleB6FB88EC": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
               "Action": "sts:AssumeRole",
               "Effect": "Allow",
-              "Principal": Object {
+              "Principal": {
                 "Service": "lambda.amazonaws.com",
               },
             },
           ],
           "Version": "2012-10-17",
         },
-        "ManagedPolicyArns": Array [
-          Object {
-            "Fn::Join": Array [
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
               "",
-              Array [
+              [
                 "arn:",
-                Object {
+                {
                   "Ref": "AWS::Partition",
                 },
                 ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
@@ -188,11 +188,11 @@ def submit_response(event: dict, context, response_status: str, error_message: s
       },
       "Type": "AWS::IAM::Role",
     },
-    "BucketNotificationsHandler050a0587b7544547bf325f094a3db834RoleDefaultPolicy2CF63D36": Object {
-      "Properties": Object {
-        "PolicyDocument": Object {
-          "Statement": Array [
-            Object {
+    "BucketNotificationsHandler050a0587b7544547bf325f094a3db834RoleDefaultPolicy2CF63D36": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
               "Action": "s3:PutBucketNotification",
               "Effect": "Allow",
               "Resource": "*",
@@ -201,29 +201,29 @@ def submit_response(event: dict, context, response_status: str, error_message: s
           "Version": "2012-10-17",
         },
         "PolicyName": "BucketNotificationsHandler050a0587b7544547bf325f094a3db834RoleDefaultPolicy2CF63D36",
-        "Roles": Array [
-          Object {
+        "Roles": [
+          {
             "Ref": "BucketNotificationsHandler050a0587b7544547bf325f094a3db834RoleB6FB88EC",
           },
         ],
       },
       "Type": "AWS::IAM::Policy",
     },
-    "MyBucketAllowBucketNotificationsToTestServerlessSpySubscription037770329D87F83A7": Object {
-      "Properties": Object {
+    "MyBucketAllowBucketNotificationsToTestServerlessSpySubscription037770329D87F83A7": {
+      "Properties": {
         "Action": "lambda:InvokeFunction",
-        "FunctionName": Object {
-          "Fn::GetAtt": Array [
+        "FunctionName": {
+          "Fn::GetAtt": [
             "ServerlessSpySubscription0036DF4AB",
             "Arn",
           ],
         },
         "Principal": "s3.amazonaws.com",
-        "SourceAccount": Object {
+        "SourceAccount": {
           "Ref": "AWS::AccountId",
         },
-        "SourceArn": Object {
-          "Fn::GetAtt": Array [
+        "SourceArn": {
+          "Fn::GetAtt": [
             "MyBucketF68F3FF0",
             "Arn",
           ],
@@ -231,28 +231,28 @@ def submit_response(event: dict, context, response_status: str, error_message: s
       },
       "Type": "AWS::Lambda::Permission",
     },
-    "MyBucketF68F3FF0": Object {
+    "MyBucketF68F3FF0": {
       "DeletionPolicy": "Retain",
       "Type": "AWS::S3::Bucket",
       "UpdateReplacePolicy": "Retain",
     },
-    "MyBucketNotifications46AC0CD2": Object {
-      "DependsOn": Array [
+    "MyBucketNotifications46AC0CD2": {
+      "DependsOn": [
         "MyBucketAllowBucketNotificationsToTestServerlessSpySubscription037770329D87F83A7",
       ],
-      "Properties": Object {
-        "BucketName": Object {
+      "Properties": {
+        "BucketName": {
           "Ref": "MyBucketF68F3FF0",
         },
         "Managed": true,
-        "NotificationConfiguration": Object {
-          "LambdaFunctionConfigurations": Array [
-            Object {
-              "Events": Array [
+        "NotificationConfiguration": {
+          "LambdaFunctionConfigurations": [
+            {
+              "Events": [
                 "s3:ObjectCreated:Put",
               ],
-              "LambdaFunctionArn": Object {
-                "Fn::GetAtt": Array [
+              "LambdaFunctionArn": {
+                "Fn::GetAtt": [
                   "ServerlessSpySubscription0036DF4AB",
                   "Arn",
                 ],
@@ -260,8 +260,8 @@ def submit_response(event: dict, context, response_status: str, error_message: s
             },
           ],
         },
-        "ServiceToken": Object {
-          "Fn::GetAtt": Array [
+        "ServiceToken": {
+          "Fn::GetAtt": [
             "BucketNotificationsHandler050a0587b7544547bf325f094a3db8347ECC3691",
             "Arn",
           ],
@@ -269,59 +269,59 @@ def submit_response(event: dict, context, response_status: str, error_message: s
       },
       "Type": "Custom::S3BucketNotifications",
     },
-    "MyLambdaCCE802FB": Object {
-      "DependsOn": Array [
+    "MyLambdaCCE802FB": {
+      "DependsOn": [
         "MyLambdaServiceRoleDefaultPolicy5BBC6F68",
         "MyLambdaServiceRole4539ECB6",
       ],
-      "Properties": Object {
-        "Code": Object {
-          "S3Bucket": Object {
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
             "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
           },
-          "S3Key": "09e2cf84370768a3080d8c1face28edf5ee252d68b8f7fd0b54e6c5871ea5a65.zip",
+          "S3Key": "e6eed28bce45a94870ba8594bc33b6b4fd711567a96bb73818c8632d1f2eb654.zip",
         },
-        "Environment": Object {
-          "Variables": Object {
+        "Environment": {
+          "Variables": {
             "AWS_LAMBDA_EXEC_WRAPPER": "/opt/spy-wrapper",
             "AWS_NODEJS_CONNECTION_REUSE_ENABLED": "1",
             "NODE_OPTIONS": "--enable-source-maps",
-            "S3_BUCKET_NAME": Object {
+            "S3_BUCKET_NAME": {
               "Ref": "MyBucketF68F3FF0",
             },
             "SSPY_DEBUG": "true",
             "SSPY_FUNCTION_NAME": "MyLambda",
             "SSPY_INFRA_MAPPING": "{}",
-            "SSPY_WS_ENDPOINT": Object {
-              "Fn::Join": Array [
+            "SSPY_WS_ENDPOINT": {
+              "Fn::Join": [
                 "",
-                Array [
+                [
                   "https://",
-                  Object {
+                  {
                     "Ref": "ServerlessSpyApiGwWebSocketB4986709",
                   },
                   ".execute-api.",
-                  Object {
+                  {
                     "Ref": "AWS::Region",
                   },
                   ".amazonaws.com/prod",
                 ],
               ],
             },
-            "SSPY_WS_TABLE_NAME": Object {
+            "SSPY_WS_TABLE_NAME": {
               "Ref": "ServerlessSpyWebSocketB4D8CE14",
             },
           },
         },
         "Handler": "index.handler",
-        "Layers": Array [
-          Object {
+        "Layers": [
+          {
             "Ref": "ServerlessSpyExtensionEA4873A0",
           },
         ],
         "MemorySize": 512,
-        "Role": Object {
-          "Fn::GetAtt": Array [
+        "Role": {
+          "Fn::GetAtt": [
             "MyLambdaServiceRole4539ECB6",
             "Arn",
           ],
@@ -331,27 +331,27 @@ def submit_response(event: dict, context, response_status: str, error_message: s
       },
       "Type": "AWS::Lambda::Function",
     },
-    "MyLambdaServiceRole4539ECB6": Object {
-      "Properties": Object {
-        "AssumeRolePolicyDocument": Object {
-          "Statement": Array [
-            Object {
+    "MyLambdaServiceRole4539ECB6": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
               "Action": "sts:AssumeRole",
               "Effect": "Allow",
-              "Principal": Object {
+              "Principal": {
                 "Service": "lambda.amazonaws.com",
               },
             },
           ],
           "Version": "2012-10-17",
         },
-        "ManagedPolicyArns": Array [
-          Object {
-            "Fn::Join": Array [
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
               "",
-              Array [
+              [
                 "arn:",
-                Object {
+                {
                   "Ref": "AWS::Partition",
                 },
                 ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
@@ -362,12 +362,12 @@ def submit_response(event: dict, context, response_status: str, error_message: s
       },
       "Type": "AWS::IAM::Role",
     },
-    "MyLambdaServiceRoleDefaultPolicy5BBC6F68": Object {
-      "Properties": Object {
-        "PolicyDocument": Object {
-          "Statement": Array [
-            Object {
-              "Action": Array [
+    "MyLambdaServiceRoleDefaultPolicy5BBC6F68": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": [
                 "s3:DeleteObject*",
                 "s3:PutObject",
                 "s3:PutObjectLegalHold",
@@ -377,19 +377,19 @@ def submit_response(event: dict, context, response_status: str, error_message: s
                 "s3:Abort*",
               ],
               "Effect": "Allow",
-              "Resource": Array [
-                Object {
-                  "Fn::GetAtt": Array [
+              "Resource": [
+                {
+                  "Fn::GetAtt": [
                     "MyBucketF68F3FF0",
                     "Arn",
                   ],
                 },
-                Object {
-                  "Fn::Join": Array [
+                {
+                  "Fn::Join": [
                     "",
-                    Array [
-                      Object {
-                        "Fn::GetAtt": Array [
+                    [
+                      {
+                        "Fn::GetAtt": [
                           "MyBucketF68F3FF0",
                           "Arn",
                         ],
@@ -400,8 +400,8 @@ def submit_response(event: dict, context, response_status: str, error_message: s
                 },
               ],
             },
-            Object {
-              "Action": Array [
+            {
+              "Action": [
                 "dynamodb:BatchWriteItem",
                 "dynamodb:PutItem",
                 "dynamodb:UpdateItem",
@@ -409,20 +409,20 @@ def submit_response(event: dict, context, response_status: str, error_message: s
                 "dynamodb:DescribeTable",
               ],
               "Effect": "Allow",
-              "Resource": Array [
-                Object {
-                  "Fn::GetAtt": Array [
+              "Resource": [
+                {
+                  "Fn::GetAtt": [
                     "ServerlessSpyWebSocketB4D8CE14",
                     "Arn",
                   ],
                 },
-                Object {
+                {
                   "Ref": "AWS::NoValue",
                 },
               ],
             },
-            Object {
-              "Action": Array [
+            {
+              "Action": [
                 "dynamodb:BatchGetItem",
                 "dynamodb:GetRecords",
                 "dynamodb:GetShardIterator",
@@ -433,39 +433,39 @@ def submit_response(event: dict, context, response_status: str, error_message: s
                 "dynamodb:DescribeTable",
               ],
               "Effect": "Allow",
-              "Resource": Array [
-                Object {
-                  "Fn::GetAtt": Array [
+              "Resource": [
+                {
+                  "Fn::GetAtt": [
                     "ServerlessSpyWebSocketB4D8CE14",
                     "Arn",
                   ],
                 },
-                Object {
+                {
                   "Ref": "AWS::NoValue",
                 },
               ],
             },
-            Object {
+            {
               "Action": "execute-api:ManageConnections",
               "Effect": "Allow",
-              "Resource": Object {
-                "Fn::Join": Array [
+              "Resource": {
+                "Fn::Join": [
                   "",
-                  Array [
+                  [
                     "arn:",
-                    Object {
+                    {
                       "Ref": "AWS::Partition",
                     },
                     ":execute-api:",
-                    Object {
+                    {
                       "Ref": "AWS::Region",
                     },
                     ":",
-                    Object {
+                    {
                       "Ref": "AWS::AccountId",
                     },
                     ":",
-                    Object {
+                    {
                       "Ref": "ServerlessSpyApiGwWebSocketB4986709",
                     },
                     "/*/*/@connections/*",
@@ -477,25 +477,25 @@ def submit_response(event: dict, context, response_status: str, error_message: s
           "Version": "2012-10-17",
         },
         "PolicyName": "MyLambdaServiceRoleDefaultPolicy5BBC6F68",
-        "Roles": Array [
-          Object {
+        "Roles": [
+          {
             "Ref": "MyLambdaServiceRole4539ECB6",
           },
         ],
       },
       "Type": "AWS::IAM::Policy",
     },
-    "ServerlessSpyApiGwWebSocketB4986709": Object {
-      "Properties": Object {
+    "ServerlessSpyApiGwWebSocketB4986709": {
+      "Properties": {
         "Name": "ApiGwWebSocket",
         "ProtocolType": "WEBSOCKET",
         "RouteSelectionExpression": "$request.body.action",
       },
       "Type": "AWS::ApiGatewayV2::Api",
     },
-    "ServerlessSpyApiGwWebSocketStageC331FC25": Object {
-      "Properties": Object {
-        "ApiId": Object {
+    "ServerlessSpyApiGwWebSocketStageC331FC25": {
+      "Properties": {
+        "ApiId": {
           "Ref": "ServerlessSpyApiGwWebSocketB4986709",
         },
         "AutoDeploy": true,
@@ -503,19 +503,19 @@ def submit_response(event: dict, context, response_status: str, error_message: s
       },
       "Type": "AWS::ApiGatewayV2::Stage",
     },
-    "ServerlessSpyApiGwWebSocketconnectRoute312F1B97": Object {
-      "Properties": Object {
-        "ApiId": Object {
+    "ServerlessSpyApiGwWebSocketconnectRoute312F1B97": {
+      "Properties": {
+        "ApiId": {
           "Ref": "ServerlessSpyApiGwWebSocketB4986709",
         },
         "AuthorizationType": "AWS_IAM",
         "RouteKey": "$connect",
-        "Target": Object {
-          "Fn::Join": Array [
+        "Target": {
+          "Fn::Join": [
             "",
-            Array [
+            [
               "integrations/",
-              Object {
+              {
                 "Ref": "ServerlessSpyApiGwWebSocketconnectRouteconnectD0BB4267",
               },
             ],
@@ -524,27 +524,27 @@ def submit_response(event: dict, context, response_status: str, error_message: s
       },
       "Type": "AWS::ApiGatewayV2::Route",
     },
-    "ServerlessSpyApiGwWebSocketconnectRouteconnectD0BB4267": Object {
-      "Properties": Object {
-        "ApiId": Object {
+    "ServerlessSpyApiGwWebSocketconnectRouteconnectD0BB4267": {
+      "Properties": {
+        "ApiId": {
           "Ref": "ServerlessSpyApiGwWebSocketB4986709",
         },
         "IntegrationType": "AWS_PROXY",
-        "IntegrationUri": Object {
-          "Fn::Join": Array [
+        "IntegrationUri": {
+          "Fn::Join": [
             "",
-            Array [
+            [
               "arn:",
-              Object {
+              {
                 "Ref": "AWS::Partition",
               },
               ":apigateway:",
-              Object {
+              {
                 "Ref": "AWS::Region",
               },
               ":lambda:path/2015-03-31/functions/",
-              Object {
-                "Fn::GetAtt": Array [
+              {
+                "Fn::GetAtt": [
                   "ServerlessSpyOnConnect645F94AB",
                   "Arn",
                 ],
@@ -556,56 +556,56 @@ def submit_response(event: dict, context, response_status: str, error_message: s
       },
       "Type": "AWS::ApiGatewayV2::Integration",
     },
-    "ServerlessSpyApiGwWebSocketconnectRouteconnectPermission0ECF9CDC": Object {
-      "Properties": Object {
+    "ServerlessSpyApiGwWebSocketconnectRouteconnectPermission0ECF9CDC": {
+      "Properties": {
         "Action": "lambda:InvokeFunction",
-        "FunctionName": Object {
-          "Fn::GetAtt": Array [
+        "FunctionName": {
+          "Fn::GetAtt": [
             "ServerlessSpyOnConnect645F94AB",
             "Arn",
           ],
         },
         "Principal": "apigateway.amazonaws.com",
-        "SourceArn": Object {
-          "Fn::Join": Array [
+        "SourceArn": {
+          "Fn::Join": [
             "",
-            Array [
+            [
               "arn:",
-              Object {
+              {
                 "Ref": "AWS::Partition",
               },
               ":execute-api:",
-              Object {
+              {
                 "Ref": "AWS::Region",
               },
               ":",
-              Object {
+              {
                 "Ref": "AWS::AccountId",
               },
               ":",
-              Object {
+              {
                 "Ref": "ServerlessSpyApiGwWebSocketB4986709",
               },
-              "/*/*$connect",
+              "/*$connect",
             ],
           ],
         },
       },
       "Type": "AWS::Lambda::Permission",
     },
-    "ServerlessSpyApiGwWebSocketdisconnectRoute1A0A3B9C": Object {
-      "Properties": Object {
-        "ApiId": Object {
+    "ServerlessSpyApiGwWebSocketdisconnectRoute1A0A3B9C": {
+      "Properties": {
+        "ApiId": {
           "Ref": "ServerlessSpyApiGwWebSocketB4986709",
         },
         "AuthorizationType": "NONE",
         "RouteKey": "$disconnect",
-        "Target": Object {
-          "Fn::Join": Array [
+        "Target": {
+          "Fn::Join": [
             "",
-            Array [
+            [
               "integrations/",
-              Object {
+              {
                 "Ref": "ServerlessSpyApiGwWebSocketdisconnectRoutedisconnect27020FD4",
               },
             ],
@@ -614,27 +614,27 @@ def submit_response(event: dict, context, response_status: str, error_message: s
       },
       "Type": "AWS::ApiGatewayV2::Route",
     },
-    "ServerlessSpyApiGwWebSocketdisconnectRoutedisconnect27020FD4": Object {
-      "Properties": Object {
-        "ApiId": Object {
+    "ServerlessSpyApiGwWebSocketdisconnectRoutedisconnect27020FD4": {
+      "Properties": {
+        "ApiId": {
           "Ref": "ServerlessSpyApiGwWebSocketB4986709",
         },
         "IntegrationType": "AWS_PROXY",
-        "IntegrationUri": Object {
-          "Fn::Join": Array [
+        "IntegrationUri": {
+          "Fn::Join": [
             "",
-            Array [
+            [
               "arn:",
-              Object {
+              {
                 "Ref": "AWS::Partition",
               },
               ":apigateway:",
-              Object {
+              {
                 "Ref": "AWS::Region",
               },
               ":lambda:path/2015-03-31/functions/",
-              Object {
-                "Fn::GetAtt": Array [
+              {
+                "Fn::GetAtt": [
                   "ServerlessSpyOnDisconnect798FB62E",
                   "Arn",
                 ],
@@ -646,56 +646,56 @@ def submit_response(event: dict, context, response_status: str, error_message: s
       },
       "Type": "AWS::ApiGatewayV2::Integration",
     },
-    "ServerlessSpyApiGwWebSocketdisconnectRoutedisconnectPermission49C4B30D": Object {
-      "Properties": Object {
+    "ServerlessSpyApiGwWebSocketdisconnectRoutedisconnectPermission49C4B30D": {
+      "Properties": {
         "Action": "lambda:InvokeFunction",
-        "FunctionName": Object {
-          "Fn::GetAtt": Array [
+        "FunctionName": {
+          "Fn::GetAtt": [
             "ServerlessSpyOnDisconnect798FB62E",
             "Arn",
           ],
         },
         "Principal": "apigateway.amazonaws.com",
-        "SourceArn": Object {
-          "Fn::Join": Array [
+        "SourceArn": {
+          "Fn::Join": [
             "",
-            Array [
+            [
               "arn:",
-              Object {
+              {
                 "Ref": "AWS::Partition",
               },
               ":execute-api:",
-              Object {
+              {
                 "Ref": "AWS::Region",
               },
               ":",
-              Object {
+              {
                 "Ref": "AWS::AccountId",
               },
               ":",
-              Object {
+              {
                 "Ref": "ServerlessSpyApiGwWebSocketB4986709",
               },
-              "/*/*$disconnect",
+              "/*$disconnect",
             ],
           ],
         },
       },
       "Type": "AWS::Lambda::Permission",
     },
-    "ServerlessSpyApiGwWebSocketsendmessageRouteCA382280": Object {
-      "Properties": Object {
-        "ApiId": Object {
+    "ServerlessSpyApiGwWebSocketsendmessageRouteCA382280": {
+      "Properties": {
+        "ApiId": {
           "Ref": "ServerlessSpyApiGwWebSocketB4986709",
         },
         "AuthorizationType": "NONE",
         "RouteKey": "sendmessage",
-        "Target": Object {
-          "Fn::Join": Array [
+        "Target": {
+          "Fn::Join": [
             "",
-            Array [
+            [
               "integrations/",
-              Object {
+              {
                 "Ref": "ServerlessSpyApiGwWebSocketsendmessageRouteSendMessage655C76E3",
               },
             ],
@@ -704,27 +704,27 @@ def submit_response(event: dict, context, response_status: str, error_message: s
       },
       "Type": "AWS::ApiGatewayV2::Route",
     },
-    "ServerlessSpyApiGwWebSocketsendmessageRouteSendMessage655C76E3": Object {
-      "Properties": Object {
-        "ApiId": Object {
+    "ServerlessSpyApiGwWebSocketsendmessageRouteSendMessage655C76E3": {
+      "Properties": {
+        "ApiId": {
           "Ref": "ServerlessSpyApiGwWebSocketB4986709",
         },
         "IntegrationType": "AWS_PROXY",
-        "IntegrationUri": Object {
-          "Fn::Join": Array [
+        "IntegrationUri": {
+          "Fn::Join": [
             "",
-            Array [
+            [
               "arn:",
-              Object {
+              {
                 "Ref": "AWS::Partition",
               },
               ":apigateway:",
-              Object {
+              {
                 "Ref": "AWS::Region",
               },
               ":lambda:path/2015-03-31/functions/",
-              Object {
-                "Fn::GetAtt": Array [
+              {
+                "Fn::GetAtt": [
                   "ServerlessSpySubscription0036DF4AB",
                   "Arn",
                 ],
@@ -736,101 +736,102 @@ def submit_response(event: dict, context, response_status: str, error_message: s
       },
       "Type": "AWS::ApiGatewayV2::Integration",
     },
-    "ServerlessSpyApiGwWebSocketsendmessageRouteSendMessagePermission603B5AE9": Object {
-      "Properties": Object {
+    "ServerlessSpyApiGwWebSocketsendmessageRouteSendMessagePermission603B5AE9": {
+      "Properties": {
         "Action": "lambda:InvokeFunction",
-        "FunctionName": Object {
-          "Fn::GetAtt": Array [
+        "FunctionName": {
+          "Fn::GetAtt": [
             "ServerlessSpySubscription0036DF4AB",
             "Arn",
           ],
         },
         "Principal": "apigateway.amazonaws.com",
-        "SourceArn": Object {
-          "Fn::Join": Array [
+        "SourceArn": {
+          "Fn::Join": [
             "",
-            Array [
+            [
               "arn:",
-              Object {
+              {
                 "Ref": "AWS::Partition",
               },
               ":execute-api:",
-              Object {
+              {
                 "Ref": "AWS::Region",
               },
               ":",
-              Object {
+              {
                 "Ref": "AWS::AccountId",
               },
               ":",
-              Object {
+              {
                 "Ref": "ServerlessSpyApiGwWebSocketB4986709",
               },
-              "/*/*sendmessage",
+              "/*sendmessage",
             ],
           ],
         },
       },
       "Type": "AWS::Lambda::Permission",
     },
-    "ServerlessSpyExtensionEA4873A0": Object {
-      "Properties": Object {
-        "CompatibleRuntimes": Array [
+    "ServerlessSpyExtensionEA4873A0": {
+      "Properties": {
+        "CompatibleRuntimes": [
           "nodejs12.x",
           "nodejs14.x",
           "nodejs16.x",
           "nodejs18.x",
+          "nodejs20.x",
         ],
-        "Content": Object {
-          "S3Bucket": Object {
+        "Content": {
+          "S3Bucket": {
             "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
           },
-          "S3Key": "1ae5bd4e741c0b4b5309e11738f23752e1bc35a43dffda96210f41c0e322a512.zip",
+          "S3Key": "e7dc3db11a566eb145a114853a50b9a14fa103f8c406836de1b8c7fc0595a49c.zip",
         },
       },
       "Type": "AWS::Lambda::LayerVersion",
     },
-    "ServerlessSpyOnConnect645F94AB": Object {
-      "DependsOn": Array [
+    "ServerlessSpyOnConnect645F94AB": {
+      "DependsOn": [
         "ServerlessSpyOnConnectServiceRoleDefaultPolicy3DA62E46",
         "ServerlessSpyOnConnectServiceRoleFC57701A",
       ],
-      "Properties": Object {
-        "Code": Object {
-          "S3Bucket": Object {
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
             "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
           },
-          "S3Key": "b4b02377de150bf7e6dfe0fdc41c2e02d54f01740b28ddffc04701aea77173d4.zip",
+          "S3Key": "615172569fd594d1b5df531adace7c243ab5da047fe7ef66720c2d505a91cc27.zip",
         },
-        "Environment": Object {
-          "Variables": Object {
+        "Environment": {
+          "Variables": {
             "AWS_NODEJS_CONNECTION_REUSE_ENABLED": "1",
             "NODE_OPTIONS": "--enable-source-maps",
             "SSPY_DEBUG": "true",
-            "SSPY_WS_TABLE_NAME": Object {
+            "SSPY_WS_TABLE_NAME": {
               "Ref": "ServerlessSpyWebSocketB4D8CE14",
             },
           },
         },
         "Handler": "index.handler",
         "MemorySize": 512,
-        "Role": Object {
-          "Fn::GetAtt": Array [
+        "Role": {
+          "Fn::GetAtt": [
             "ServerlessSpyOnConnectServiceRoleFC57701A",
             "Arn",
           ],
         },
-        "Runtime": "nodejs18.x",
+        "Runtime": "nodejs20.x",
         "Timeout": 5,
       },
       "Type": "AWS::Lambda::Function",
     },
-    "ServerlessSpyOnConnectServiceRoleDefaultPolicy3DA62E46": Object {
-      "Properties": Object {
-        "PolicyDocument": Object {
-          "Statement": Array [
-            Object {
-              "Action": Array [
+    "ServerlessSpyOnConnectServiceRoleDefaultPolicy3DA62E46": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": [
                 "dynamodb:BatchWriteItem",
                 "dynamodb:PutItem",
                 "dynamodb:UpdateItem",
@@ -838,14 +839,14 @@ def submit_response(event: dict, context, response_status: str, error_message: s
                 "dynamodb:DescribeTable",
               ],
               "Effect": "Allow",
-              "Resource": Array [
-                Object {
-                  "Fn::GetAtt": Array [
+              "Resource": [
+                {
+                  "Fn::GetAtt": [
                     "ServerlessSpyWebSocketB4D8CE14",
                     "Arn",
                   ],
                 },
-                Object {
+                {
                   "Ref": "AWS::NoValue",
                 },
               ],
@@ -854,35 +855,35 @@ def submit_response(event: dict, context, response_status: str, error_message: s
           "Version": "2012-10-17",
         },
         "PolicyName": "ServerlessSpyOnConnectServiceRoleDefaultPolicy3DA62E46",
-        "Roles": Array [
-          Object {
+        "Roles": [
+          {
             "Ref": "ServerlessSpyOnConnectServiceRoleFC57701A",
           },
         ],
       },
       "Type": "AWS::IAM::Policy",
     },
-    "ServerlessSpyOnConnectServiceRoleFC57701A": Object {
-      "Properties": Object {
-        "AssumeRolePolicyDocument": Object {
-          "Statement": Array [
-            Object {
+    "ServerlessSpyOnConnectServiceRoleFC57701A": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
               "Action": "sts:AssumeRole",
               "Effect": "Allow",
-              "Principal": Object {
+              "Principal": {
                 "Service": "lambda.amazonaws.com",
               },
             },
           ],
           "Version": "2012-10-17",
         },
-        "ManagedPolicyArns": Array [
-          Object {
-            "Fn::Join": Array [
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
               "",
-              Array [
+              [
                 "arn:",
-                Object {
+                {
                   "Ref": "AWS::Partition",
                 },
                 ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
@@ -893,62 +894,62 @@ def submit_response(event: dict, context, response_status: str, error_message: s
       },
       "Type": "AWS::IAM::Role",
     },
-    "ServerlessSpyOnDisconnect798FB62E": Object {
-      "DependsOn": Array [
+    "ServerlessSpyOnDisconnect798FB62E": {
+      "DependsOn": [
         "ServerlessSpyOnDisconnectServiceRoleDefaultPolicy908DBF32",
         "ServerlessSpyOnDisconnectServiceRoleD2185195",
       ],
-      "Properties": Object {
-        "Code": Object {
-          "S3Bucket": Object {
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
             "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
           },
-          "S3Key": "e3398e4b8f1ae3417d5afa7ec1158778b906c8238d308303c7bf9a72726d8041.zip",
+          "S3Key": "f9bf028e777a54e5a5f1a20004a4de1a32fb4a9525d89bca8b10954d117f8929.zip",
         },
-        "Environment": Object {
-          "Variables": Object {
+        "Environment": {
+          "Variables": {
             "AWS_NODEJS_CONNECTION_REUSE_ENABLED": "1",
             "NODE_OPTIONS": "--enable-source-maps",
             "SSPY_DEBUG": "true",
-            "SSPY_WS_TABLE_NAME": Object {
+            "SSPY_WS_TABLE_NAME": {
               "Ref": "ServerlessSpyWebSocketB4D8CE14",
             },
           },
         },
         "Handler": "index.handler",
         "MemorySize": 512,
-        "Role": Object {
-          "Fn::GetAtt": Array [
+        "Role": {
+          "Fn::GetAtt": [
             "ServerlessSpyOnDisconnectServiceRoleD2185195",
             "Arn",
           ],
         },
-        "Runtime": "nodejs18.x",
+        "Runtime": "nodejs20.x",
         "Timeout": 5,
       },
       "Type": "AWS::Lambda::Function",
     },
-    "ServerlessSpyOnDisconnectServiceRoleD2185195": Object {
-      "Properties": Object {
-        "AssumeRolePolicyDocument": Object {
-          "Statement": Array [
-            Object {
+    "ServerlessSpyOnDisconnectServiceRoleD2185195": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
               "Action": "sts:AssumeRole",
               "Effect": "Allow",
-              "Principal": Object {
+              "Principal": {
                 "Service": "lambda.amazonaws.com",
               },
             },
           ],
           "Version": "2012-10-17",
         },
-        "ManagedPolicyArns": Array [
-          Object {
-            "Fn::Join": Array [
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
               "",
-              Array [
+              [
                 "arn:",
-                Object {
+                {
                   "Ref": "AWS::Partition",
                 },
                 ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
@@ -959,12 +960,12 @@ def submit_response(event: dict, context, response_status: str, error_message: s
       },
       "Type": "AWS::IAM::Role",
     },
-    "ServerlessSpyOnDisconnectServiceRoleDefaultPolicy908DBF32": Object {
-      "Properties": Object {
-        "PolicyDocument": Object {
-          "Statement": Array [
-            Object {
-              "Action": Array [
+    "ServerlessSpyOnDisconnectServiceRoleDefaultPolicy908DBF32": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": [
                 "dynamodb:BatchWriteItem",
                 "dynamodb:PutItem",
                 "dynamodb:UpdateItem",
@@ -972,14 +973,14 @@ def submit_response(event: dict, context, response_status: str, error_message: s
                 "dynamodb:DescribeTable",
               ],
               "Effect": "Allow",
-              "Resource": Array [
-                Object {
-                  "Fn::GetAtt": Array [
+              "Resource": [
+                {
+                  "Fn::GetAtt": [
                     "ServerlessSpyWebSocketB4D8CE14",
                     "Arn",
                   ],
                 },
-                Object {
+                {
                   "Ref": "AWS::NoValue",
                 },
               ],
@@ -988,85 +989,85 @@ def submit_response(event: dict, context, response_status: str, error_message: s
           "Version": "2012-10-17",
         },
         "PolicyName": "ServerlessSpyOnDisconnectServiceRoleDefaultPolicy908DBF32",
-        "Roles": Array [
-          Object {
+        "Roles": [
+          {
             "Ref": "ServerlessSpyOnDisconnectServiceRoleD2185195",
           },
         ],
       },
       "Type": "AWS::IAM::Policy",
     },
-    "ServerlessSpySubscription0036DF4AB": Object {
-      "DependsOn": Array [
+    "ServerlessSpySubscription0036DF4AB": {
+      "DependsOn": [
         "ServerlessSpySubscription0ServiceRoleDefaultPolicyD8FA77F4",
         "ServerlessSpySubscription0ServiceRoleF955D76C",
       ],
-      "Properties": Object {
-        "Code": Object {
-          "S3Bucket": Object {
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
             "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
           },
-          "S3Key": "b9b766ecfb7a00b14e4605f25e02ebeeca0e85d9996a77cf5266884f16bc057e.zip",
+          "S3Key": "9e0f7c7606efbff4228fcbc721242c611c79efc596d75a3b5a7cd5b8def271a7.zip",
         },
-        "Environment": Object {
-          "Variables": Object {
+        "Environment": {
+          "Variables": {
             "AWS_NODEJS_CONNECTION_REUSE_ENABLED": "1",
             "NODE_OPTIONS": "--enable-source-maps",
-            "SSPY_INFRA_MAPPING": Object {
-              "Fn::Join": Array [
+            "SSPY_INFRA_MAPPING": {
+              "Fn::Join": [
                 "",
-                Array [
-                  "{\\"",
-                  Object {
-                    "Fn::GetAtt": Array [
+                [
+                  "{"",
+                  {
+                    "Fn::GetAtt": [
                       "MyBucketF68F3FF0",
                       "Arn",
                     ],
                   },
-                  "\\":\\"S3#MyBucket\\"}",
+                  "":"S3#MyBucket"}",
                 ],
               ],
             },
-            "SSPY_WS_ENDPOINT": Object {
-              "Fn::Join": Array [
+            "SSPY_WS_ENDPOINT": {
+              "Fn::Join": [
                 "",
-                Array [
+                [
                   "https://",
-                  Object {
+                  {
                     "Ref": "ServerlessSpyApiGwWebSocketB4986709",
                   },
                   ".execute-api.",
-                  Object {
+                  {
                     "Ref": "AWS::Region",
                   },
                   ".amazonaws.com/prod",
                 ],
               ],
             },
-            "SSPY_WS_TABLE_NAME": Object {
+            "SSPY_WS_TABLE_NAME": {
               "Ref": "ServerlessSpyWebSocketB4D8CE14",
             },
           },
         },
         "Handler": "index.handler",
         "MemorySize": 512,
-        "Role": Object {
-          "Fn::GetAtt": Array [
+        "Role": {
+          "Fn::GetAtt": [
             "ServerlessSpySubscription0ServiceRoleF955D76C",
             "Arn",
           ],
         },
-        "Runtime": "nodejs18.x",
+        "Runtime": "nodejs20.x",
         "Timeout": 5,
       },
       "Type": "AWS::Lambda::Function",
     },
-    "ServerlessSpySubscription0ServiceRoleDefaultPolicyD8FA77F4": Object {
-      "Properties": Object {
-        "PolicyDocument": Object {
-          "Statement": Array [
-            Object {
-              "Action": Array [
+    "ServerlessSpySubscription0ServiceRoleDefaultPolicyD8FA77F4": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": [
                 "dynamodb:BatchWriteItem",
                 "dynamodb:PutItem",
                 "dynamodb:UpdateItem",
@@ -1074,20 +1075,20 @@ def submit_response(event: dict, context, response_status: str, error_message: s
                 "dynamodb:DescribeTable",
               ],
               "Effect": "Allow",
-              "Resource": Array [
-                Object {
-                  "Fn::GetAtt": Array [
+              "Resource": [
+                {
+                  "Fn::GetAtt": [
                     "ServerlessSpyWebSocketB4D8CE14",
                     "Arn",
                   ],
                 },
-                Object {
+                {
                   "Ref": "AWS::NoValue",
                 },
               ],
             },
-            Object {
-              "Action": Array [
+            {
+              "Action": [
                 "dynamodb:BatchGetItem",
                 "dynamodb:GetRecords",
                 "dynamodb:GetShardIterator",
@@ -1098,39 +1099,39 @@ def submit_response(event: dict, context, response_status: str, error_message: s
                 "dynamodb:DescribeTable",
               ],
               "Effect": "Allow",
-              "Resource": Array [
-                Object {
-                  "Fn::GetAtt": Array [
+              "Resource": [
+                {
+                  "Fn::GetAtt": [
                     "ServerlessSpyWebSocketB4D8CE14",
                     "Arn",
                   ],
                 },
-                Object {
+                {
                   "Ref": "AWS::NoValue",
                 },
               ],
             },
-            Object {
+            {
               "Action": "execute-api:ManageConnections",
               "Effect": "Allow",
-              "Resource": Object {
-                "Fn::Join": Array [
+              "Resource": {
+                "Fn::Join": [
                   "",
-                  Array [
+                  [
                     "arn:",
-                    Object {
+                    {
                       "Ref": "AWS::Partition",
                     },
                     ":execute-api:",
-                    Object {
+                    {
                       "Ref": "AWS::Region",
                     },
                     ":",
-                    Object {
+                    {
                       "Ref": "AWS::AccountId",
                     },
                     ":",
-                    Object {
+                    {
                       "Ref": "ServerlessSpyApiGwWebSocketB4986709",
                     },
                     "/*/*/@connections/*",
@@ -1142,35 +1143,35 @@ def submit_response(event: dict, context, response_status: str, error_message: s
           "Version": "2012-10-17",
         },
         "PolicyName": "ServerlessSpySubscription0ServiceRoleDefaultPolicyD8FA77F4",
-        "Roles": Array [
-          Object {
+        "Roles": [
+          {
             "Ref": "ServerlessSpySubscription0ServiceRoleF955D76C",
           },
         ],
       },
       "Type": "AWS::IAM::Policy",
     },
-    "ServerlessSpySubscription0ServiceRoleF955D76C": Object {
-      "Properties": Object {
-        "AssumeRolePolicyDocument": Object {
-          "Statement": Array [
-            Object {
+    "ServerlessSpySubscription0ServiceRoleF955D76C": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
               "Action": "sts:AssumeRole",
               "Effect": "Allow",
-              "Principal": Object {
+              "Principal": {
                 "Service": "lambda.amazonaws.com",
               },
             },
           ],
           "Version": "2012-10-17",
         },
-        "ManagedPolicyArns": Array [
-          Object {
-            "Fn::Join": Array [
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
               "",
-              Array [
+              [
                 "arn:",
-                Object {
+                {
                   "Ref": "AWS::Partition",
                 },
                 ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
@@ -1181,18 +1182,18 @@ def submit_response(event: dict, context, response_status: str, error_message: s
       },
       "Type": "AWS::IAM::Role",
     },
-    "ServerlessSpyWebSocketB4D8CE14": Object {
+    "ServerlessSpyWebSocketB4D8CE14": {
       "DeletionPolicy": "Retain",
-      "Properties": Object {
-        "AttributeDefinitions": Array [
-          Object {
+      "Properties": {
+        "AttributeDefinitions": [
+          {
             "AttributeName": "connectionId",
             "AttributeType": "S",
           },
         ],
         "BillingMode": "PAY_PER_REQUEST",
-        "KeySchema": Array [
-          Object {
+        "KeySchema": [
+          {
             "AttributeName": "connectionId",
             "KeyType": "HASH",
           },
@@ -1202,22 +1203,22 @@ def submit_response(event: dict, context, response_status: str, error_message: s
       "UpdateReplacePolicy": "Retain",
     },
   },
-  "Rules": Object {
-    "CheckBootstrapVersion": Object {
-      "Assertions": Array [
-        Object {
-          "Assert": Object {
-            "Fn::Not": Array [
-              Object {
-                "Fn::Contains": Array [
-                  Array [
+  "Rules": {
+    "CheckBootstrapVersion": {
+      "Assertions": [
+        {
+          "Assert": {
+            "Fn::Not": [
+              {
+                "Fn::Contains": [
+                  [
                     "1",
                     "2",
                     "3",
                     "4",
                     "5",
                   ],
-                  Object {
+                  {
                     "Ref": "BootstrapVersion",
                   },
                 ],

@@ -16,7 +16,6 @@
      "inlineSourceMap": true,
      "inlineSources": true,
      "alwaysStrict": true,
-     "charset": "utf8",
      "declaration": true,
      "experimentalDecorators": true,
      "incremental": true,
@@ -42,12 +41,12 @@
      "tsBuildInfoFile": "lib/tsconfig.tsbuildinfo"
   },
   "include": [
-    "src/**/*.ts",    
-    "common/**/*.ts",        
-    "listener/**/*.ts",    
-    "cli/**/*.ts",        
-    "functions/**/*.ts",            
-    "index.ts",    
+    "src/**/*.ts",
+    "common/**/*.ts",
+    "listener/**/*.ts",
+    "cli/**/*.ts",
+    "functions/**/*.ts",
+    "index.ts",
   ],
   "exclude": ["cli/webServerlessSpy.ts"]
 }

@@ -1,7 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import * as apiGwV2 from '@aws-cdk/aws-apigatewayv2-alpha';
-import * as apiGwV2Int from '@aws-cdk/aws-apigatewayv2-integrations-alpha';
+import * as apiGwV2 from 'aws-cdk-lib/aws-apigatewayv2';
+import * as apiGwV2Int from 'aws-cdk-lib/aws-apigatewayv2-integrations';
 import { CfnOutput, Duration, NestedStack, Stack } from 'aws-cdk-lib';
 import * as agw from 'aws-cdk-lib/aws-apigatewayv2';
 import * as dynamoDb from 'aws-cdk-lib/aws-dynamodb';
@@ -63,6 +63,7 @@ export class ServerlessSpy extends Construct {
         lambda.Runtime.NODEJS_14_X,
         lambda.Runtime.NODEJS_16_X,
         lambda.Runtime.NODEJS_18_X,
+        lambda.Runtime.NODEJS_20_X,
       ],
       code: lambda.Code.fromAsset(this.getExtensionAssetLocation()),
     });
@@ -86,7 +87,7 @@ export class ServerlessSpy extends Construct {
     const functionOnConnect = new lambdaNode.NodejsFunction(this, 'OnConnect', {
       memorySize: 512,
       timeout: Duration.seconds(5),
-      runtime: lambda.Runtime.NODEJS_18_X,
+      runtime: lambda.Runtime.NODEJS_20_X,
       handler: 'handler',
       entry: this.getAssetLocation('functions/onConnect.js'),
       environment: envVars,
@@ -100,7 +101,7 @@ export class ServerlessSpy extends Construct {
       {
         memorySize: 512,
         timeout: Duration.seconds(5),
-        runtime: lambda.Runtime.NODEJS_18_X,
+        runtime: lambda.Runtime.NODEJS_20_X,
         handler: 'handler',
         entry: this.getAssetLocation('functions/onDisconnect.js'),
         environment: envVars,
@@ -402,7 +403,7 @@ export class ServerlessSpy extends Construct {
       {
         memorySize: 512,
         timeout: Duration.seconds(5),
-        runtime: lambda.Runtime.NODEJS_18_X,
+        runtime: lambda.Runtime.NODEJS_20_X,
         handler: 'handler',
         entry: this.getAssetLocation(
           'functions/sqsSubscriptionAndDropAllMessages.js'
@@ -478,7 +479,7 @@ export class ServerlessSpy extends Construct {
     const func = new lambdaNode.NodejsFunction(this, `Subscription${index}`, {
       memorySize: 512,
       timeout: Duration.seconds(5),
-      runtime: lambda.Runtime.NODEJS_18_X,
+      runtime: lambda.Runtime.NODEJS_20_X,
       handler: 'handler',
       entry: this.getAssetLocation('functions/sendMessage.js'),
       environment: {

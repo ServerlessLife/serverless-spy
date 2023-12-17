@@ -3,7 +3,7 @@ import { SpyEvent } from './SpyEvent';
 
 export interface SnsSpyEventBase<MessageType = any> extends SpyEvent {
   message: MessageType;
-  subject: string;
+  subject?: string;
   timestamp: string;
   topicArn: string;
   messageId: string;
