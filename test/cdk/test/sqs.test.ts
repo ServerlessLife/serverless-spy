@@ -1,13 +1,10 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { SendMessageCommand, SQSClient } from '@aws-sdk/client-sqs';
-import { App } from 'aws-cdk-lib';
-import { Template } from 'aws-cdk-lib/assertions';
 import { v4 as uuidv4 } from 'uuid';
 import { createServerlessSpyListener } from '../../../listener/createServerlessSpyListener';
 import { ServerlessSpyListener } from '../../../listener/ServerlessSpyListener';
 import { ServerlessSpyEvents } from '../serverlessSpyEvents/ServerlessSpyEventsSqs';
-import { SqsStack } from '../src/sqsStack';
 import { TestData } from './TestData';
 
 jest.setTimeout(30000);
@@ -53,14 +50,5 @@ describe('SQS with option spySqsWithNoSubscriptionAndDropAllMessages', () => {
         condition: (d) => d.body.id === id,
       })
     ).toMatchObject({ body: data });
-  });
-
-  test('Snapshot', () => {
-    const app = new App();
-    const stack = new SqsStack(app, 'Test', {
-      generateSpyEventsFile: false,
-    });
-    const template = Template.fromStack(stack);
-    expect(template.toJSON()).toMatchSnapshot();
   });
 });

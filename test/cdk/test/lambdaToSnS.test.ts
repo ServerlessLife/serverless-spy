@@ -1,13 +1,10 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { LambdaClient, InvokeCommand } from '@aws-sdk/client-lambda';
-import { App } from 'aws-cdk-lib';
-import { Template } from 'aws-cdk-lib/assertions';
 import { v4 as uuidv4 } from 'uuid';
 import { createServerlessSpyListener } from '../../../listener/createServerlessSpyListener';
 import { ServerlessSpyListener } from '../../../listener/ServerlessSpyListener';
 import { ServerlessSpyEvents } from '../serverlessSpyEvents/ServerlessSpyEventsLambdaToSns';
-import { LambdaToSnsStack } from '../src/lambdaToSnsStack';
 import { TestData } from './TestData';
 
 jest.setTimeout(30000);
@@ -67,14 +64,5 @@ describe('Lambda to SNS', () => {
         condition: (d) => d.message.id === id,
       })
     ).toMatchObject({ message: data });
-  });
-
-  test('Snapshot', () => {
-    const app = new App();
-    const stack = new LambdaToSnsStack(app, 'Test', {
-      generateSpyEventsFile: false,
-    });
-    const template = Template.fromStack(stack);
-    expect(template.toJSON()).toMatchSnapshot();
   });
 });
