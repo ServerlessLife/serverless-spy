@@ -1,9 +1,8 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import * as apiGwV2 from 'aws-cdk-lib/aws-apigatewayv2';
-import * as apiGwV2Int from 'aws-cdk-lib/aws-apigatewayv2-integrations';
-import { CfnOutput, Duration, NestedStack, Stack } from 'aws-cdk-lib';
 import * as agw from 'aws-cdk-lib/aws-apigatewayv2';
+import * as agwInt from 'aws-cdk-lib/aws-apigatewayv2-integrations';
+import { CfnOutput, Duration, NestedStack, Stack } from 'aws-cdk-lib';
 import * as dynamoDb from 'aws-cdk-lib/aws-dynamodb';
 import * as events from 'aws-cdk-lib/aws-events';
 import * as targets from 'aws-cdk-lib/aws-events-targets';
@@ -40,12 +39,12 @@ export interface SpyFilter {
 export class ServerlessSpy extends Construct {
   private extensionLayer: lambda.LayerVersion;
   private table: dynamoDb.Table;
-  private webSocketApi: apiGwV2.WebSocketApi;
+  private webSocketApi: agw.WebSocketApi;
   private createdResourcesBySSpy: IConstruct[] = [];
   private lambdaSubscriptionPool: LambdaSubscription[] = [];
   private lambdaSubscriptionMain: LambdaSubscription;
   private lambdasSpied: LambdaSpied[] = [];
-  private webSocketStage: apiGwV2.WebSocketStage;
+  private webSocketStage: agw.WebSocketStage;
   public serviceKeys: string[] = [];
   private spiedNodes: IConstruct[] = [];
   wsUrl: string;
@@ -110,20 +109,16 @@ export class ServerlessSpy extends Construct {
     this.table.grantWriteData(functionOnDisconnect);
     this.createdResourcesBySSpy.push(functionOnDisconnect);
 
-    this.webSocketApi = new apiGwV2.WebSocketApi(this, 'ApiGwWebSocket');
+    this.webSocketApi = new agw.WebSocketApi(this, 'ApiGwWebSocket');
     this.createdResourcesBySSpy.push(this.webSocketApi);
-    this.webSocketStage = new apiGwV2.WebSocketStage(
-      this,
-      'ApiGwWebSocketStage',
-      {
-        webSocketApi: this.webSocketApi,
-        stageName: 'prod',
-        autoDeploy: true,
-      }
-    );
+    this.webSocketStage = new agw.WebSocketStage(this, 'ApiGwWebSocketStage', {
+      webSocketApi: this.webSocketApi,
+      stageName: 'prod',
+      autoDeploy: true,
+    });
     this.createdResourcesBySSpy.push(this.webSocketStage);
     const webSocketApiRoute = this.webSocketApi.addRoute('$connect', {
-      integration: new apiGwV2Int.WebSocketLambdaIntegration(
+      integration: new agwInt.WebSocketLambdaIntegration(
         '$connect',
         functionOnConnect
       ),
@@ -132,7 +127,7 @@ export class ServerlessSpy extends Construct {
       'AWS_IAM';
 
     this.webSocketApi.addRoute('$disconnect', {
-      integration: new apiGwV2Int.WebSocketLambdaIntegration(
+      integration: new agwInt.WebSocketLambdaIntegration(
         '$disconnect',
         functionOnDisconnect
       ),
@@ -141,7 +136,7 @@ export class ServerlessSpy extends Construct {
     this.lambdaSubscriptionMain = this.provideFunctionForSubscription();
 
     this.webSocketApi.addRoute('sendmessage', {
-      integration: new apiGwV2Int.WebSocketLambdaIntegration(
+      integration: new agwInt.WebSocketLambdaIntegration(
         'SendMessage',
         this.lambdaSubscriptionMain.function
       ),
