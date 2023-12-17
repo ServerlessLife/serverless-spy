@@ -28,23 +28,6 @@ jobs:
         run: npm install
       - name: build
         run: scripts/run-task build
-      - id: self_mutation
-        name: Find mutations
-        run: |-
-          git add .
-          git diff --staged --patch --exit-code > .repo.patch || echo "::set-output name=self_mutation_happened::true"
-      - if: steps.self_mutation.outputs.self_mutation_happened
-        name: Upload patch
-        uses: actions/upload-artifact@v2
-        with:
-          name: .repo.patch
-          path: .repo.patch
-      # - name: Fail build on mutation
-      #   if: steps.self_mutation.outputs.self_mutation_happened
-      #   run: |-
-      #     echo "::error::Files were changed during build (see build log). If this was triggered from a fork, you will need to update your branch."
-      #     cat .repo.patch
-      #     exit 1
       - name: Upload artifact
         uses: actions/upload-artifact@v2.1.1
         with:
