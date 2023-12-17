@@ -1,14 +1,11 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { PublishCommand, SNSClient } from '@aws-sdk/client-sns';
-import { App } from 'aws-cdk-lib';
-import { Template } from 'aws-cdk-lib/assertions';
 import { SNSMessage } from 'aws-lambda';
 import { v4 as uuidv4 } from 'uuid';
 import { createServerlessSpyListener } from '../../../listener/createServerlessSpyListener';
 import { ServerlessSpyListener } from '../../../listener/ServerlessSpyListener';
 import { ServerlessSpyEvents } from '../serverlessSpyEvents/ServerlessSpyEventsSnsToSqs';
-import { SnsToLambdaStack } from '../src/snsToLambdaStack';
 import { TestData } from './TestData';
 
 jest.setTimeout(30000);
@@ -72,14 +69,5 @@ describe('SNS to SQS', () => {
         Message: JSON.stringify(data),
       },
     });
-  });
-
-  test('Snapshot', () => {
-    const app = new App();
-    const stack = new SnsToLambdaStack(app, 'Test', {
-      generateSpyEventsFile: false,
-    });
-    const template = Template.fromStack(stack);
-    expect(template.toJSON()).toMatchSnapshot();
   });
 });

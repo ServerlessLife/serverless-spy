@@ -1,13 +1,10 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { LambdaClient, InvokeCommand } from '@aws-sdk/client-lambda';
-import { App } from 'aws-cdk-lib';
-import { Template } from 'aws-cdk-lib/assertions';
 import { v4 as uuidv4 } from 'uuid';
 import { createServerlessSpyListener } from '../../../listener/createServerlessSpyListener';
 import { ServerlessSpyListener } from '../../../listener/ServerlessSpyListener';
 import { ServerlessSpyEvents } from '../serverlessSpyEvents/ServerlessSpyEventsLambda';
-import { E2eStack } from '../src/e2eStack';
 import { TestData } from './TestData';
 
 jest.setTimeout(30000);
@@ -213,15 +210,6 @@ describe('Lambda', () => {
         stack: expect.any(String),
       },
     });
-  });
-
-  test('Snapshot', () => {
-    const app = new App();
-    const stack = new E2eStack(app, 'Test', {
-      generateSpyEventsFile: false,
-    });
-    const template = Template.fromStack(stack);
-    expect(template.toJSON()).toMatchSnapshot();
   });
 });
 

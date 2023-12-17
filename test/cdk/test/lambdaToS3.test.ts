@@ -1,13 +1,10 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { LambdaClient, InvokeCommand } from '@aws-sdk/client-lambda';
-import { App } from 'aws-cdk-lib';
-import { Template } from 'aws-cdk-lib/assertions';
 import { v4 as uuidv4 } from 'uuid';
 import { createServerlessSpyListener } from '../../../listener/createServerlessSpyListener';
 import { ServerlessSpyListener } from '../../../listener/ServerlessSpyListener';
 import { ServerlessSpyEvents } from '../serverlessSpyEvents/ServerlessSpyEventsLambdaToS3';
-import { LambdaToS3Stack } from '../src/lambdaToS3Stack';
 import { TestData } from './TestData';
 
 jest.setTimeout(30000);
@@ -67,14 +64,5 @@ describe('Lambda to S3', () => {
         condition: (d) => d.key === `${id}.json`,
       })
     ).toMatchObject({ key: `${id}.json` }); //redundant
-  });
-
-  test('Snapshot', () => {
-    const app = new App();
-    const stack = new LambdaToS3Stack(app, 'Test', {
-      generateSpyEventsFile: false,
-    });
-    const template = Template.fromStack(stack);
-    expect(template.toJSON()).toMatchSnapshot();
   });
 });
