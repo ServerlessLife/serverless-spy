@@ -6,7 +6,7 @@
       "steps": [
         {
           "exec": "rm -rf lib"
-        },       
+        },
         {
           "spawn": "pre-compile"
         },
@@ -109,7 +109,7 @@
     "compile-cli-web": {
       "name": "compile-cli-web",
       "description": "Compile TS for CLI web console",
-      "steps": [         
+      "steps": [
         {
           "exec": "esbuild --bundle --platform=browser --sourcemap cli/webServerlessSpy.ts --outdir=lib/cli"
         }
@@ -118,7 +118,7 @@
     "compile": {
       "name": "compile",
       "description": "Only compile",
-      "steps": [         
+      "steps": [
         {
           "exec": "rm -rf lib && rm -rf temp"
         },
@@ -130,7 +130,7 @@
         },
         {
           "exec": "mv lib temp"
-        },      
+        },
         {
           "exec": "tsc --project tsconfig.npm.json --module esnext --outDir lib"
         },
@@ -142,31 +142,31 @@
         },
         {
           "exec": "cp -rlf temp/* lib/src"
-        }, 
+        },
         {
           "spawn": "bundle-extension"
-        }, 
+        },
         {
           "spawn": "compile-cli-web"
-        }, 
+        },
         {
           "exec": "cp -rlf cli/* lib/cli"
         },
         {
           "exec": "rm -rf temp"
-        }      
+        }
       ]
     },
     "cli": {
       "name": "cli",
       "description": "Run cli",
-      "steps": [      
+      "steps": [
         {
           "spawn": "compile-cli-web"
-        },    
+        },
         {
           "exec": "esr cli/cli.ts --cdkoutput ../test/cdk/cdkOutput.json"
-        }      
+        }
       ]
     },
     "bundle-extension": {
@@ -252,12 +252,6 @@
         },
         {
           "spawn": "build"
-        },
-        {
-          "spawn": "unbump"
-        },
-        {
-          "exec": "git diff --ignore-space-at-eol --exit-code"
         }
       ]
     },
@@ -328,7 +322,7 @@
         },
         {
           "exec": "npm-check-updates --dep prod --upgrade --target=minor"
-        },   
+        },
         {
           "exec": "npm run upgrade -w test/cdk"
         },
@@ -337,7 +331,7 @@
         },
         {
           "exec": "npm update"
-        },        
+        },
         {
           "spawn": "post-upgrade"
         }
