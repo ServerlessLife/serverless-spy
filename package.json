@@ -84,7 +84,7 @@
     "cli"
   ],
   "peerDependencies": {
-    "aws-cdk-lib": "^2",
+    "aws-cdk-lib": "^2.114",
     "constructs": "^10"
   },
   "dependencies": {
