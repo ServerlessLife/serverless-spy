@@ -85,7 +85,7 @@ When first setting up ServerlessSpy for a new account it can take a couple of mi
  - [License](./LICENSE.md)
 
 # Co-authors
- - [Marko Strukelj](https://github.com/ServerlessLife)
+ - [Marko (ServerlessLife)](https://github.com/ServerlessLife)
  - [Hugo Lewenhaupt](https://github.com/Lewenhaupt)
 
 # Contributors (alphabetical)
