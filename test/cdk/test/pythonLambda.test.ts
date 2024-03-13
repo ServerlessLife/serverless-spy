@@ -29,7 +29,6 @@ describe('PythonLambda', () => {
     lambdaClient = new LambdaClient({});
     serverlessSpyListener =
       await createServerlessSpyListener<ServerlessSpyEvents>({
-        scope: 'ServerlessSpyPythonLambda',
         serverlessSpyWsUrl: output.ServerlessSpyWsUrl,
         debugMode: true,
       });

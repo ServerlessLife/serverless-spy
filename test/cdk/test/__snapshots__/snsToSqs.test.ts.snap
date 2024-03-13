@@ -5,9 +5,17 @@ exports[`SNS to SQS Snapshot 1`] = `
   "Outputs": {
     "ServerlessSpyWsUrl": {
       "Value": {
-        "Fn::GetAtt": [
-          "ServerlessSpyServerlessSpyIotEndpoint1E71FAC4",
-          "endpointAddress",
+        "Fn::Join": [
+          "",
+          [
+            {
+              "Fn::GetAtt": [
+                "ServerlessSpyServerlessSpyIotEndpoint1E71FAC4",
+                "endpointAddress",
+              ],
+            },
+            "/Test",
+          ],
         ],
       },
     },

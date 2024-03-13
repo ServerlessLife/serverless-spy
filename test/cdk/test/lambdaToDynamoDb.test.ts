@@ -23,7 +23,6 @@ describe('Lambda to DynamoDB', () => {
   beforeEach(async () => {
     serverlessSpyListener =
       await createServerlessSpyListener<ServerlessSpyEvents>({
-        scope: 'ServerlessSpyLambdaToDynamoDb',
         serverlessSpyWsUrl: output.ServerlessSpyWsUrl,
       });
   });

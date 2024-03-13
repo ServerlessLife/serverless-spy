@@ -27,7 +27,6 @@ describe('SNS to SQS', () => {
   beforeEach(async () => {
     serverlessSpyListener =
       await createServerlessSpyListener<ServerlessSpyEvents>({
-        scope: 'ServerlessSpySnsToSqs',
         serverlessSpyWsUrl: output.ServerlessSpyWsUrl,
       });
   });

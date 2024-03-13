@@ -24,7 +24,6 @@ describe('E2e', () => {
   beforeEach(async () => {
     serverlessSpyListener =
       await createServerlessSpyListener<ServerlessSpyEvents>({
-        scope: 'ServerlessSpyE2e',
         serverlessSpyWsUrl: output.ServerlessSpyWsUrl,
         debugMode: true,
       });

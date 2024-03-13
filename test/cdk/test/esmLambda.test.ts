@@ -23,7 +23,6 @@ describe('EsmLambda', () => {
   beforeEach(async () => {
     serverlessSpyListener =
       await createServerlessSpyListener<ServerlessSpyEvents>({
-        scope: 'ServerlessSpyEsmLambda',
         serverlessSpyWsUrl: output.ServerlessSpyWsUrl,
       });
   });

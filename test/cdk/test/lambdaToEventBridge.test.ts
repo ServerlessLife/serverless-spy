@@ -23,7 +23,6 @@ describe('Lambda to EventBridge', () => {
   beforeEach(async () => {
     serverlessSpyListener =
       await createServerlessSpyListener<ServerlessSpyEvents>({
-        scope: 'ServerlessSpyLambdaToEventBridge',
         serverlessSpyWsUrl: output.ServerlessSpyWsUrl,
       });
   });

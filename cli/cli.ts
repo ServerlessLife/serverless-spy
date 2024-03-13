@@ -91,7 +91,9 @@ async function run() {
       throw new Error('Missing IoT endpoint url');
     }
 
-    connection = await getConnection(true, wsUrl);
+    const wsUrlWithoutScope = wsUrl.split('/')[0];
+
+    connection = await getConnection(true, wsUrlWithoutScope);
 
     const topic = getTopic('#');
     console.log(`Subscribing to ${topic}`);

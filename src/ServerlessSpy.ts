@@ -67,6 +67,10 @@ export class ServerlessSpy extends Construct {
   ) {
     super(scope, id);
 
+    const rootStack = this.cleanName(
+      this.findRootStack(Stack.of(this)).node.id
+    );
+
     const getIoTEndpoint = new custom_resources.AwsCustomResource(
       this,
       serverlessSpyIotEndpointCrNamePrefix,
@@ -84,9 +88,7 @@ export class ServerlessSpy extends Construct {
         policy: custom_resources.AwsCustomResourcePolicy.fromSdkCalls({
           resources: custom_resources.AwsCustomResourcePolicy.ANY_RESOURCE,
         }),
-        functionName:
-          serverlessSpyIotEndpointCrNamePrefix +
-          this.cleanName(this.findRootStack(Stack.of(this)).node.id),
+        functionName: serverlessSpyIotEndpointCrNamePrefix + rootStack,
       }
     );
     this.iotEndpoint = getIoTEndpoint.getResponseField('endpointAddress');
@@ -95,7 +97,7 @@ export class ServerlessSpy extends Construct {
 
     new CfnOutput(this, 'ServerlessSpyIoTEndpoint', {
       key: 'ServerlessSpyWsUrl',
-      value: this.iotEndpoint,
+      value: `${this.iotEndpoint}/${rootStack}`,
     });
 
     this.lambdaSubscriptionMain = this.provideFunctionForSubscription();
