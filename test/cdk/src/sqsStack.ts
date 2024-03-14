@@ -1,8 +1,8 @@
 import { Stack, CfnOutput } from 'aws-cdk-lib';
 import * as sqs from 'aws-cdk-lib/aws-sqs';
 import { Construct } from 'constructs';
-import { ServerlessSpy } from '../../../src/ServerlessSpy';
 import { GenerateSpyEventsFileProps } from './GenerateSpyEventsFileProps';
+import { ServerlessSpy } from '../../../src/ServerlessSpy';
 
 export class SqsStack extends Stack {
   constructor(scope: Construct, id: string, props: GenerateSpyEventsFileProps) {

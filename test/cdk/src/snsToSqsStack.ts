@@ -7,8 +7,8 @@ import * as sns from 'aws-cdk-lib/aws-sns';
 import { SqsSubscription } from 'aws-cdk-lib/aws-sns-subscriptions';
 import * as sqs from 'aws-cdk-lib/aws-sqs';
 import { Construct } from 'constructs';
-import { ServerlessSpy } from '../../../src/ServerlessSpy';
 import { GenerateSpyEventsFileProps } from './GenerateSpyEventsFileProps';
+import { ServerlessSpy } from '../../../src/ServerlessSpy';
 
 export class SnsToSqsStack extends Stack {
   constructor(scope: Construct, id: string, props: GenerateSpyEventsFileProps) {

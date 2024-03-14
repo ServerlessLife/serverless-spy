@@ -141,16 +141,22 @@
           "exec": "tsc --project tsconfig.npm.json --module commonjs --outDir lib"
         },
         {
-          "exec": "cp -rlf temp/* lib/src"
+          "exec": "cp -rf temp/* lib/src"
         },
         {
           "spawn": "bundle-extension"
         },
         {
+          "exec": "mkdir lib/extensions"
+        },
+        {
+          "spawn": "bundle-python-extension"
+        },
+        {
           "spawn": "compile-cli-web"
         },
         {
-          "exec": "cp -rlf cli/* lib/cli"
+          "exec": "cp -rf cli/* lib/cli"
         },
         {
           "exec": "rm -rf temp"
@@ -175,6 +181,15 @@
       "steps": [
         {
           "exec": "esbuild --bundle --platform=node --sourcemap extension/interceptor.ts --outdir=lib/extension/dist/layer/nodejs/node_modules; cp extension/spy-wrapper lib/extension/dist/layer"
+        }
+      ]
+    },
+    "bundle-python-extension": {
+      "name": "bundle-python-extension",
+      "description": "Bundle ptyhon extension",
+      "steps": [
+        {
+          "exec": "cp -rf extensions/python lib/extensions/python"
         }
       ]
     },
@@ -241,7 +256,7 @@
       "description": "Prepare a release from \"main\" branch",
       "env": {
         "RELEASE": "true",
-        "MAJOR": "1"
+        "MAJOR": "2"
       },
       "steps": [
         {

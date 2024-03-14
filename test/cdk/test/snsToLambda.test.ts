@@ -3,10 +3,10 @@ import * as path from 'path';
 import { PublishCommand, SNSClient } from '@aws-sdk/client-sns';
 import { SNSEvent } from 'aws-lambda';
 import { v4 as uuidv4 } from 'uuid';
+import { TestData } from './TestData';
 import { createServerlessSpyListener } from '../../../listener/createServerlessSpyListener';
 import { ServerlessSpyListener } from '../../../listener/ServerlessSpyListener';
 import { ServerlessSpyEvents } from '../serverlessSpyEvents/ServerlessSpyEventsSnsToLambda';
-import { TestData } from './TestData';
 
 jest.setTimeout(30000);
 
@@ -68,6 +68,41 @@ describe('SNS to Lambda', () => {
               (r) => JSON.parse(r.Sns.Message) as TestData
             ).find((d) => d.id === data.id),
         })
+      )
+        .toMatchObject({
+          request: {
+            Records: expect.arrayContaining([
+              expect.objectContaining({
+                Sns: expect.objectContaining({
+                  Message: JSON.stringify(data),
+                }),
+              }),
+            ]),
+          },
+        })
+        .followedByResponse({})
+    ).toMatchObject({
+      request: {
+        Records: expect.arrayContaining([
+          expect.objectContaining({
+            Sns: expect.objectContaining({
+              Message: JSON.stringify(data),
+            }),
+          }),
+        ]),
+      },
+    });
+
+    (
+      await (
+        await serverlessSpyListener.waitForFunctionMyPythonLambdaRequest<SNSEvent>(
+          {
+            condition: (d) =>
+              !!d.request.Records.map(
+                (r) => JSON.parse(r.Sns.Message) as TestData
+              ).find((d) => d.id === data.id),
+          }
+        )
       )
         .toMatchObject({
           request: {

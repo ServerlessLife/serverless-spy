@@ -2,10 +2,10 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { LambdaClient, InvokeCommand } from '@aws-sdk/client-lambda';
 import { v4 as uuidv4 } from 'uuid';
+import { TestData } from './TestData';
 import { createServerlessSpyListener } from '../../../listener/createServerlessSpyListener';
 import { ServerlessSpyListener } from '../../../listener/ServerlessSpyListener';
 import { ServerlessSpyEvents } from '../serverlessSpyEvents/ServerlessSpyEventsLambdaToS3';
-import { TestData } from './TestData';
 
 jest.setTimeout(30000);
 

@@ -36,7 +36,7 @@ let serverlessSpyListener: ServerlessSpyListener<ServerlessSpyEvents>;
 beforeEach(async () => {
   serverlessSpyListener =
     await createServerlessSpyListener<ServerlessSpyEvents>({
-      serverlessSpyWsUrl: output.ServerlessSpyWsUrl, // ServerlessSpy WebSocket URL from CloudFormation output
+      ServerlessSpyWsUrl: output.ServerlessSpyWsUrl, // ServerlessSpy IoT URL from CloudFormation output
     });
 });
 ```  

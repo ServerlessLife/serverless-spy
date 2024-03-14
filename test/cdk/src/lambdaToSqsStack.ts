@@ -4,8 +4,8 @@ import * as lambda from 'aws-cdk-lib/aws-lambda';
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 import * as sqs from 'aws-cdk-lib/aws-sqs';
 import { Construct } from 'constructs';
-import { ServerlessSpy } from '../../../src/ServerlessSpy';
 import { GenerateSpyEventsFileProps } from './GenerateSpyEventsFileProps';
+import { ServerlessSpy } from '../../../src/ServerlessSpy';
 
 export class LambdaToSqsStack extends Stack {
   constructor(scope: Construct, id: string, props: GenerateSpyEventsFileProps) {

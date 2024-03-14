@@ -12,12 +12,12 @@ npx sspy --cdkoutput cdkOutput.json
 ```
 The browser window will open [http://localhost:3456/](http://localhost:3456/).
 
-`cdkOutput.json` contains exported CloudFormation outputs ([see](./quick_start.md)). The key output is `ServerlessSpyWsUrl`, which is the URL to the WebSocket where the testing library and web console receive events. You can also set websocket directly with parameter `--ws`.
+`cdkOutput.json` contains exported CloudFormation outputs ([see](./quick_start.md)). The key output is `ServerlessSpyWsUrl`, which is the URL to the AWS IoT endpoint where the testing library and web console receive events. You can also set websocket directly with parameter `--ws`.
 
 ## Parameters:
 `--ws <ws>` - Websocket link (optional)
 
-`--cdkoutput <cdkoutput>` - CDK output file that contains Websocket link in a property `ServerlessSpyWsUrl` (optional)
+`--cdkoutput <cdkoutput>` - CDK output file that contains AWS IoT endpoint link in a property `ServerlessSpyWsUrl` (optional)
 
 `--cdkstack <cdkstack>` - CDK stack in CDK output file. If not specified, the first one is picked (optional)
 

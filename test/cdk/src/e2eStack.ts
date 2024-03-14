@@ -14,8 +14,8 @@ import {
 } from 'aws-cdk-lib/aws-sns-subscriptions';
 import * as sqs from 'aws-cdk-lib/aws-sqs';
 import { Construct } from 'constructs';
-import { ServerlessSpy } from '../../../src/ServerlessSpy';
 import { GenerateSpyEventsFileProps } from './GenerateSpyEventsFileProps';
+import { ServerlessSpy } from '../../../src/ServerlessSpy';
 
 export class E2eStack extends Stack {
   constructor(scope: Construct, id: string, props: GenerateSpyEventsFileProps) {
@@ -165,6 +165,7 @@ export class E2eStack extends Stack {
     const serverlessSpy = new ServerlessSpy(this, 'ServerlessSpy', {
       generateSpyEventsFileLocation:
         'serverlessSpyEvents/ServerlessSpyEventsE2e.ts',
+      debugMode: true,
     });
 
     serverlessSpy.spy();

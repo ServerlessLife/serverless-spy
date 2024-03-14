@@ -1,11 +1,12 @@
 import { Modal, Tooltip } from 'bootstrap';
 import formatHighlight from 'json-format-highlight';
+// import { sampleData } from './sampleData'; // Leave this for testing
 import { EventBridgeBaseSpyEvent } from '../common/spyEvents/EventBridgeBaseSpyEvent';
 import { FunctionBaseSpyEvent } from '../common/spyEvents/FunctionBaseSpyEvent';
 import { SnsSpyEventBase } from '../common/spyEvents/SnsSpyEventBase';
 import { SpyEvent } from '../common/spyEvents/SpyEvent';
 import { SpyMessage } from '../common/spyEvents/SpyMessage';
-//import { sampleData } from './sampleData'; // Leave this for testing
+import { getTopic } from '../listener/topic';
 
 //needed because of strange bug in Bootstrap Tooltip
 (window as any).process = { env: {} };
@@ -31,6 +32,7 @@ function run() {
   let stackList: string[] | undefined;
   const selectedStackLocalStorageKey = 'selectedStack';
   let ws: WebSocket;
+  let selectedStack: string | undefined;
 
   // ************* HTML elements *************
   const tableBodyElement = document.getElementById('tableBody')!;
@@ -83,10 +85,14 @@ function run() {
   //   addSpyMessage(sm as any);
   // }
 
+  function updateSelectedStack() {
+    selectedStack = stackListElement.value;
+    console.log(`Updating selected stack to ${selectedStack}`);
+  }
+
   function switchStack() {
-    spyMessages.length = 0;
+    updateSelectedStack();
     uiNeedsRefresh = true;
-    ws.close();
   }
 
   async function fillStacks() {
@@ -97,7 +103,7 @@ function run() {
       stackList = [];
     }
 
-    const selectedStack = localStorage.getItem(selectedStackLocalStorageKey);
+    selectedStack = localStorage.getItem(selectedStackLocalStorageKey);
 
     stackListElement.innerHTML =
       stackList
@@ -108,7 +114,7 @@ function run() {
             }>${s}</option>`
         )
         .join('') ?? '';
-
+    updateSelectedStack();
     console.log(stackListContainerElement.style.display);
     stackListContainerElement.style.display =
       stackList && stackList.length > 1 ? '' : 'none';
@@ -116,16 +122,13 @@ function run() {
 
   async function connectToWebSocket() {
     try {
-      const stack = stackListElement.value;
-      const response = await fetch(`/wsUrl/${stack}`);
+      const response = await fetch(`/wsUrl`);
       if (response.ok) {
         const url = await response.text();
         ws = new WebSocket(url);
 
         ws.addEventListener('open', () => {
-          console.log(
-            `Connected ${new Date().toISOString()} to stack ${stack}`
-          );
+          console.log(`Connected ${new Date().toISOString()} to IoT`);
         });
         ws.addEventListener('message', receiveSpyMessage());
         ws.addEventListener('close', () => {
@@ -161,7 +164,6 @@ function run() {
     ev: MessageEvent<any>
   ) => any {
     return ({ data }) => {
-      //console.log(data);
       let parsed;
       try {
         parsed = JSON.parse(data);
@@ -223,7 +225,6 @@ function run() {
     const service = getServiceNameFromServiceKey(spyMessageExt.serviceKey);
     let spyMessageToAdd: SpyMessageExt | SpyMessageGroup | undefined =
       spyMessageExt;
-
     if (service === 'Function') {
       const spyMessageFunction =
         spyMessageExt as SpyMessageExt<FunctionBaseSpyEvent>;
@@ -235,12 +236,12 @@ function run() {
       }
 
       const step = getFunctionStepFromServiceKey(spyMessageExt.serviceKey);
-
       if (step === 'Request') {
         spyMessageToAdd = <SpyMessageGroup>{
           timestamp: spyMessageExt.timestamp,
           serviceKey: spyMessageExt.serviceKey,
           messages: functionEvents,
+          topic: spyMessageExt.topic,
         };
         functionEvents.unshift(spyMessageFunction);
       } else {
@@ -261,6 +262,7 @@ function run() {
           timestamp: spyMessageExt.timestamp,
           serviceKey: spyMessageExt.serviceKey,
           messages: snsEvents,
+          topic: spyMessageExt.topic,
         };
         snsEvents.unshift(spyMessageSns);
       } else {
@@ -282,6 +284,7 @@ function run() {
           timestamp: spyMessageExt.timestamp,
           serviceKey: spyMessageExt.serviceKey,
           messages: eventBridgeEvents,
+          topic: spyMessageExt.topic,
         };
         eventBridgeEvents.unshift(spyMessageEventBridge);
       } else {
@@ -342,8 +345,8 @@ function run() {
     } else {
       messages = [spyMessage as SpyMessageExt];
     }
-
     const html = messages
+      .filter((sm) => sm.topic === getTopic(selectedStack!))
       .filter((sm) => matchFilter(sm, { serviceKey, data }))
       .map((sm, i) => {
         const service = getServiceNameFromServiceKey(sm.serviceKey);
@@ -400,10 +403,15 @@ function run() {
           default:
             break;
         }
+        let timeStamp;
+        try {
+          timeStamp = new Date(sm.timestamp).toISOString();
+        } catch (e) {
+          console.log(`Failed to render ${JSON.stringify(sm)}: ${e}`);
+          throw e;
+        }
         return `<tr>
-    <td class="col-time"><span class="time">${new Date(
-      sm.timestamp
-    ).toISOString()}</span></td>
+    <td class="col-time"><span class="time">${timeStamp}</span></td>
     <td class="col-servicekey">${icon}<span class="serviceKey">${
           sm.serviceKey
         }</span></td>
@@ -437,6 +445,7 @@ function run() {
     spyMessageToAdd: SpyMessageExt | SpyMessageGroup,
     spyMessages: (SpyMessageExt | SpyMessageGroup)[]
   ) {
+    // console.log('Adding message');
     let index = 0;
     for (let i = spyMessages.length - 1; i >= 0; i--) {
       const currentSpyMessages = spyMessages[i];
@@ -452,10 +461,12 @@ function run() {
 type SpyMessageExt<T extends SpyEvent = SpyEvent> = SpyMessage<T> & {
   dataJsonLowerCase: string;
   serviceKeyLowerCase: string;
+  topic: string;
 };
 
 type SpyMessageGroup<T extends SpyEvent = SpyEvent> = {
   timestamp: string;
   serviceKey: string;
   messages: SpyMessageExt<T>[];
+  topic: string;
 };

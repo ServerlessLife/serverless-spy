@@ -1,5 +1,7 @@
 import { Callback, Context, Handler } from 'aws-lambda';
 import { serializeError } from 'serialize-error';
+// @ts-ignore
+import { load } from './aws/UserFunction';
 import { FunctionConsoleSpyEvent } from '../common/spyEvents/FunctionConsoleSpyEvent';
 import { FunctionContext } from '../common/spyEvents/FunctionContext';
 import { FunctionErrorSpyEvent } from '../common/spyEvents/FunctionErrorSpyEvent';
@@ -8,7 +10,6 @@ import { FunctionResponseSpyEvent } from '../common/spyEvents/FunctionResponseSp
 import { SpyEventSender } from '../common/SpyEventSender';
 import { envVariableNames } from '../src/common/envVariableNames';
 // @ts-ignore
-import { load } from './aws/UserFunction';
 
 const ORIGINAL_HANDLER_KEY = 'ORIGINAL_HANDLER';
 
@@ -31,6 +32,8 @@ interceptConsole();
 const spyEventSender = new SpyEventSender({
   log,
   logError,
+  scope: process.env['SSPY_ROOT_STACK']!,
+  iotEndpoint: process.env['SSPY_IOT_ENDPOINT']!,
 });
 
 // Wrap original handler.
@@ -41,6 +44,8 @@ export const handler = async (
   context: Context,
   callback: Callback
 ): Promise<any | undefined> => {
+  await spyEventSender.connect();
+
   const contextSpy: FunctionContext = {
     functionName: context.functionName,
     awsRequestId: context.awsRequestId,
@@ -138,11 +143,14 @@ export const handler = async (
     }
   } catch (error) {
     // Even if the original handler is not async, we return the promise as an async handler so we can send an error message
+    // eslint-disable-next-line @typescript-eslint/return-await
     return new Promise((_, reject) =>
       fail(error).then(() => {
         reject(error);
       })
     );
+  } finally {
+    await spyEventSender.close();
   }
 };
 

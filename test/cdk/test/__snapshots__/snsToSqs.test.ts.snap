@@ -1,0 +1,647 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`SNS to SQS Snapshot 1`] = `
+{
+  "Outputs": {
+    "ServerlessSpyWsUrl": {
+      "Value": {
+        "Fn::Join": [
+          "",
+          [
+            {
+              "Fn::GetAtt": [
+                "ServerlessSpyServerlessSpyIotEndpoint1E71FAC4",
+                "endpointAddress",
+              ],
+            },
+            "/Test",
+          ],
+        ],
+      },
+    },
+    "SnsTopicArnMyTopic": {
+      "Value": {
+        "Ref": "MyTopic86869434",
+      },
+    },
+  },
+  "Parameters": {
+    "BootstrapVersion": {
+      "Default": "/cdk-bootstrap/hnb659fds/version",
+      "Description": "Version of the CDK Bootstrap resources in this environment, automatically retrieved from SSM Parameter Store. [cdk:skip]",
+      "Type": "AWS::SSM::Parameter::Value<String>",
+    },
+  },
+  "Resources": {
+    "AWS679f53fac002430cb0da5b7982bd22872D164C4C": {
+      "DependsOn": [
+        "AWS679f53fac002430cb0da5b7982bd2287ServiceRoleC1EA0FF2",
+      ],
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
+          },
+          "S3Key": "ed6cd104ff5f101d06dae8cb2b87cc6e6d69b9a22055b467ea6cae10ff023023.zip",
+        },
+        "FunctionName": "ServerlessSpyIotEndpointTest",
+        "Handler": "index.handler",
+        "Role": {
+          "Fn::GetAtt": [
+            "AWS679f53fac002430cb0da5b7982bd2287ServiceRoleC1EA0FF2",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs18.x",
+        "Timeout": 120,
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "AWS679f53fac002430cb0da5b7982bd2287ServiceRoleC1EA0FF2": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "MyLambdaCCE802FB": {
+      "DependsOn": [
+        "MyLambdaServiceRoleDefaultPolicy5BBC6F68",
+        "MyLambdaServiceRole4539ECB6",
+      ],
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
+          },
+          "S3Key": "798d95ca5ea9167fe4c020efbb7df9d7998800b0911757a1ea86cfe4b8fc2c2f.zip",
+        },
+        "Environment": {
+          "Variables": {
+            "AWS_LAMBDA_EXEC_WRAPPER": "/opt/spy-wrapper",
+            "AWS_NODEJS_CONNECTION_REUSE_ENABLED": "1",
+            "NODE_OPTIONS": "--enable-source-maps",
+            "SSPY_DEBUG": "true",
+            "SSPY_FUNCTION_NAME": "MyLambda",
+            "SSPY_INFRA_MAPPING": {
+              "Fn::Join": [
+                "",
+                [
+                  "{"",
+                  {
+                    "Fn::GetAtt": [
+                      "MyQueueE6CA6235",
+                      "Arn",
+                    ],
+                  },
+                  "":"Sqs#MyQueue"}",
+                ],
+              ],
+            },
+            "SSPY_IOT_ENDPOINT": {
+              "Fn::GetAtt": [
+                "ServerlessSpyServerlessSpyIotEndpoint1E71FAC4",
+                "endpointAddress",
+              ],
+            },
+            "SSPY_ROOT_STACK": "Test",
+            "SSPY_SUBSCRIBED_TO_SQS": "true",
+          },
+        },
+        "Handler": "index.handler",
+        "Layers": [
+          {
+            "Ref": "ServerlessSpyExtensionEA4873A0",
+          },
+        ],
+        "MemorySize": 512,
+        "Role": {
+          "Fn::GetAtt": [
+            "MyLambdaServiceRole4539ECB6",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs16.x",
+        "Timeout": 5,
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "MyLambdaServiceRole4539ECB6": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "MyLambdaServiceRoleDefaultPolicy5BBC6F68": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": [
+                "sqs:ReceiveMessage",
+                "sqs:ChangeMessageVisibility",
+                "sqs:GetQueueUrl",
+                "sqs:DeleteMessage",
+                "sqs:GetQueueAttributes",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::GetAtt": [
+                  "MyQueueE6CA6235",
+                  "Arn",
+                ],
+              },
+            },
+            {
+              "Action": "iot:*",
+              "Effect": "Allow",
+              "Resource": "*",
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "MyLambdaServiceRoleDefaultPolicy5BBC6F68",
+        "Roles": [
+          {
+            "Ref": "MyLambdaServiceRole4539ECB6",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "MyLambdaSqsEventSourceTestMyQueueE040091DE4AC535F": {
+      "Properties": {
+        "EventSourceArn": {
+          "Fn::GetAtt": [
+            "MyQueueE6CA6235",
+            "Arn",
+          ],
+        },
+        "FunctionName": {
+          "Ref": "MyLambdaCCE802FB",
+        },
+      },
+      "Type": "AWS::Lambda::EventSourceMapping",
+    },
+    "MyQueueE6CA6235": {
+      "DeletionPolicy": "Delete",
+      "Type": "AWS::SQS::Queue",
+      "UpdateReplacePolicy": "Delete",
+    },
+    "MyQueuePolicy6BBEDDAC": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sqs:SendMessage",
+              "Condition": {
+                "ArnEquals": {
+                  "aws:SourceArn": {
+                    "Ref": "MyTopic86869434",
+                  },
+                },
+              },
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "sns.amazonaws.com",
+              },
+              "Resource": {
+                "Fn::GetAtt": [
+                  "MyQueueE6CA6235",
+                  "Arn",
+                ],
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "Queues": [
+          {
+            "Ref": "MyQueueE6CA6235",
+          },
+        ],
+      },
+      "Type": "AWS::SQS::QueuePolicy",
+    },
+    "MyQueueTestMyTopic06942AEA1790F2C1": {
+      "DependsOn": [
+        "MyQueuePolicy6BBEDDAC",
+      ],
+      "Properties": {
+        "Endpoint": {
+          "Fn::GetAtt": [
+            "MyQueueE6CA6235",
+            "Arn",
+          ],
+        },
+        "Protocol": "sqs",
+        "TopicArn": {
+          "Ref": "MyTopic86869434",
+        },
+      },
+      "Type": "AWS::SNS::Subscription",
+    },
+    "MyTopic86869434": {
+      "Type": "AWS::SNS::Topic",
+    },
+    "ServerlessSpyExtensionEA4873A0": {
+      "Properties": {
+        "CompatibleArchitectures": [
+          "x86_64",
+        ],
+        "CompatibleRuntimes": [
+          "nodejs16.x",
+        ],
+        "Content": {
+          "S3Bucket": {
+            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
+          },
+          "S3Key": "43a00a3d03f3547a6a73d5f1ad27002b1257903b2013bceb9a08b917352f155c.zip",
+        },
+      },
+      "Type": "AWS::Lambda::LayerVersion",
+    },
+    "ServerlessSpyServerlessSpyIotEndpoint1E71FAC4": {
+      "DeletionPolicy": "Delete",
+      "DependsOn": [
+        "ServerlessSpyServerlessSpyIotEndpointCustomResourcePolicy5E739DC7",
+      ],
+      "Properties": {
+        "Create": "{"service":"Iot","action":"describeEndpoint","physicalResourceId":{"responsePath":"endpointAddress"},"parameters":{"endpointType":"iot:Data-ATS"}}",
+        "InstallLatestAwsSdk": false,
+        "ServiceToken": {
+          "Fn::GetAtt": [
+            "AWS679f53fac002430cb0da5b7982bd22872D164C4C",
+            "Arn",
+          ],
+        },
+      },
+      "Type": "Custom::AWS",
+      "UpdateReplacePolicy": "Delete",
+    },
+    "ServerlessSpyServerlessSpyIotEndpointCustomResourcePolicy5E739DC7": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": "iot:DescribeEndpoint",
+              "Effect": "Allow",
+              "Resource": "*",
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "ServerlessSpyServerlessSpyIotEndpointCustomResourcePolicy5E739DC7",
+        "Roles": [
+          {
+            "Ref": "AWS679f53fac002430cb0da5b7982bd2287ServiceRoleC1EA0FF2",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "ServerlessSpySubscription0036DF4AB": {
+      "DependsOn": [
+        "ServerlessSpySubscription0ServiceRoleDefaultPolicyD8FA77F4",
+        "ServerlessSpySubscription0ServiceRoleF955D76C",
+      ],
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
+          },
+          "S3Key": "dce0d8a0c55bb1e9653044c6491ac5636ab59469e39aaf821e80ac9b2e9185d2.zip",
+        },
+        "Environment": {
+          "Variables": {
+            "AWS_NODEJS_CONNECTION_REUSE_ENABLED": "1",
+            "NODE_OPTIONS": "--enable-source-maps",
+            "SSPY_INFRA_MAPPING": {
+              "Fn::Join": [
+                "",
+                [
+                  "{"",
+                  {
+                    "Ref": "MyTopic86869434",
+                  },
+                  "":"SnsTopic#MyTopic"}",
+                ],
+              ],
+            },
+            "SSPY_IOT_ENDPOINT": {
+              "Fn::GetAtt": [
+                "ServerlessSpyServerlessSpyIotEndpoint1E71FAC4",
+                "endpointAddress",
+              ],
+            },
+            "SSPY_ROOT_STACK": "Test",
+          },
+        },
+        "Handler": "index.handler",
+        "MemorySize": 512,
+        "Role": {
+          "Fn::GetAtt": [
+            "ServerlessSpySubscription0ServiceRoleF955D76C",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs20.x",
+        "Timeout": 5,
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "ServerlessSpySubscription0AllowInvokeTestMyTopic06942AEAB4AEE620": {
+      "Properties": {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "ServerlessSpySubscription0036DF4AB",
+            "Arn",
+          ],
+        },
+        "Principal": "sns.amazonaws.com",
+        "SourceArn": {
+          "Ref": "MyTopic86869434",
+        },
+      },
+      "Type": "AWS::Lambda::Permission",
+    },
+    "ServerlessSpySubscription0MyTopic191FC9F5": {
+      "Properties": {
+        "Endpoint": {
+          "Fn::GetAtt": [
+            "ServerlessSpySubscription0036DF4AB",
+            "Arn",
+          ],
+        },
+        "Protocol": "lambda",
+        "TopicArn": {
+          "Ref": "MyTopic86869434",
+        },
+      },
+      "Type": "AWS::SNS::Subscription",
+    },
+    "ServerlessSpySubscription0ServiceRoleDefaultPolicyD8FA77F4": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": "iot:*",
+              "Effect": "Allow",
+              "Resource": "*",
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "ServerlessSpySubscription0ServiceRoleDefaultPolicyD8FA77F4",
+        "Roles": [
+          {
+            "Ref": "ServerlessSpySubscription0ServiceRoleF955D76C",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "ServerlessSpySubscription0ServiceRoleF955D76C": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "ServerlessSpySubscription13C6B2B7D": {
+      "DependsOn": [
+        "ServerlessSpySubscription1ServiceRoleDefaultPolicyB2E063F5",
+        "ServerlessSpySubscription1ServiceRoleCB639294",
+      ],
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
+          },
+          "S3Key": "dce0d8a0c55bb1e9653044c6491ac5636ab59469e39aaf821e80ac9b2e9185d2.zip",
+        },
+        "Environment": {
+          "Variables": {
+            "AWS_NODEJS_CONNECTION_REUSE_ENABLED": "1",
+            "NODE_OPTIONS": "--enable-source-maps",
+            "SSPY_INFRA_MAPPING": {
+              "Fn::Join": [
+                "",
+                [
+                  "{"",
+                  {
+                    "Ref": "MyTopic86869434",
+                  },
+                  "":"SnsSubscription#MyTopic#MyQueue"}",
+                ],
+              ],
+            },
+            "SSPY_IOT_ENDPOINT": {
+              "Fn::GetAtt": [
+                "ServerlessSpyServerlessSpyIotEndpoint1E71FAC4",
+                "endpointAddress",
+              ],
+            },
+            "SSPY_ROOT_STACK": "Test",
+          },
+        },
+        "Handler": "index.handler",
+        "MemorySize": 512,
+        "Role": {
+          "Fn::GetAtt": [
+            "ServerlessSpySubscription1ServiceRoleCB639294",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs20.x",
+        "Timeout": 5,
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "ServerlessSpySubscription1AllowInvokeTestMyTopic06942AEAED481931": {
+      "Properties": {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "ServerlessSpySubscription13C6B2B7D",
+            "Arn",
+          ],
+        },
+        "Principal": "sns.amazonaws.com",
+        "SourceArn": {
+          "Ref": "MyTopic86869434",
+        },
+      },
+      "Type": "AWS::Lambda::Permission",
+    },
+    "ServerlessSpySubscription1MyTopic98E4131B": {
+      "Properties": {
+        "Endpoint": {
+          "Fn::GetAtt": [
+            "ServerlessSpySubscription13C6B2B7D",
+            "Arn",
+          ],
+        },
+        "Protocol": "lambda",
+        "TopicArn": {
+          "Ref": "MyTopic86869434",
+        },
+      },
+      "Type": "AWS::SNS::Subscription",
+    },
+    "ServerlessSpySubscription1ServiceRoleCB639294": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "ServerlessSpySubscription1ServiceRoleDefaultPolicyB2E063F5": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": "iot:*",
+              "Effect": "Allow",
+              "Resource": "*",
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "ServerlessSpySubscription1ServiceRoleDefaultPolicyB2E063F5",
+        "Roles": [
+          {
+            "Ref": "ServerlessSpySubscription1ServiceRoleCB639294",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+  },
+  "Rules": {
+    "CheckBootstrapVersion": {
+      "Assertions": [
+        {
+          "Assert": {
+            "Fn::Not": [
+              {
+                "Fn::Contains": [
+                  [
+                    "1",
+                    "2",
+                    "3",
+                    "4",
+                    "5",
+                  ],
+                  {
+                    "Ref": "BootstrapVersion",
+                  },
+                ],
+              },
+            ],
+          },
+          "AssertDescription": "CDK bootstrap stack version 6 required. Please run 'cdk bootstrap' with a recent version of the CDK CLI.",
+        },
+      ],
+    },
+  },
+}
+`;

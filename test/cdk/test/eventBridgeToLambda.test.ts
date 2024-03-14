@@ -6,10 +6,10 @@ import {
 } from '@aws-sdk/client-eventbridge';
 import { EventBridgeEvent } from 'aws-lambda';
 import { v4 as uuidv4 } from 'uuid';
+import { TestData } from './TestData';
 import { createServerlessSpyListener } from '../../../listener/createServerlessSpyListener';
 import { ServerlessSpyListener } from '../../../listener/ServerlessSpyListener';
 import { ServerlessSpyEvents } from '../serverlessSpyEvents/ServerlessSpyEventsEventBridgeToLambda';
-import { TestData } from './TestData';
 
 jest.setTimeout(30000);
 
@@ -81,6 +81,27 @@ describe('EventBridge to Lambda', () => {
     (
       await (
         await serverlessSpyListener.waitForFunctionMyLambdaRequest<
+          EventBridgeEvent<'test', TestData>
+        >({
+          condition: (d) => d.request.detail.id === id,
+        })
+      )
+        .toMatchObject({
+          request: {
+            detail: data,
+            source: 'test-source',
+          },
+        })
+        .followedByResponse<EventBridgeEvent<'test', TestData>>({})
+    ).toMatchObject({
+      request: {
+        detail: data,
+        source: 'test-source',
+      },
+    });
+    (
+      await (
+        await serverlessSpyListener.waitForFunctionMyPythonLambdaRequest<
           EventBridgeEvent<'test', TestData>
         >({
           condition: (d) => d.request.detail.id === id,

@@ -33,7 +33,6 @@
     "typescript": "^5.3.3"
   },
   "dependencies": {
-    "@aws-sdk/client-apigatewaymanagementapi": "^3.470.0",
     "@aws-sdk/client-dynamodb": "^3.470.0",
     "@aws-sdk/client-eventbridge": "^3.470.0",
     "@aws-sdk/client-lambda": "^3.470.0",
@@ -42,7 +41,9 @@
     "@aws-sdk/client-sqs": "^3.470.0",
     "@aws-sdk/lib-dynamodb": "^3.470.0",
     "@aws-sdk/util-dynamodb": "^3.470.0",
-    "aws-cdk-lib": "^2.114.1",
+    "aws-cdk-lib": "^2.124",
+    "@serverless-stack/node": "^1.15.4",
+    "@aws-cdk/aws-lambda-python-alpha": ">=2.124.0-alpha.0",
     "aws4": "^1.11.0",
     "constructs": "^10.3.0",
     "tsconfig-paths": "^4.2.0"

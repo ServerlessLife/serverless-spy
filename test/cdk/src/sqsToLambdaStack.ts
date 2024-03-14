@@ -5,8 +5,8 @@ import { SqsEventSource } from 'aws-cdk-lib/aws-lambda-event-sources';
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 import * as sqs from 'aws-cdk-lib/aws-sqs';
 import { Construct } from 'constructs';
-import { ServerlessSpy } from '../../../src/ServerlessSpy';
 import { GenerateSpyEventsFileProps } from './GenerateSpyEventsFileProps';
+import { ServerlessSpy } from '../../../src/ServerlessSpy';
 
 export class SqsToLambdaStack extends Stack {
   constructor(scope: Construct, id: string, props: GenerateSpyEventsFileProps) {
@@ -26,6 +26,18 @@ export class SqsToLambdaStack extends Stack {
     });
     func.addEventSource(new SqsEventSource(queue));
 
+    const queue2 = new sqs.Queue(this, 'MyQueue2');
+
+    const pythonFunc = new lambda.Function(this, 'MyPythonLambda', {
+      memorySize: 512,
+      timeout: Duration.seconds(5),
+      runtime: lambda.Runtime.PYTHON_3_9,
+      handler: 'dummy.handler',
+      code: lambda.Code.fromAsset(path.join(__dirname, '../functions/python/')),
+      environment: {},
+    });
+    pythonFunc.addEventSource(new SqsEventSource(queue2));
+
     const serverlessSpy = new ServerlessSpy(this, 'ServerlessSpy', {
       generateSpyEventsFileLocation: props.generateSpyEventsFile
         ? 'serverlessSpyEvents/ServerlessSpyEventsSqsToLambda.ts'
@@ -37,6 +49,9 @@ export class SqsToLambdaStack extends Stack {
 
     new CfnOutput(this, `QueueUrl${serverlessSpy.getConstructName(queue)}`, {
       value: queue.queueUrl,
+    });
+    new CfnOutput(this, `QueueUrl${serverlessSpy.getConstructName(queue2)}`, {
+      value: queue2.queueUrl,
     });
   }
 }

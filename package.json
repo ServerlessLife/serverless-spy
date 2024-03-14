@@ -44,16 +44,17 @@
     "organization": false
   },
   "devDependencies": {
+    "aws-cdk-lib": "^2.124",
+    "constructs": "^10",
+    "@types/aws-iot-device-sdk": "^2.2.8",
     "@types/aws-lambda": "^8.10.130",
     "@types/aws4": "^1.11.6",
     "@types/jest": "^29.5.11",
     "@types/node": "^20.10.4",
     "@types/uuid": "^9.0.7",
     "@types/ws": "^8.5.10",
-    "@typescript-eslint/eslint-plugin": "^5.38.1",
-    "@typescript-eslint/parser": "^5.38.1",
-    "aws-cdk-lib": "2.114.1",
-    "constructs": "10.3.0",
+    "@typescript-eslint/eslint-plugin": "^6.12.0",
+    "@typescript-eslint/parser": "^6.12.0",
     "esbuild": "^0.19.9",
     "esbuild-runner": "^2.2.2",
     "eslint": "^8.24.0",
@@ -84,11 +85,11 @@
     "cli"
   ],
   "peerDependencies": {
-    "aws-cdk-lib": "^2.114",
+    "aws-cdk-lib": "^2.124",
     "constructs": "^10"
   },
   "dependencies": {
-    "@aws-sdk/client-apigatewaymanagementapi": "^3.470.0",
+    "@aws-cdk/aws-lambda-python-alpha": ">=2.124.0-alpha.0",
     "@aws-sdk/client-dynamodb": "^3.470.0",
     "@aws-sdk/client-eventbridge": "^3.470.0",
     "@aws-sdk/client-lambda": "^3.470.0",
@@ -100,10 +101,13 @@
     "@aws-sdk/lib-dynamodb": "^3.470.0",
     "@aws-sdk/types": "^3.178.0",
     "@aws-sdk/util-dynamodb": "^3.470.0",
+    "aws-cdk-lib": "^2.124",
+    "aws-iot-device-sdk": "^2.2.13",
     "aws4": "^1.12.0",
     "bootstrap": "^5.2.1",
     "bootstrap-icons": "^1.9.1",
     "caporal": "^1.4.0",
+    "constructs": "^10",
     "json-format-highlight": "^1.0.4",
     "open": "^9.1.0",
     "serialize-error": "^11.0.3",
@@ -148,13 +152,13 @@
   },
   "bundleDependencies": [
     "@aws-sdk/credential-providers",
-    "@aws-sdk/client-apigatewaymanagementapi",
     "@aws-sdk/client-dynamodb",
     "@aws-sdk/client-eventbridge",
     "@aws-sdk/client-lambda",
     "@aws-sdk/client-s3",
     "@aws-sdk/client-sns",
     "@aws-sdk/client-sqs",
+    "aws-iot-device-sdk",
     "@aws-sdk/lib-dynamodb",
     "@aws-sdk/util-dynamodb",
     "aws4",
@@ -182,6 +186,9 @@
       "cobertura",
       "text"
     ],
+    "moduleNameMapper": {
+      "^aws-cdk-lib/.warnings.jsii.js$": "<rootDir>/node_modules/aws-cdk-lib/.warnings.jsii.js"
+    },
     "coverageDirectory": "coverage",
     "coveragePathIgnorePatterns": [
       "/node_modules/"

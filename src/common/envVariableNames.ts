@@ -28,4 +28,14 @@ export enum envVariableNames {
    * Log debugging details.
    */
   SSPY_DEBUG = 'SSPY_DEBUG',
+
+  /**
+   * The root stack
+   */
+  SSPY_ROOT_STACK = 'SSPY_ROOT_STACK',
+
+  /**
+   * The endpoint url for AWS IoT for the account
+   */
+  SSPY_IOT_ENDPOINT = 'SSPY_IOT_ENDPOINT',
 }
