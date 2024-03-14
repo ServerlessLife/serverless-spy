@@ -25,6 +25,8 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: 16
+      - name: sudo docker
+        run: sudo chmod 777 /var/run/docker.sock
       - name: Set git identity
         run: |-
           git config user.name "github-actions"
