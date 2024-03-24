@@ -2,6 +2,7 @@ import { App } from 'aws-cdk-lib';
 import { E2eStack } from './e2eStack';
 import { EventBridgeToLambdaStack } from './eventBridgeToLambdaStack';
 import { LambdaStack } from './lambdaStack';
+import { LambdaToDynamoDb2Stack } from './lambdaToDynamoDb2Stack';
 import { LambdaToDynamoDbStack } from './lambdaToDynamoDbStack';
 import { LambdaToEventBridgeStack } from './lambdaToEventBridgeStack';
 import { LambdaToS3Stack } from './lambdaToS3Stack';
@@ -42,6 +43,10 @@ new PythonLambdaStack(app, 'ServerlessSpyPythonLambda', {
   generateSpyEventsFile: true,
 });
 new LambdaToDynamoDbStack(app, 'ServerlessSpyLambdaToDynamoDb', {
+  env: testEnv,
+  generateSpyEventsFile: true,
+});
+new LambdaToDynamoDb2Stack(app, 'ServerlessSpyLambdaToDynamoDb2', {
   env: testEnv,
   generateSpyEventsFile: true,
 });
