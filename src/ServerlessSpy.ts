@@ -181,6 +181,11 @@ export class ServerlessSpy extends Construct {
       ) {
         return true;
       } else if (
+        filterWithDefaults.spyDynamoDB &&
+        node instanceof dynamoDb.TableV2
+      ) {
+        return true;
+      } else if (
         filterWithDefaults.spyEventBridge &&
         node instanceof events.EventBus
       ) {
@@ -381,6 +386,8 @@ export class ServerlessSpy extends Construct {
       this.internalSpyS3(node);
     } else if (node instanceof dynamoDb.Table) {
       this.internalSpyDynamodb(node);
+    } else if (node instanceof dynamoDb.TableV2) {
+      this.internalSpyDynamodb(node);
     } else if (node instanceof events.EventBus) {
       this.internalSpyEventBus(node);
     } else if (node instanceof events.Rule) {
@@ -562,7 +569,7 @@ export class ServerlessSpy extends Construct {
     this.serviceKeys.push(serviceKey);
   }
 
-  private internalSpyDynamodb(table: dynamoDb.Table) {
+  private internalSpyDynamodb(table: dynamoDb.Table | dynamoDb.TableV2) {
     // enable DynamoDB streams with a hack
     (table.node.defaultChild as dynamoDb.CfnTable).streamSpecification = {
       streamViewType: dynamoDb.StreamViewType.NEW_AND_OLD_IMAGES,
