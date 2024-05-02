@@ -16,7 +16,7 @@ except ImportError:
     import builtins  # Python 3
 
 subscribed_to_sqs = os.environ.get('SSPY_SUBSCRIBED_TO_SQS', False) == 'true'
-debug_mode = os.environ['SSPY_DEBUG'] == 'true'
+debug_mode = os.environ.get('SSPY_DEBUG', None) == 'true'
 scope = os.environ['SSPY_ROOT_STACK']
 original_handler_name = os.environ['ORIGINAL_HANDLER']
 spied_function_name = os.environ['SSPY_FUNCTION_NAME']
@@ -97,7 +97,7 @@ class CustomEncoder(json.JSONEncoder):
             return json.JSONEncoder.default(self, obj.__repr__())
 
 
-def encode(payload) -> list[dict]:
+def encode(payload):
     payload_as_string = json.dumps(payload, cls=CustomEncoder)
     n = 50000
     parts = [
@@ -115,7 +115,7 @@ def encode(payload) -> list[dict]:
     ]
 
 
-def publish(mqtt_connection, payloads: list[dict]):
+def publish(mqtt_connection, payloads):
     try:
         futures = []
         for payload in payloads:
