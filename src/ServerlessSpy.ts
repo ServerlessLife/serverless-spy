@@ -15,7 +15,11 @@ import * as events from 'aws-cdk-lib/aws-events';
 import * as targets from 'aws-cdk-lib/aws-events-targets';
 import { Effect } from 'aws-cdk-lib/aws-iam';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
-import { Architecture, ILayerVersion } from 'aws-cdk-lib/aws-lambda';
+import {
+  Architecture,
+  ILayerVersion,
+  SingletonFunction,
+} from 'aws-cdk-lib/aws-lambda';
 import * as dynamoDbStream from 'aws-cdk-lib/aws-lambda-event-sources';
 import { SqsEventSource } from 'aws-cdk-lib/aws-lambda-event-sources';
 import * as lambdaNode from 'aws-cdk-lib/aws-lambda-nodejs';
@@ -153,7 +157,9 @@ export class ServerlessSpy extends Construct {
         // Ignore the custom resource and the Provider (as well as any other Providers using the same provider function), otherwise we cause
         // circular dependencies
         node.node.id.startsWith(CRID) ||
-        node.node.id === 'Provider'
+        node.node.id === 'Provider' ||
+        // Ignore singleton functions as they can cause very odd behavior and crashes
+        node instanceof SingletonFunction
       ) {
         if (this.props?.debugMode) {
           console.info(`Skipping ${node.node.id}`);

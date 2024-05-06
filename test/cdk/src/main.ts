@@ -1,5 +1,6 @@
 import { App } from 'aws-cdk-lib';
 import { E2eStack } from './e2eStack';
+import { EsmLambdaStack } from './esmLambdaStack';
 import { EventBridgeToLambdaStack } from './eventBridgeToLambdaStack';
 import { LambdaStack } from './lambdaStack';
 import { LambdaToDynamoDb2Stack } from './lambdaToDynamoDb2Stack';
@@ -9,12 +10,12 @@ import { LambdaToS3Stack } from './lambdaToS3Stack';
 import { LambdaToSnsStack } from './lambdaToSnsStack';
 import { LambdaToSqsStack } from './lambdaToSqsStack';
 import { PythonLambdaStack } from './pythonLambdaStack';
+import { SingletonLambdaFunctionStack } from './singletonLambdaFunctionStack';
 import { SnsToLambdaStack } from './snsToLambdaStack';
 import { SnsToSqsStack } from './snsToSqsStack';
 import { SqsStack } from './sqsStack';
 import { SqsToLambdaStack } from './sqsToLambdaStack';
 import { DefaultEventBridgeToLambdaStack } from 'serverless-spy/test/cdk/src/defaultEventBridgeToLambdaStack';
-import { EsmLambdaStack } from 'serverless-spy/test/cdk/src/esmLambdaStack';
 
 const testEnv = {
   account: process.env.CDK_DEFAULT_ACCOUNT,
@@ -91,5 +92,9 @@ new DefaultEventBridgeToLambdaStack(
     generateSpyEventsFile: true,
   }
 );
+new SingletonLambdaFunctionStack(app, 'ServerlessSpySingletonLambdaFunction', {
+  env: testEnv,
+  generateSpyEventsFile: true,
+});
 
 app.synth();
