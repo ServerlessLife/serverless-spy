@@ -13,6 +13,7 @@ import { SnsToLambdaStack } from './snsToLambdaStack';
 import { SnsToSqsStack } from './snsToSqsStack';
 import { SqsStack } from './sqsStack';
 import { SqsToLambdaStack } from './sqsToLambdaStack';
+import { DefaultEventBridgeToLambdaStack } from 'serverless-spy/test/cdk/src/defaultEventBridgeToLambdaStack';
 import { EsmLambdaStack } from 'serverless-spy/test/cdk/src/esmLambdaStack';
 
 const testEnv = {
@@ -82,5 +83,13 @@ new SqsToLambdaStack(app, 'ServerlessSpySqsToLambda', {
   env: testEnv,
   generateSpyEventsFile: true,
 });
+new DefaultEventBridgeToLambdaStack(
+  app,
+  'ServerlessSpyDefaultEventBridgeToLambda',
+  {
+    env: testEnv,
+    generateSpyEventsFile: true,
+  }
+);
 
 app.synth();
