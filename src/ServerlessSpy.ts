@@ -595,12 +595,14 @@ export class ServerlessSpy extends Construct {
 
   private internalSpyEventBusRule(rule: events.Rule) {
     const { eventBusName } = rule.node.defaultChild as events.CfnRule;
-    const eventBridge = this.getEventBridge(
-      (rule.node.defaultChild as any).eventBusName
-    );
+    let bridgeName = 'Default';
+    if (!!eventBusName) {
+      const eventBridge = this.getEventBridge(eventBusName);
 
-    if (!eventBridge) {
-      throw new Error(`Can not find EventBridge with name "${eventBusName}"`);
+      if (!eventBridge) {
+        throw new Error(`Can not find EventBridge with name "${eventBusName}"`);
+      }
+      bridgeName = this.getConstructName(eventBridge);
     }
 
     const functionSubscription = this.provideFunctionForSubscription(
@@ -610,7 +612,6 @@ export class ServerlessSpy extends Construct {
 
     rule.addTarget(new targets.LambdaFunction(functionSubscription.function));
 
-    const bridgeName = this.getConstructName(eventBridge);
     const ruleName = this.getConstructName(rule);
     const serviceKey = `EventBridgeRule#${bridgeName}#${ruleName}`;
     functionSubscription.mapping.eventBridge = serviceKey;
