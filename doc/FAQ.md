@@ -21,3 +21,7 @@ The recommended way to develop serverless systems is to have a separate environm
 
 ## Why are API Gateway and AppSync not supported?
 They are, but not directly. API Gateway and AppSync services do not support intercepting events, except via CloudWatch, which is slooooow 🐌🐌🐌. ServerlessSpy needs to be fast. You can intercept those events when they hit other supported services like Lambda.
+
+## My custom resource/S3 deployment does not show up?
+Custom resources and s3Deployments (among other CDK constructs) are backed by a SingletonFunction which can cause a lot of issues with your deploy (circular dependencies etc.). 
+For everyone's sanity, these are excluded. Feel free to open an issue if you have a use-case where you need this to be included.  
