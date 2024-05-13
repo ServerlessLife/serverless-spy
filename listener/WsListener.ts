@@ -208,7 +208,7 @@ export class WsListener<TSpyEvents> {
     const matchRequestId =
       (tracker.functionContextAwsRequestId &&
         tracker.functionContextAwsRequestId ===
-        message.functionContextAwsRequestId) ||
+          message.functionContextAwsRequestId) ||
       !tracker.functionContextAwsRequestId;
 
     if (matchCondition && matchRequestId) {
