@@ -1,3 +1,4 @@
+import { mqtt } from 'aws-iot-device-sdk-v2';
 import { fragment, getConnection } from './iot-connection';
 import { ServerlessSpyListener } from './ServerlessSpyListener';
 import { ServerlessSpyListenerParams } from './ServerlessSpyListenerParams';
@@ -6,7 +7,6 @@ import { WaitForParams } from './WaitForParams';
 import { FunctionRequestSpyEvent } from '../common/spyEvents/FunctionRequestSpyEvent';
 import { SpyEvent } from '../common/spyEvents/SpyEvent';
 import { SpyMessage } from '../common/spyEvents/SpyMessage';
-import { mqtt } from 'aws-iot-device-sdk-v2';
 
 export class WsListener<TSpyEvents> {
   private messages: SpyMessageStorage[] = [];
@@ -34,10 +34,10 @@ export class WsListener<TSpyEvents> {
       const connectionOpenResolve =
         this.connectionOpenResolve || params.connectionOpenResolve;
       const localConnection = this.connection;
-      this.connection.on('connect', () => {
+      this.connection.on('connect', async () => {
         this.closed = false;
         this.log('Connection opened');
-        localConnection.subscribe(topic, mqtt.QoS.AtLeastOnce);
+        await localConnection.subscribe(topic, mqtt.QoS.AtLeastOnce);
         if (connectionOpenResolve) {
           connectionOpenResolve();
         }
@@ -101,7 +101,7 @@ export class WsListener<TSpyEvents> {
 
   public async stop() {
     this.closed = true;
-    this.connection!.disconnect();
+    await this.connection!.disconnect();
   }
 
   private trackerMatchMessage(tracker: Tracker, message: SpyMessageStorage) {

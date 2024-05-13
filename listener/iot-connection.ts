@@ -34,10 +34,11 @@ export function getConnection(
     throw new Error('AWS_REGION was not set in env');
   }
 
-  const configBuilder = iot.AwsIotMqttConnectionConfigBuilder.new_with_websockets({
-    region,
-    credentials_provider: auth.AwsCredentialsProvider.newDefault(),
-  });
+  const configBuilder =
+    iot.AwsIotMqttConnectionConfigBuilder.new_with_websockets({
+      region,
+      credentials_provider: auth.AwsCredentialsProvider.newDefault(),
+    });
   configBuilder.with_endpoint(iotEndpoint);
   const client = new mqtt.MqttClient();
   const connection = client.new_connection(configBuilder.build());
