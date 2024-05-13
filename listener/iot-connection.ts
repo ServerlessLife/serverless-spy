@@ -1,4 +1,4 @@
-import { device } from 'aws-iot-device-sdk';
+import { iot, mqtt, auth } from 'aws-iot-device-sdk-v2';
 
 export type fragment = { id: string; index: number; count: number; data: any };
 
@@ -16,10 +16,10 @@ function createErrorLog() {
   };
 }
 
-export async function getConnection(
+export function getConnection(
   debugMode: boolean,
   iotEndpoint: string
-): Promise<device> {
+): mqtt.MqttClientConnection {
   const log = createLog(debugMode);
   const logError = createErrorLog();
   log('Using IoT endpoint:', iotEndpoint);
@@ -28,13 +28,26 @@ export async function getConnection(
     logError('No IoT endpoint could be found');
     throw new Error('IoT Endpoint address not found');
   }
+  const region = process.env['AWS_REGION'];
+  if (!region) {
+    logError('AWS_REGION was not set in env');
+    throw new Error('AWS_REGION was not set in env');
+  }
 
-  const connection = new device({
-    protocol: 'wss',
-    host: iotEndpoint,
-    region: process.env['AWS_REGION'],
-    reconnectPeriod: 1,
+  const configBuilder = iot.AwsIotMqttConnectionConfigBuilder.new_with_websockets({
+    region,
+    credentials_provider: auth.AwsCredentialsProvider.newDefault(),
   });
+  configBuilder.with_endpoint(iotEndpoint);
+  const client = new mqtt.MqttClient();
+  const connection = client.new_connection(configBuilder.build());
+
+  // const connection = new device({
+  //   protocol: 'wss',
+  //   host: iotEndpoint,
+  //   region: process.env['AWS_REGION'],
+  //   reconnectPeriod: 1,
+  // });
 
   connection.on('connect', () => {
     log('IoT connected');
@@ -44,11 +57,11 @@ export async function getConnection(
     logError('IoT error', err);
   });
 
-  connection.on('close', () => {
+  connection.on('closed', () => {
     log('IoT closed');
   });
 
-  connection.on('reconnect', () => {
+  connection.on('resume', () => {
     log('IoT reconnected');
   });
 

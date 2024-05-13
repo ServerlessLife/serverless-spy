@@ -1,4 +1,3 @@
-import { device } from 'aws-iot-device-sdk';
 import { fragment, getConnection } from './iot-connection';
 import { ServerlessSpyListener } from './ServerlessSpyListener';
 import { ServerlessSpyListenerParams } from './ServerlessSpyListenerParams';
@@ -7,6 +6,7 @@ import { WaitForParams } from './WaitForParams';
 import { FunctionRequestSpyEvent } from '../common/spyEvents/FunctionRequestSpyEvent';
 import { SpyEvent } from '../common/spyEvents/SpyEvent';
 import { SpyMessage } from '../common/spyEvents/SpyMessage';
+import { mqtt } from 'aws-iot-device-sdk-v2';
 
 export class WsListener<TSpyEvents> {
   private messages: SpyMessageStorage[] = [];
@@ -17,14 +17,14 @@ export class WsListener<TSpyEvents> {
   private closed = true;
   private functionPrefix = 'waitFor';
   private debugMode = false;
-  private connection: device | undefined;
+  private connection: mqtt.MqttClientConnection | undefined;
 
   private fragments = new Map<string, Map<number, fragment>>();
 
   public async start(params: ServerlessSpyListenerParams) {
     this.debugMode = !!params.debugMode;
     try {
-      this.connection = await getConnection(
+      this.connection = getConnection(
         this.debugMode,
         params.serverlessSpyWsUrl
       );
@@ -37,12 +37,12 @@ export class WsListener<TSpyEvents> {
       this.connection.on('connect', () => {
         this.closed = false;
         this.log('Connection opened');
-        localConnection.subscribe(topic);
+        localConnection.subscribe(topic, mqtt.QoS.AtLeastOnce);
         if (connectionOpenResolve) {
           connectionOpenResolve();
         }
       });
-      this.connection.on('message', (_topic: string, data: Buffer) => {
+      this.connection.on('message', (_topic: string, data: ArrayBuffer) => {
         if (this.closed) return;
 
         this.log('Message received', data.toString());
@@ -81,7 +81,7 @@ export class WsListener<TSpyEvents> {
           this.resolveOldTrackerWithNewMessage(message);
         }
       });
-      this.connection.on('close', () => {
+      this.connection.on('closed', () => {
         this.log('Connection closed');
 
         this.closed = true;
@@ -101,7 +101,7 @@ export class WsListener<TSpyEvents> {
 
   public async stop() {
     this.closed = true;
-    this.connection!.end(true);
+    this.connection!.disconnect();
   }
 
   private trackerMatchMessage(tracker: Tracker, message: SpyMessageStorage) {
@@ -208,7 +208,7 @@ export class WsListener<TSpyEvents> {
     const matchRequestId =
       (tracker.functionContextAwsRequestId &&
         tracker.functionContextAwsRequestId ===
-          message.functionContextAwsRequestId) ||
+        message.functionContextAwsRequestId) ||
       !tracker.functionContextAwsRequestId;
 
     if (matchCondition && matchRequestId) {
