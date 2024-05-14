@@ -501,6 +501,10 @@ export class ServerlessSpy extends Construct {
     func.addLayers(layer);
 
     func.addEnvironment('AWS_LAMBDA_EXEC_WRAPPER', spyWrapperPath);
+    func.addEnvironment(
+      'AWS_CRT_NODEJS_BINARY_RELATIVE_PATH',
+      'bin/linux-x64-glibc/aws-crt-nodejs.node'
+    );
 
     if (this.props?.debugMode) {
       func.addEnvironment(envVariableNames.SSPY_DEBUG, 'true');
@@ -751,6 +755,10 @@ export class ServerlessSpy extends Construct {
 
     func.addEnvironment(envVariableNames.SSPY_FUNCTION_NAME, functionName);
     func.addEnvironment('AWS_LAMBDA_EXEC_WRAPPER', spyWrapperPath);
+    func.addEnvironment(
+      'AWS_CRT_NODEJS_BINARY_RELATIVE_PATH',
+      'bin/linux-x64-glibc/aws-crt-nodejs.node'
+    );
 
     if (this.props?.debugMode) {
       func.addEnvironment(envVariableNames.SSPY_DEBUG, 'true');
