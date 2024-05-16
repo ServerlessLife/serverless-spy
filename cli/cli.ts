@@ -3,7 +3,7 @@ import * as fs from 'fs';
 import * as http from 'http';
 import * as path from 'path';
 import { promisify } from 'util';
-import { device } from 'aws-iot-device-sdk';
+import { mqtt } from 'aws-iot-device-sdk-v2';
 import * as progam from 'caporal';
 import * as open from 'open';
 import { WebSocketServer } from 'ws';
@@ -66,10 +66,10 @@ async function run() {
   }
 
   const wss = new WebSocketServer({ port: options.wsport });
-  let connection: device | undefined = undefined;
+  let connection: mqtt.MqttClientConnection | undefined = undefined;
 
   wss.on('close', async () => {
-    if (connection) connection.end(true);
+    if (connection) await connection.disconnect();
   });
 
   wss.on('connection', async function connect(ws) {
@@ -98,14 +98,14 @@ async function run() {
     const topic = getTopic('#');
     console.log(`Subscribing to ${topic}`);
 
-    connection.on('connect', () => {
+    connection.on('connect', async () => {
       console.log('Connection opened');
       if (connection) {
-        connection.subscribe(topic);
+        await connection.subscribe(topic, mqtt.QoS.AtLeastOnce);
       }
     });
 
-    connection.on('message', (topic: string, data: Buffer) => {
+    connection.on('message', (topic: string, data: ArrayBuffer) => {
       ws.send(
         JSON.stringify({
           ...JSON.parse(JSON.parse(data.toString()).data),
@@ -130,16 +130,13 @@ async function run() {
             rootFolder = getCompiledJsPath();
           } else if (request.url?.startsWith('/bootstrap/')) {
             filePath = filePath.substring('/bootstrap/'.length);
-            const bootstrapFolder = await getNpmModuleInstalledPath(
-              'bootstrap'
-            );
+            const bootstrapFolder = getNpmModuleInstalledPath('bootstrap');
 
             rootFolder = bootstrapFolder;
           } else if (request.url?.startsWith('/bootstrap-icons/')) {
             filePath = filePath.substring('/bootstrap-icons/'.length);
-            const bootstrapFolder = await getNpmModuleInstalledPath(
-              'bootstrap-icons'
-            );
+            const bootstrapFolder =
+              getNpmModuleInstalledPath('bootstrap-icons');
 
             rootFolder = bootstrapFolder;
           } else {

@@ -183,7 +183,7 @@
           "exec": "esbuild --bundle --platform=node --sourcemap extension/interceptor.ts --outdir=lib/extension/dist/layer/nodejs/node_modules; cp extension/spy-wrapper lib/extension/dist/layer"
         },
         {
-          "exec": "mkdir -p lib/extension/dist/layer/bin/linux-x64-glibc && cp node_modules/aws-crt/dist/bin/linux-x64-glibc/aws-crt-nodejs.node lib/extentions/dist/bin/linux-x64-glibc"
+          "exec": "mkdir -p lib/extension/dist/layer/bin/linux-x64-glibc && cp node_modules/aws-crt/dist/bin/linux-x64-glibc/aws-crt-nodejs.node lib/extension/dist/layer/bin/linux-x64-glibc"
         }
       ]
     },

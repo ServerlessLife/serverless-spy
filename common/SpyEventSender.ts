@@ -1,5 +1,5 @@
 import { unmarshall } from '@aws-sdk/util-dynamodb';
-import iot from 'aws-iot-device-sdk';
+import { mqtt } from 'aws-iot-device-sdk-v2';
 import {
   DynamoDBStreamEvent,
   S3Event,
@@ -22,7 +22,7 @@ import { envVariableNames } from '../src/common/envVariableNames';
 
 export class SpyEventSender {
   debugMode = process.env[envVariableNames.SSPY_DEBUG] === 'true';
-  connection: iot.device | undefined;
+  connection: mqtt.MqttClientConnection | undefined;
   scope: string;
   iotEndpoint: string;
 
@@ -45,7 +45,7 @@ export class SpyEventSender {
   }
 
   public async close() {
-    this.connection?.end();
+    await this.connection?.disconnect();
   }
 
   public async connect() {
@@ -252,18 +252,14 @@ export class SpyEventSender {
 
     try {
       for (const fragment of this.encode(withTimeStamp)) {
-        await new Promise<void>((resolve) => {
-          connection.publish(
+        await new Promise<void>(async (resolve) => {
+          await connection.publish(
             topic,
             JSON.stringify(fragment),
-            {
-              qos: 1,
-            },
-            () => {
-              this.log('Publishing finished');
-              resolve();
-            }
+            mqtt.QoS.AtLeastOnce
           );
+          this.log('Publishing finished');
+          resolve();
         });
         this.log(
           `Published fragment ${fragment.index} out of ${fragment.count} to topic ${topic}`

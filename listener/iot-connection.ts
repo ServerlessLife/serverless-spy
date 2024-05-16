@@ -1,3 +1,4 @@
+import { defaultProvider } from '@aws-sdk/credential-provider-node';
 import { iot, mqtt, auth } from 'aws-iot-device-sdk-v2';
 
 export type fragment = { id: string; index: number; count: number; data: any };
@@ -16,10 +17,10 @@ function createErrorLog() {
   };
 }
 
-export function getConnection(
+export async function getConnection(
   debugMode: boolean,
   iotEndpoint: string
-): mqtt.MqttClientConnection {
+): Promise<mqtt.MqttClientConnection> {
   const log = createLog(debugMode);
   const logError = createErrorLog();
   log('Using IoT endpoint:', iotEndpoint);
@@ -34,10 +35,17 @@ export function getConnection(
     throw new Error('AWS_REGION was not set in env');
   }
 
+  const provider = defaultProvider();
+  const credentials = await provider();
+
   const configBuilder =
     iot.AwsIotMqttConnectionConfigBuilder.new_with_websockets({
       region,
-      credentials_provider: auth.AwsCredentialsProvider.newDefault(),
+      credentials_provider: auth.AwsCredentialsProvider.newStatic(
+        credentials.accessKeyId,
+        credentials.secretAccessKey,
+        credentials.sessionToken
+      ),
     });
   configBuilder.with_endpoint(iotEndpoint);
   const client = new mqtt.MqttClient();
@@ -65,6 +73,9 @@ export function getConnection(
   connection.on('resume', () => {
     log('IoT reconnected');
   });
+
+  // eslint-disable-next-line @typescript-eslint/no-floating-promises
+  connection.connect();
 
   return connection;
 }

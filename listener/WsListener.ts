@@ -24,7 +24,7 @@ export class WsListener<TSpyEvents> {
   public async start(params: ServerlessSpyListenerParams) {
     this.debugMode = !!params.debugMode;
     try {
-      this.connection = getConnection(
+      this.connection = await getConnection(
         this.debugMode,
         params.serverlessSpyWsUrl
       );

@@ -97,6 +97,7 @@
     "@aws-sdk/client-sns": "^3.470.0",
     "@aws-sdk/client-sqs": "^3.470.0",
     "@aws-sdk/client-sts": "^3.470.0",
+    "@aws-sdk/credential-provider-node": "^3.577.0",
     "@aws-sdk/credential-providers": "^3.470.0",
     "@aws-sdk/lib-dynamodb": "^3.470.0",
     "@aws-sdk/types": "^3.178.0",
@@ -152,6 +153,8 @@
     "@types/prettier": "2.6.0"
   },
   "bundleDependencies": [
+    "@aws-sdk/credential-provider-node",
+    "aws-iot-device-sdk-v2",
     "@aws-sdk/credential-providers",
     "@aws-sdk/client-dynamodb",
     "@aws-sdk/client-eventbridge",
