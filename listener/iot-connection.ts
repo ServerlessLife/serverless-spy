@@ -1,3 +1,4 @@
+import { fromNodeProviderChain } from '@aws-sdk/credential-providers';
 import { device } from 'aws-iot-device-sdk';
 
 export type fragment = { id: string; index: number; count: number; data: any };
@@ -28,12 +29,18 @@ export async function getConnection(
     logError('No IoT endpoint could be found');
     throw new Error('IoT Endpoint address not found');
   }
+  const region = iotEndpoint.split('.')[2];
 
+  const provider = fromNodeProviderChain();
+  const credentials = await provider();
   const connection = new device({
     protocol: 'wss',
     host: iotEndpoint,
-    region: process.env['AWS_REGION'],
+    region,
     reconnectPeriod: 1,
+    accessKeyId: credentials.accessKeyId,
+    secretKey: credentials.secretAccessKey,
+    sessionToken: credentials.sessionToken,
   });
 
   connection.on('connect', () => {
