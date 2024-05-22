@@ -48,7 +48,10 @@ junit.xml
 !/API.md
 temp
 .idea
-
+.DS_Store
+._.DS_Store
+**/.DS_Store
+**/._.DS_Store
 
 ### Jekyll ###
 _site/

@@ -5,7 +5,6 @@ import { ServerlessSpyListenerParams } from './ServerlessSpyListenerParams';
 import { getTopic } from './topic';
 import { WaitForParams } from './WaitForParams';
 import { FunctionRequestSpyEvent } from '../common/spyEvents/FunctionRequestSpyEvent';
-import { SpyEvent } from '../common/spyEvents/SpyEvent';
 import { SpyMessage } from '../common/spyEvents/SpyMessage';
 
 export class WsListener<TSpyEvents> {
@@ -229,46 +228,49 @@ export class WsListener<TSpyEvents> {
     serviceKeyForFunction: string,
     functionContextAwsRequestId?: string
   ) {
-    let tracker: Tracker;
-
-    const promise = new Promise((resolve, reject) => {
-      tracker = {
+    return (paramsW?: WaitForParams) => {
+      let resolve: (value: void | PromiseLike<any>) => void;
+      const promise = new Promise((res) => {
+        resolve = res;
+      });
+      const tracker: Tracker = {
         finished: false,
+        // @ts-ignore
         promiseResolve: resolve,
-        promiseReject: reject,
         serviceKeyForFunction,
         functionContextAwsRequestId,
       };
-    });
 
-    return (paramsW?: WaitForParams<SpyEvent>) => {
       tracker.condition = paramsW?.condition;
 
-      const timer = setTimeout(() => {
-        if (tracker.finished) return;
-        tracker.finished = true;
-        let message = `Timeout waiting for Serverless Spy message ${serviceKeyForFunction}.`;
+      let timeoutPid: NodeJS.Timeout | undefined;
+      const timer = new Promise((_, reject) => {
+        timeoutPid = setTimeout(() => {
+          if (tracker.finished) return;
+          tracker.finished = true;
+          let message = `Timeout waiting for Serverless Spy message ${serviceKeyForFunction}.`;
 
-        if (tracker.possibleSpyMessageDataForDebugging) {
-          message += ` Similar matching spy event data: ${JSON.stringify(
-            tracker.possibleSpyMessageDataForDebugging,
-            null,
-            2
-          )}`;
-        }
+          if (tracker.possibleSpyMessageDataForDebugging) {
+            message += ` Similar matching spy event data: ${JSON.stringify(
+              tracker.possibleSpyMessageDataForDebugging,
+              null,
+              2
+            )}`;
+          }
 
-        tracker.promiseReject(new Error(message));
-      }, paramsW?.timoutMs || 10000);
-
-      void promise.finally(() => {
-        clearTimeout(timer);
+          reject(new Error(message));
+        }, paramsW?.timoutMs || 10000);
       });
 
       if (!this.resolveTrackerInOldMessages(tracker)) {
         this.trackers.push(tracker);
       }
 
-      return promise;
+      return Promise.race([promise, timer]).finally(() => {
+        if (!!timeoutPid) {
+          clearTimeout(timeoutPid);
+        }
+      });
     };
   }
 
@@ -279,10 +281,10 @@ export class WsListener<TSpyEvents> {
       await this.stop();
     };
 
-    const proxy = new Proxy(spyListener, {
+    return new Proxy<ServerlessSpyListener<TSpyEvents>>(spyListener, {
       get: (target: any, objectKey: string) => {
         if (target.hasOwnProperty(objectKey)) {
-          return target[objectKey];
+          return target[objectKey].bind(target);
         } else if (
           typeof objectKey === 'string' &&
           objectKey.startsWith(this.functionPrefix)
@@ -295,8 +297,6 @@ export class WsListener<TSpyEvents> {
         }
       },
     });
-
-    return proxy as ServerlessSpyListener<TSpyEvents>;
   }
 
   private log(message: string, ...optionalParams: any[]) {
@@ -313,7 +313,6 @@ export class WsListener<TSpyEvents> {
 
 type Tracker = {
   promiseResolve: (data: any) => void;
-  promiseReject: (data: any) => void;
   finished: boolean;
   serviceKey?: string;
   serviceKeyForFunction?: string;
