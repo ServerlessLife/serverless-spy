@@ -173,6 +173,14 @@ describe('Lambda', () => {
     });
   });
 
+  test('Timeout test', async () => {
+    const res = serverlessSpyListener.waitForFunctionMyLambdaThatFailsRequest({
+      condition: (event) => event.request === 'aabbcc',
+      timoutMs: 50,
+    });
+    await expect(res).rejects.toThrow(/Timeout\s.*/);
+  });
+
   test('Test error', async () => {
     const lambdaClient = new LambdaClient({});
 
