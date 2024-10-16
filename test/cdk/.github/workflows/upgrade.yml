@@ -25,7 +25,7 @@ jobs:
           git diff --staged --patch --exit-code > .repo.patch || echo "::set-output name=patch_created::true"
       - if: steps.create_patch.outputs.patch_created
         name: Upload patch
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v4.3.6
         with:
           name: .repo.patch
           path: .repo.patch

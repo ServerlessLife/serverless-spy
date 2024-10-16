@@ -37,7 +37,7 @@ jobs:
       - name: build
         run: scripts/run-task build
       - name: Upload artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v4.3.6
         with:
           name: build-artifact
           path: dist
