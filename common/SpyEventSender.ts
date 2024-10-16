@@ -163,7 +163,9 @@ export class SpyEventSender {
         const data: DynamoDBSpyEvent = {
           spyEventType: 'DynamoDB',
           eventName: record.eventName,
-          newImage: unmarshall(record.dynamodb?.NewImage as any),
+          newImage: record.dynamodb?.NewImage
+            ? unmarshall(record.dynamodb?.NewImage as any)
+            : undefined,
           keys: unmarshall(record.dynamodb?.Keys as any),
           oldImage: record.dynamodb?.OldImage
             ? unmarshall(record.dynamodb?.OldImage as any)

@@ -1,9 +1,6 @@
 /**
  * Copyright 2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
- * This code was copied from:
- * https://github.com/aws/aws-lambda-nodejs-runtime-interface-client
- *
  * This module defines the functions for loading the user's code as specified
  * in a handler string.
  */
