@@ -6,7 +6,7 @@ import { SpyEvent } from './SpyEvent';
 export interface DynamoDBSpyEvent<TData = any> extends SpyEvent {
   spyEventType: 'DynamoDB';
   eventName: DynamoDBRecord['eventName'];
-  newImage: TData;
+  newImage?: TData;
   keys: Record<string, NativeAttributeValue>;
   oldImage?: TData;
 }
