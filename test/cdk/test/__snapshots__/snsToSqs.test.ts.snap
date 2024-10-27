@@ -305,7 +305,7 @@ exports[`SNS to SQS Snapshot 1`] = `
           "S3Bucket": {
             "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
           },
-          "S3Key": "33520cc820c0e5c3e99d1fe14036ddcedccbc0c23c4b9a68a635e00786b579f8.zip",
+          "S3Key": "23d5c59a10534a47deb5782a62901d85f1b52090f5865c1e3fdcf7fb2ea5f19c.zip",
         },
       },
       "Type": "AWS::Lambda::LayerVersion",
@@ -359,7 +359,7 @@ exports[`SNS to SQS Snapshot 1`] = `
           "S3Bucket": {
             "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
           },
-          "S3Key": "79214cce607db022a579a818643d475d02820fff9f0658f724351007cc8a35c6.zip",
+          "S3Key": "d70a9955c1936f0db0d9d3c4edf8308843dea6bacdada04ba365b140bde3c8a4.zip",
         },
         "Environment": {
           "Variables": {
@@ -492,7 +492,7 @@ exports[`SNS to SQS Snapshot 1`] = `
           "S3Bucket": {
             "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
           },
-          "S3Key": "79214cce607db022a579a818643d475d02820fff9f0658f724351007cc8a35c6.zip",
+          "S3Key": "d70a9955c1936f0db0d9d3c4edf8308843dea6bacdada04ba365b140bde3c8a4.zip",
         },
         "Environment": {
           "Variables": {
