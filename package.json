@@ -109,7 +109,7 @@
     "caporal": "^1.4.0",
     "constructs": "^10",
     "json-format-highlight": "^1.0.4",
-    "open": "^9.1.0",
+    "open": "10.1.0",
     "serialize-error": "^11.0.3",
     "ws": "^8.15.1"
   },
