@@ -16,7 +16,7 @@ export class LambdaToSnsStack extends Stack {
     const func = new NodejsFunction(this, 'MyLambda', {
       memorySize: 512,
       timeout: Duration.seconds(5),
-      runtime: lambda.Runtime.NODEJS_16_X,
+      runtime: lambda.Runtime.NODEJS_22_X,
       handler: 'handler',
       entry: path.join(__dirname, '../functions/toSns.ts'),
       environment: {

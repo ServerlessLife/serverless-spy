@@ -446,6 +446,7 @@ export class ServerlessSpy extends Construct {
       case lambda.Runtime.NODEJS_16_X.name:
       case lambda.Runtime.NODEJS_18_X.name:
       case lambda.Runtime.NODEJS_20_X.name:
+      case lambda.Runtime.NODEJS_22_X.name:
         layer =
           layer ||
           new lambda.LayerVersion(this, 'Extension', {
@@ -484,7 +485,7 @@ export class ServerlessSpy extends Construct {
       {
         memorySize: 512,
         timeout: Duration.seconds(5),
-        runtime: lambda.Runtime.NODEJS_20_X,
+        runtime: lambda.Runtime.NODEJS_22_X,
         handler: 'handler',
         entry: this.getAssetLocation(
           'functions/sqsSubscriptionAndDropAllMessages.js'
@@ -495,7 +496,7 @@ export class ServerlessSpy extends Construct {
     func.addEventSource(new SqsEventSource(queue));
     this.setupForIoT(func);
     const { layer, spyWrapperPath } = this.getExtensionForRuntime(
-      lambda.Runtime.NODEJS_20_X,
+      lambda.Runtime.NODEJS_22_X,
       func.architecture
     )!;
     func.addLayers(layer);
@@ -551,7 +552,7 @@ export class ServerlessSpy extends Construct {
     const func = new lambdaNode.NodejsFunction(this, `Subscription${index}`, {
       memorySize: 512,
       timeout: Duration.seconds(5),
-      runtime: lambda.Runtime.NODEJS_20_X,
+      runtime: lambda.Runtime.NODEJS_22_X,
       handler: 'handler',
       entry: this.getAssetLocation('functions/sendMessage.js'),
       environment: {

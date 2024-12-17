@@ -69,7 +69,7 @@ export class E2eStack extends Stack {
       {
         memorySize: 512,
         timeout: Duration.seconds(5),
-        runtime: lambda.Runtime.NODEJS_16_X,
+        runtime: lambda.Runtime.NODEJS_22_X,
         handler: 'handler',
         entry: path.join(__dirname, '../functions/toSnsAndDynamoDb.ts'),
         environment: {
@@ -88,7 +88,7 @@ export class E2eStack extends Stack {
       {
         memorySize: 512,
         timeout: Duration.seconds(5),
-        runtime: lambda.Runtime.NODEJS_16_X,
+        runtime: lambda.Runtime.NODEJS_22_X,
         handler: 'handler',
         entry: path.join(__dirname, '../functions/fromSnsToSqsAndS3.ts'),
         environment: {
@@ -117,7 +117,7 @@ export class E2eStack extends Stack {
       {
         memorySize: 512,
         timeout: Duration.seconds(5),
-        runtime: lambda.Runtime.NODEJS_16_X,
+        runtime: lambda.Runtime.NODEJS_22_X,
         handler: 'handler',
         entry: path.join(__dirname, '../functions/fromSqsToEventBridge.ts'),
         environment: {
@@ -132,7 +132,7 @@ export class E2eStack extends Stack {
     const functionReceiveSqs = new NodejsFunction(this, 'ReceiveSqs', {
       memorySize: 512,
       timeout: Duration.seconds(5),
-      runtime: lambda.Runtime.NODEJS_16_X,
+      runtime: lambda.Runtime.NODEJS_22_X,
       handler: 'handler',
       entry: path.join(__dirname, '../functions/dummy.ts'),
       environment: {
@@ -147,7 +147,7 @@ export class E2eStack extends Stack {
       {
         memorySize: 512,
         timeout: Duration.seconds(5),
-        runtime: lambda.Runtime.NODEJS_16_X,
+        runtime: lambda.Runtime.NODEJS_22_X,
         handler: 'handler',
         entry: path.join(__dirname, '../functions/dummy.ts'),
         environment: {
