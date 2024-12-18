@@ -50,7 +50,7 @@ export interface SpyFilter {
 }
 
 const isLambdaFunction = (node: IConstruct): node is lambda.Function =>
-  'functionName' in node && 'functionArn' in node;
+  'functionName' in node && 'functionArn' in node && 'runtime' in node;
 
 const serverlessSpyIotEndpointCrNamePrefix = 'ServerlessSpyIotEndpoint';
 
@@ -413,6 +413,10 @@ export class ServerlessSpy extends Construct {
   ): { layer: lambda.ILayerVersion; spyWrapperPath: string } | undefined {
     const layerKey = (r: lambda.Runtime, a: lambda.Architecture) =>
       `${r.toString()}_${a.name.toString()}`;
+
+    console.log('RUNTIME: ', runtime);
+    console.log('ARCHITECTURE: ', architecture);
+
     let layer = this.layerMap[layerKey(runtime, architecture)];
     let spyWrapperPath = '/opt/spy-wrapper';
 

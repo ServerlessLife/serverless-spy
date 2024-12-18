@@ -20,6 +20,7 @@ export class LambdaStack extends Stack {
         NODE_OPTIONS: '--enable-source-maps',
       },
     });
+    func.addAlias('live');
 
     // use uncommon name
     const func2 = new NodejsFunction(this, 'my_lambda-TestName_2', {
