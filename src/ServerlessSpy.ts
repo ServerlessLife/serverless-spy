@@ -414,9 +414,6 @@ export class ServerlessSpy extends Construct {
     const layerKey = (r: lambda.Runtime, a: lambda.Architecture) =>
       `${r.toString()}_${a.name.toString()}`;
 
-    console.log('RUNTIME: ', runtime);
-    console.log('ARCHITECTURE: ', architecture);
-
     let layer = this.layerMap[layerKey(runtime, architecture)];
     let spyWrapperPath = '/opt/spy-wrapper';
 
@@ -430,20 +427,26 @@ export class ServerlessSpy extends Construct {
         spyWrapperPath = '/opt/python/spy-wrapper';
         layer =
           layer ||
-          new PythonLayerVersion(this, 'PythonExtension', {
-            compatibleRuntimes: [runtime],
-            compatibleArchitectures: [architecture],
-            entry: location,
-            bundling: {
-              bundlingFileAccess: BundlingFileAccess.VOLUME_COPY,
-              // command: [
-              //   `cp ${path.join(
-              //     location.substring(0, location.lastIndexOf(path.sep)),
-              //     'spy-wrapper/spy-wrapper'
-              //   )} /asset-output/python`,
-              // ],
-            },
-          });
+          new PythonLayerVersion(
+            this,
+            `PythonExtension${runtime.name
+              .replace('python', '')
+              .replace('.', '_')}`,
+            {
+              compatibleRuntimes: [runtime],
+              compatibleArchitectures: [architecture],
+              entry: location,
+              bundling: {
+                bundlingFileAccess: BundlingFileAccess.VOLUME_COPY,
+                // command: [
+                //   `cp ${path.join(
+                //     location.substring(0, location.lastIndexOf(path.sep)),
+                //     'spy-wrapper/spy-wrapper'
+                //   )} /asset-output/python`,
+                // ],
+              },
+            }
+          );
         break;
       case lambda.Runtime.NODEJS_12_X.name:
       case lambda.Runtime.NODEJS_14_X.name:

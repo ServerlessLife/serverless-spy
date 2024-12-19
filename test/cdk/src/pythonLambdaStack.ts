@@ -23,7 +23,7 @@ export class PythonLambdaStack extends Stack {
     const func3 = new lambda.Function(this, 'MyLambdaThatFails', {
       memorySize: 512,
       timeout: Duration.seconds(5),
-      runtime: lambda.Runtime.PYTHON_3_9,
+      runtime: lambda.Runtime.PYTHON_3_11, // use a different version
       handler: 'lambdaFail.handler',
       architecture: Architecture.X86_64,
       code: lambda.Code.fromAsset(path.join(__dirname, '../functions/python/')),
