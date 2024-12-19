@@ -454,7 +454,14 @@ export class ServerlessSpy extends Construct {
         layer =
           layer ||
           new lambda.LayerVersion(this, 'Extension', {
-            compatibleRuntimes: [runtime],
+            compatibleRuntimes: [
+              lambda.Runtime.NODEJS_12_X,
+              lambda.Runtime.NODEJS_14_X,
+              lambda.Runtime.NODEJS_16_X,
+              lambda.Runtime.NODEJS_18_X,
+              lambda.Runtime.NODEJS_20_X,
+              lambda.Runtime.NODEJS_22_X,
+            ],
             compatibleArchitectures: [architecture],
             code: lambda.Code.fromAsset(this.getExtensionAssetLocation()),
           });
@@ -500,7 +507,7 @@ export class ServerlessSpy extends Construct {
     func.addEventSource(new SqsEventSource(queue));
     this.setupForIoT(func);
     const { layer, spyWrapperPath } = this.getExtensionForRuntime(
-      lambda.Runtime.NODEJS_22_X,
+      func.runtime,
       func.architecture
     )!;
     func.addLayers(layer);
