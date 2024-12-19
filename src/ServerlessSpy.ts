@@ -431,7 +431,13 @@ export class ServerlessSpy extends Construct {
         layer =
           layer ||
           new PythonLayerVersion(this, 'PythonExtension', {
-            compatibleRuntimes: [runtime],
+            compatibleRuntimes: [
+              lambda.Runtime.PYTHON_3_8,
+              lambda.Runtime.PYTHON_3_9,
+              lambda.Runtime.PYTHON_3_10,
+              lambda.Runtime.PYTHON_3_11,
+              lambda.Runtime.PYTHON_3_12,
+            ],
             compatibleArchitectures: [architecture],
             entry: location,
             bundling: {
