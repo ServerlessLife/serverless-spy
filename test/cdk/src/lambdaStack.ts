@@ -13,7 +13,7 @@ export class LambdaStack extends Stack {
     const func = new NodejsFunction(this, 'MyLambda', {
       memorySize: 512,
       timeout: Duration.seconds(5),
-      runtime: lambda.Runtime.NODEJS_22_X,
+      runtime: lambda.Runtime.NODEJS_20_X, // older version to test
       handler: 'handler',
       entry: path.join(__dirname, '../functions/lambda.ts'),
       environment: {
