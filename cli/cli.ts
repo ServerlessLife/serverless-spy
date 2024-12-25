@@ -81,8 +81,10 @@ async function run() {
     let wsUrl: string | undefined;
     if (options.ws) {
       wsUrl = options.ws;
-    } else {
-      if (cdkOutput && cdkOutput[Object.keys(cdkOutput)[0]]) {
+    } else if (cdkOutput) {
+      if (cdkOutput[options.cdkstack]) {
+        wsUrl = cdkOutput[options.cdkstack].ServerlessSpyWsUrl;
+      } else if (cdkOutput[Object.keys(cdkOutput)[0]]) {
         wsUrl = cdkOutput[Object.keys(cdkOutput)[0]].ServerlessSpyWsUrl;
       }
     }
@@ -174,13 +176,7 @@ async function run() {
 
           if (request.url === '/stackList') {
             response.writeHead(200, { 'Content-Type': 'application/json' });
-
-            const stackListAvailable: string[] | undefined =
-              options.cdkstack && stackList?.includes(options.cdkstack)
-                ? [options.cdkstack]
-                : stackList;
-
-            response.end(JSON.stringify(stackListAvailable), 'utf-8');
+            response.end(JSON.stringify(stackList), 'utf-8');
           } else if (request.url?.match('^/wsUrl')) {
             response.writeHead(200, { 'Content-Type': 'text/html' });
             response.end(`ws:localhost:${options.wsport}`, 'utf-8');
@@ -212,7 +208,7 @@ async function run() {
     .listen(options.port);
 
   console.log(
-    `ServerlessSoy console runing at http://localhost:${options.port}`
+    `ServerlessSpy console runing at http://localhost:${options.port}`
   );
   if (options.open) {
     await opener(`http://localhost:${options.port}`);
