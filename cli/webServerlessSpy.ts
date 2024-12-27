@@ -30,6 +30,7 @@ function run() {
   > = {};
   let uiNeedsRefresh = false;
   let stackList: string[] | undefined;
+  let stackNameToTopicMappings: Record<string, string> | undefined;
   const selectedStackLocalStorageKey = 'selectedStack';
   let ws: WebSocket;
   let selectedStack: string | undefined;
@@ -75,6 +76,7 @@ function run() {
   void (async () => {
     await fillStacks();
     await connectToWebSocket();
+    await loadStackNameToTopicMappings();
   })();
   window.requestAnimationFrame(render);
   setupTooltip();
@@ -118,6 +120,24 @@ function run() {
     console.log(stackListContainerElement.style.display);
     stackListContainerElement.style.display =
       stackList && stackList.length > 1 ? '' : 'none';
+  }
+
+  function canFilterOnTopic() {
+    return (
+      stackList &&
+      stackList?.length > 1 &&
+      stackNameToTopicMappings &&
+      Object.values(stackNameToTopicMappings).length
+    );
+  }
+
+  async function loadStackNameToTopicMappings() {
+    const response = await fetch('/stackTopicMappings');
+    try {
+      stackNameToTopicMappings = await response.json();
+    } catch {
+      stackNameToTopicMappings = {};
+    }
   }
 
   async function connectToWebSocket() {
@@ -335,6 +355,11 @@ function run() {
     return step;
   }
 
+  function resolveTopic(selectedStack: string | undefined) {
+    if (!selectedStack || !stackNameToTopicMappings) return '#';
+    return getTopic(stackNameToTopicMappings[selectedStack]);
+  }
+
   function renderSpyMessage(spyMessage: SpyMessageExt | SpyMessageGroup) {
     const serviceKey = serviceKeyFilterInputElement.value?.toLocaleLowerCase();
     const data = dataFilterInputElement.value?.toLocaleLowerCase();
@@ -346,7 +371,9 @@ function run() {
       messages = [spyMessage as SpyMessageExt];
     }
     const html = messages
-      .filter((sm) => sm.topic === getTopic(selectedStack!))
+      .filter(
+        (sm) => !canFilterOnTopic() || sm.topic === resolveTopic(selectedStack)
+      )
       .filter((sm) => matchFilter(sm, { serviceKey, data }))
       .map((sm, i) => {
         const service = getServiceNameFromServiceKey(sm.serviceKey);

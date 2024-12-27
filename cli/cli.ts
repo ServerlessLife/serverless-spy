@@ -177,6 +177,20 @@ async function run() {
           if (request.url === '/stackList') {
             response.writeHead(200, { 'Content-Type': 'application/json' });
             response.end(JSON.stringify(stackList), 'utf-8');
+          } else if (request.url === '/stackTopicMappings') {
+            response.writeHead(200, { 'Content-Type': 'application/json' });
+            const mappings: Record<string, string> = {};
+            if (cdkOutput) {
+              for (const [stackName, stack] of Object.entries(cdkOutput)) {
+                if (stack.ServerlessSpyWsUrl) {
+                  const [_, scope] = stack.ServerlessSpyWsUrl.split('/');
+                  if (scope) {
+                    mappings[stackName] = scope;
+                  }
+                }
+              }
+            }
+            response.end(JSON.stringify(mappings), 'utf-8');
           } else if (request.url?.match('^/wsUrl')) {
             response.writeHead(200, { 'Content-Type': 'text/html' });
             response.end(`ws:localhost:${options.wsport}`, 'utf-8');
