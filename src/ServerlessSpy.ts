@@ -456,7 +456,11 @@ export class ServerlessSpy extends Construct {
       case lambda.Runtime.NODEJS_22_X.name:
         layer =
           layer ||
-          new lambda.LayerVersion(this, 'Extension', {
+          new lambda.LayerVersion(this, 
+          `NodeExtension${runtime.name
+            .replace('node', '')
+            .replace('.', '_')}`, 
+          {
             compatibleRuntimes: [
               lambda.Runtime.NODEJS_12_X,
               lambda.Runtime.NODEJS_14_X,
