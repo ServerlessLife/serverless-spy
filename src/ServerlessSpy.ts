@@ -88,6 +88,15 @@ export class ServerlessSpy extends Construct {
             endpointType: 'iot:Data-ATS',
           },
         },
+        onUpdate: {
+          service: 'Iot',
+          action: 'describeEndpoint',
+          physicalResourceId:
+            custom_resources.PhysicalResourceId.fromResponse('endpointAddress'),
+          parameters: {
+            endpointType: 'iot:Data-ATS',
+          },
+        },
         installLatestAwsSdk: false,
         policy: custom_resources.AwsCustomResourcePolicy.fromSdkCalls({
           resources: custom_resources.AwsCustomResourcePolicy.ANY_RESOURCE,
