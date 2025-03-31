@@ -2,6 +2,130 @@
 
 exports[`SNS to SQS Snapshot 1`] = `
 {
+  "Mappings": {
+    "LatestNodeRuntimeMap": {
+      "af-south-1": {
+        "value": "nodejs20.x",
+      },
+      "ap-east-1": {
+        "value": "nodejs20.x",
+      },
+      "ap-northeast-1": {
+        "value": "nodejs20.x",
+      },
+      "ap-northeast-2": {
+        "value": "nodejs20.x",
+      },
+      "ap-northeast-3": {
+        "value": "nodejs20.x",
+      },
+      "ap-south-1": {
+        "value": "nodejs20.x",
+      },
+      "ap-south-2": {
+        "value": "nodejs20.x",
+      },
+      "ap-southeast-1": {
+        "value": "nodejs20.x",
+      },
+      "ap-southeast-2": {
+        "value": "nodejs20.x",
+      },
+      "ap-southeast-3": {
+        "value": "nodejs20.x",
+      },
+      "ap-southeast-4": {
+        "value": "nodejs20.x",
+      },
+      "ap-southeast-5": {
+        "value": "nodejs20.x",
+      },
+      "ap-southeast-7": {
+        "value": "nodejs20.x",
+      },
+      "ca-central-1": {
+        "value": "nodejs20.x",
+      },
+      "ca-west-1": {
+        "value": "nodejs20.x",
+      },
+      "cn-north-1": {
+        "value": "nodejs18.x",
+      },
+      "cn-northwest-1": {
+        "value": "nodejs18.x",
+      },
+      "eu-central-1": {
+        "value": "nodejs20.x",
+      },
+      "eu-central-2": {
+        "value": "nodejs20.x",
+      },
+      "eu-isoe-west-1": {
+        "value": "nodejs18.x",
+      },
+      "eu-north-1": {
+        "value": "nodejs20.x",
+      },
+      "eu-south-1": {
+        "value": "nodejs20.x",
+      },
+      "eu-south-2": {
+        "value": "nodejs20.x",
+      },
+      "eu-west-1": {
+        "value": "nodejs20.x",
+      },
+      "eu-west-2": {
+        "value": "nodejs20.x",
+      },
+      "eu-west-3": {
+        "value": "nodejs20.x",
+      },
+      "il-central-1": {
+        "value": "nodejs20.x",
+      },
+      "me-central-1": {
+        "value": "nodejs20.x",
+      },
+      "me-south-1": {
+        "value": "nodejs20.x",
+      },
+      "mx-central-1": {
+        "value": "nodejs20.x",
+      },
+      "sa-east-1": {
+        "value": "nodejs20.x",
+      },
+      "us-east-1": {
+        "value": "nodejs20.x",
+      },
+      "us-east-2": {
+        "value": "nodejs20.x",
+      },
+      "us-gov-east-1": {
+        "value": "nodejs18.x",
+      },
+      "us-gov-west-1": {
+        "value": "nodejs18.x",
+      },
+      "us-iso-east-1": {
+        "value": "nodejs18.x",
+      },
+      "us-iso-west-1": {
+        "value": "nodejs18.x",
+      },
+      "us-isob-east-1": {
+        "value": "nodejs18.x",
+      },
+      "us-west-1": {
+        "value": "nodejs20.x",
+      },
+      "us-west-2": {
+        "value": "nodejs20.x",
+      },
+    },
+  },
   "Outputs": {
     "ServerlessSpyWsUrl": {
       "Value": {
@@ -42,7 +166,7 @@ exports[`SNS to SQS Snapshot 1`] = `
           "S3Bucket": {
             "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
           },
-          "S3Key": "ed6cd104ff5f101d06dae8cb2b87cc6e6d69b9a22055b467ea6cae10ff023023.zip",
+          "S3Key": "ce2f3595a340d6c519a65888ef97e3b9b64f053f83608e32cc28162e22d7d99a.zip",
         },
         "FunctionName": "ServerlessSpyIotEndpointTest",
         "Handler": "index.handler",
@@ -52,7 +176,15 @@ exports[`SNS to SQS Snapshot 1`] = `
             "Arn",
           ],
         },
-        "Runtime": "nodejs18.x",
+        "Runtime": {
+          "Fn::FindInMap": [
+            "LatestNodeRuntimeMap",
+            {
+              "Ref": "AWS::Region",
+            },
+            "value",
+          ],
+        },
         "Timeout": 120,
       },
       "Type": "AWS::Lambda::Function",
@@ -103,7 +235,6 @@ exports[`SNS to SQS Snapshot 1`] = `
         "Environment": {
           "Variables": {
             "AWS_LAMBDA_EXEC_WRAPPER": "/opt/spy-wrapper",
-            "AWS_NODEJS_CONNECTION_REUSE_ENABLED": "1",
             "NODE_OPTIONS": "--enable-source-maps",
             "SSPY_DEBUG": "true",
             "SSPY_FUNCTION_NAME": "MyLambda",
@@ -135,7 +266,7 @@ exports[`SNS to SQS Snapshot 1`] = `
         "Handler": "index.handler",
         "Layers": [
           {
-            "Ref": "ServerlessSpyExtensionEA4873A0",
+            "Ref": "ServerlessSpysspyextensionnodejs22xx8664878BE75A",
           },
         ],
         "MemorySize": 512,
@@ -145,7 +276,7 @@ exports[`SNS to SQS Snapshot 1`] = `
             "Arn",
           ],
         },
-        "Runtime": "nodejs16.x",
+        "Runtime": "nodejs22.x",
         "Timeout": 5,
       },
       "Type": "AWS::Lambda::Function",
@@ -293,23 +424,6 @@ exports[`SNS to SQS Snapshot 1`] = `
     "MyTopic86869434": {
       "Type": "AWS::SNS::Topic",
     },
-    "ServerlessSpyExtensionEA4873A0": {
-      "Properties": {
-        "CompatibleArchitectures": [
-          "x86_64",
-        ],
-        "CompatibleRuntimes": [
-          "nodejs16.x",
-        ],
-        "Content": {
-          "S3Bucket": {
-            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
-          },
-          "S3Key": "23d5c59a10534a47deb5782a62901d85f1b52090f5865c1e3fdcf7fb2ea5f19c.zip",
-        },
-      },
-      "Type": "AWS::Lambda::LayerVersion",
-    },
     "ServerlessSpyServerlessSpyIotEndpoint1E71FAC4": {
       "DeletionPolicy": "Delete",
       "DependsOn": [
@@ -324,6 +438,7 @@ exports[`SNS to SQS Snapshot 1`] = `
             "Arn",
           ],
         },
+        "Update": "{"service":"Iot","action":"describeEndpoint","physicalResourceId":{"responsePath":"endpointAddress"},"parameters":{"endpointType":"iot:Data-ATS"}}",
       },
       "Type": "Custom::AWS",
       "UpdateReplacePolicy": "Delete",
@@ -359,11 +474,10 @@ exports[`SNS to SQS Snapshot 1`] = `
           "S3Bucket": {
             "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
           },
-          "S3Key": "d70a9955c1936f0db0d9d3c4edf8308843dea6bacdada04ba365b140bde3c8a4.zip",
+          "S3Key": "048398197a39de3cd998742a38e2663c06d3cc854d4c36fc6daad976a3fd958a.zip",
         },
         "Environment": {
           "Variables": {
-            "AWS_NODEJS_CONNECTION_REUSE_ENABLED": "1",
             "NODE_OPTIONS": "--enable-source-maps",
             "SSPY_INFRA_MAPPING": {
               "Fn::Join": [
@@ -394,7 +508,7 @@ exports[`SNS to SQS Snapshot 1`] = `
             "Arn",
           ],
         },
-        "Runtime": "nodejs20.x",
+        "Runtime": "nodejs22.x",
         "Timeout": 5,
       },
       "Type": "AWS::Lambda::Function",
@@ -492,11 +606,10 @@ exports[`SNS to SQS Snapshot 1`] = `
           "S3Bucket": {
             "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
           },
-          "S3Key": "d70a9955c1936f0db0d9d3c4edf8308843dea6bacdada04ba365b140bde3c8a4.zip",
+          "S3Key": "048398197a39de3cd998742a38e2663c06d3cc854d4c36fc6daad976a3fd958a.zip",
         },
         "Environment": {
           "Variables": {
-            "AWS_NODEJS_CONNECTION_REUSE_ENABLED": "1",
             "NODE_OPTIONS": "--enable-source-maps",
             "SSPY_INFRA_MAPPING": {
               "Fn::Join": [
@@ -527,7 +640,7 @@ exports[`SNS to SQS Snapshot 1`] = `
             "Arn",
           ],
         },
-        "Runtime": "nodejs20.x",
+        "Runtime": "nodejs22.x",
         "Timeout": 5,
       },
       "Type": "AWS::Lambda::Function",
@@ -614,6 +727,23 @@ exports[`SNS to SQS Snapshot 1`] = `
         ],
       },
       "Type": "AWS::IAM::Policy",
+    },
+    "ServerlessSpysspyextensionnodejs22xx8664878BE75A": {
+      "Properties": {
+        "CompatibleArchitectures": [
+          "x86_64",
+        ],
+        "CompatibleRuntimes": [
+          "nodejs22.x",
+        ],
+        "Content": {
+          "S3Bucket": {
+            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
+          },
+          "S3Key": "f99d094b9546efb6c9ad5711bb231e97ba27713e907cb7af222ba27aa8ca1fb9.zip",
+        },
+      },
+      "Type": "AWS::Lambda::LayerVersion",
     },
   },
   "Rules": {
