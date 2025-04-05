@@ -420,10 +420,13 @@ export class ServerlessSpy extends Construct {
     runtime: lambda.Runtime,
     architecture: lambda.Architecture
   ): { layer: lambda.ILayerVersion; spyWrapperPath: string } | undefined {
-    const layerKey = (r: lambda.Runtime, a: lambda.Architecture) =>
-      `${r.toString()}_${a.name.toString()}`;
+    const layerKey =
+      `sspy_extension_${runtime.toString()}_${architecture.name.toString()}`.replace(
+        /\./g,
+        '_'
+      );
 
-    let layer = this.layerMap[layerKey(runtime, architecture)];
+    let layer = this.layerMap[layerKey];
     let spyWrapperPath = '/opt/spy-wrapper';
 
     switch (runtime.name) {
@@ -432,30 +435,17 @@ export class ServerlessSpy extends Construct {
       case lambda.Runtime.PYTHON_3_10.name:
       case lambda.Runtime.PYTHON_3_11.name:
       case lambda.Runtime.PYTHON_3_12.name:
-        const location = this.getLanguageExtensionAssetLocation('python');
         spyWrapperPath = '/opt/python/spy-wrapper';
         layer =
           layer ||
-          new PythonLayerVersion(
-            this,
-            `PythonExtension${runtime.name
-              .replace('python', '')
-              .replace('.', '_')}`,
-            {
-              compatibleRuntimes: [runtime],
-              compatibleArchitectures: [architecture],
-              entry: location,
-              bundling: {
-                bundlingFileAccess: BundlingFileAccess.VOLUME_COPY,
-                // command: [
-                //   `cp ${path.join(
-                //     location.substring(0, location.lastIndexOf(path.sep)),
-                //     'spy-wrapper/spy-wrapper'
-                //   )} /asset-output/python`,
-                // ],
-              },
-            }
-          );
+          new PythonLayerVersion(this, layerKey, {
+            compatibleRuntimes: [runtime],
+            compatibleArchitectures: [architecture],
+            entry: this.getLanguageExtensionAssetLocation('python'),
+            bundling: {
+              bundlingFileAccess: BundlingFileAccess.VOLUME_COPY,
+            },
+          });
         break;
       case lambda.Runtime.NODEJS_12_X.name:
       case lambda.Runtime.NODEJS_14_X.name:
@@ -465,19 +455,8 @@ export class ServerlessSpy extends Construct {
       case lambda.Runtime.NODEJS_22_X.name:
         layer =
           layer ||
-          new lambda.LayerVersion(this, 
-          `NodeExtension${runtime.name
-            .replace('node', '')
-            .replace('.', '_')}`, 
-          {
-            compatibleRuntimes: [
-              lambda.Runtime.NODEJS_12_X,
-              lambda.Runtime.NODEJS_14_X,
-              lambda.Runtime.NODEJS_16_X,
-              lambda.Runtime.NODEJS_18_X,
-              lambda.Runtime.NODEJS_20_X,
-              lambda.Runtime.NODEJS_22_X,
-            ],
+          new lambda.LayerVersion(this, layerKey, {
+            compatibleRuntimes: [runtime],
             compatibleArchitectures: [architecture],
             code: lambda.Code.fromAsset(this.getExtensionAssetLocation()),
           });
@@ -487,9 +466,7 @@ export class ServerlessSpy extends Construct {
         return undefined;
     }
 
-    for (const compatibleRuntime of layer.compatibleRuntimes!) {
-      this.layerMap[layerKey(compatibleRuntime, architecture)] = layer;
-    }
+    this.layerMap[layerKey] = layer;
     this.createdResourcesBySSpy.push(layer);
     return { layer, spyWrapperPath };
   }
