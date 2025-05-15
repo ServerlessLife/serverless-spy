@@ -132,6 +132,7 @@
   },
   "main": "lib/index.js",
   "exports": {
+    "types": "./lib/index.d.ts",
     "import": "./lib/index.mjs",
     "require": "./lib/index.js"
   },
