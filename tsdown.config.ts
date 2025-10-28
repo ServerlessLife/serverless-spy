@@ -12,5 +12,10 @@ export default defineConfig({
     'functions/**/*.ts',
   ],
   unbundle: true,
-  shims: true,
+  outputOptions: {
+    banner: (chunk) =>
+      chunk.fileName.endsWith('.mjs')
+        ? 'const __dirname = import.meta.dirname;'
+        : '',
+  },
 });
