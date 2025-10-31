@@ -102,3 +102,4 @@ jobs:
         env:
           NPM_DIST_TAG: latest
           NPM_REGISTRY: registry.npmjs.org
+          NPM_TRUSTED_PUBLISHER: true
