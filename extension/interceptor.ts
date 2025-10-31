@@ -162,7 +162,7 @@ function interceptConsole() {
     if (!currentContext) return;
 
     log(`Console ${type}`, JSON.stringify(args));
-    const message = args?.shift();
+    const [message, ...rest] = args ?? [];
 
     const key = `Function#${
       process.env[envVariableNames.SSPY_FUNCTION_NAME]
@@ -174,7 +174,7 @@ function interceptConsole() {
       console: {
         type,
         message,
-        optionalParams: args,
+        optionalParams: rest,
       },
     });
 
