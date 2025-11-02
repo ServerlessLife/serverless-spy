@@ -2,6 +2,8 @@ name: build
 on:
   pull_request: {}
   workflow_dispatch: {}
+env:
+  node_version: 22
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -27,9 +29,9 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-node@v6
         with:
-          node-version: 20
+          node-version: ${{ env.node_version }}
       - name: sudo docker
         run: sudo chmod 777 /var/run/docker.sock
       - name: Install dependencies
@@ -49,9 +51,9 @@ jobs:
     permissions: {}
     if: '! needs.build.outputs.self_mutation_happened'
     steps:
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-node@v6
         with:
-          node-version: 20
+          node-version: ${{ env.node_version }}
       - name: Download build artifacts
         uses: actions/download-artifact@v4
         with:

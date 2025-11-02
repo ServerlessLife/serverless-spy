@@ -3,6 +3,8 @@ on:
   workflow_dispatch: {}
   schedule:
     - cron: 0 0 * * *
+env:
+  node_version: 22
 jobs:
   upgrade:
     name: Upgrade
@@ -16,9 +18,9 @@ jobs:
         uses: actions/checkout@v3
         with:
           ref: main
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-node@v6
         with:
-          node-version: 20
+          node-version: ${{ env.node_version }}
       - name: Install dependencies
         run: npm ci
       - name: Upgrade dependencies
@@ -39,9 +41,9 @@ jobs:
         with:
           token: ${{ secrets.PROJEN_GITHUB_TOKEN }}
           ref: main
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-node@v6
         with:
-          node-version: 20
+          node-version: ${{ env.node_version }}
       - name: Download patch
         uses: actions/download-artifact@v4
         with:
@@ -55,7 +57,7 @@ jobs:
           git config user.email "github-actions@github.com"
       - name: Create Pull Request
         id: create-pr
-        uses: peter-evans/create-pull-request@v3
+        uses: peter-evans/create-pull-request@v6
         with:
           token: ${{ secrets.PROJEN_GITHUB_TOKEN }}
           commit-message: |-
