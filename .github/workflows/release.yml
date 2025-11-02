@@ -4,6 +4,8 @@ on:
     branches:
       - main
   workflow_dispatch: {}
+env:
+  node_version: 22
 jobs:
   release:
     runs-on: ubuntu-latest
@@ -22,9 +24,9 @@ jobs:
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-node@v6
         with:
-          node-version: 20
+          node-version: ${{ env.node_version }}
       - name: sudo docker
         run: sudo chmod 777 /var/run/docker.sock
       - name: Set git identity
@@ -54,9 +56,9 @@ jobs:
       contents: write
     if: needs.release.outputs.latest_commit == github.sha
     steps:
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-node@v6
         with:
-          node-version: 20
+          node-version: ${{ env.node_version }}
       - name: Download build artifacts
         uses: actions/download-artifact@v4
         with:
@@ -81,9 +83,10 @@ jobs:
       contents: read
     if: needs.release.outputs.latest_commit == github.sha
     steps:
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-node@v6
         with:
-          node-version: 20
+          node-version: ${{ env.node_version }}
+          registry-url: 'https://registry.npmjs.org'
       - name: Download build artifacts
         uses: actions/download-artifact@v4
         with:
@@ -101,5 +104,4 @@ jobs:
         run: npx -p publib@latest publib-npm
         env:
           NPM_DIST_TAG: latest
-          NPM_REGISTRY: registry.npmjs.org
           NPM_TRUSTED_PUBLISHER: true
