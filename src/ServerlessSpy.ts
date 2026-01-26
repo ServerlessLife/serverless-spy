@@ -585,11 +585,19 @@ export class ServerlessSpy extends Construct {
     (table.node.defaultChild as dynamoDb.CfnTable).streamSpecification = {
       streamViewType: dynamoDb.StreamViewType.NEW_AND_OLD_IMAGES,
     };
+    var tableStreamArnDescriptor = Object.getOwnPropertyDescriptor(
+      table,
+      'tableStreamArn'
+    );
 
-    Object.assign(table, {
-      tableStreamArn: (table.node.defaultChild as dynamoDb.CfnTable)
-        .attrStreamArn,
-    });
+    if (
+      tableStreamArnDescriptor === undefined ||
+      tableStreamArnDescriptor.get === undefined
+    ) {
+      (table as any).tableStreamArn = (
+        table.node.defaultChild as dynamoDb.CfnTable
+      ).attrStreamArn;
+    }
 
     this.lambdaSubscriptionMain.function.addEventSource(
       new dynamoDbStream.DynamoEventSource(table, {
