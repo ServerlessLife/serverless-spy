@@ -594,7 +594,7 @@ export class ServerlessSpy extends Construct {
       tableStreamArnDescriptor === undefined ||
       tableStreamArnDescriptor.get === undefined
     ) {
-      (table as any).tableStreamArn = (
+      (table as any)['tableStreamArn'] = (
         table.node.defaultChild as dynamoDb.CfnTable
       ).attrStreamArn;
     }
