@@ -585,18 +585,15 @@ export class ServerlessSpy extends Construct {
     (table.node.defaultChild as dynamoDb.CfnTable).streamSpecification = {
       streamViewType: dynamoDb.StreamViewType.NEW_AND_OLD_IMAGES,
     };
-    var tableStreamArnDescriptor = Object.getOwnPropertyDescriptor(
-      table,
-      'tableStreamArn'
-    );
-
-    if (
-      tableStreamArnDescriptor === undefined ||
-      tableStreamArnDescriptor.get === undefined
-    ) {
-      (table as any)['tableStreamArn'] = (
+    try {
+      (table as any).tableStreamArn = (
         table.node.defaultChild as dynamoDb.CfnTable
       ).attrStreamArn;
+    } catch (e) {
+      // Property is read-only in newer CDK versions, skip the assignment
+      if (!(e instanceof TypeError && e.message.includes('only a getter'))) {
+        throw e; // Re-throw if it's a different error
+      }
     }
 
     this.lambdaSubscriptionMain.function.addEventSource(
