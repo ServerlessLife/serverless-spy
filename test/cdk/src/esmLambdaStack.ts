@@ -7,8 +7,8 @@ import {
   BundlingOptions,
 } from 'aws-cdk-lib/aws-lambda-nodejs';
 import { Construct } from 'constructs';
-import { GenerateSpyEventsFileProps } from './GenerateSpyEventsFileProps';
 import { ServerlessSpy } from '../../../src/ServerlessSpy';
+import { GenerateSpyEventsFileProps } from './GenerateSpyEventsFileProps';
 
 export class EsmLambdaStack extends Stack {
   constructor(scope: Construct, id: string, props: GenerateSpyEventsFileProps) {
@@ -40,7 +40,7 @@ export class EsmLambdaStack extends Stack {
     const func2 = new NodejsFunction(this, 'my_lambda-TestName_2', {
       memorySize: 512,
       timeout: Duration.seconds(5),
-      runtime: lambda.Runtime.NODEJS_22_X,
+      runtime: lambda.Runtime.NODEJS_24_X,
       handler: 'handler',
       entry: path.join(__dirname, '../functions/lambda.ts'),
       environment: {

@@ -49,7 +49,7 @@ jobs:
           name: build-artifact
           path: dist
     container:
-      image: jsii/superchain:1-buster-slim-node14
+      image: jsii/superchain:1-trixie-slim-node22
   release_github:
     name: Publish to GitHub Releases
     needs: release

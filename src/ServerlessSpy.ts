@@ -430,11 +430,11 @@ export class ServerlessSpy extends Construct {
     let spyWrapperPath = '/opt/spy-wrapper';
 
     switch (runtime.name) {
-      case lambda.Runtime.PYTHON_3_8.name:
-      case lambda.Runtime.PYTHON_3_9.name:
       case lambda.Runtime.PYTHON_3_10.name:
       case lambda.Runtime.PYTHON_3_11.name:
       case lambda.Runtime.PYTHON_3_12.name:
+      case lambda.Runtime.PYTHON_3_13.name:
+      case lambda.Runtime.PYTHON_3_14.name:
         spyWrapperPath = '/opt/python/spy-wrapper';
         layer =
           layer ||
@@ -447,12 +447,10 @@ export class ServerlessSpy extends Construct {
             },
           });
         break;
-      case lambda.Runtime.NODEJS_12_X.name:
-      case lambda.Runtime.NODEJS_14_X.name:
-      case lambda.Runtime.NODEJS_16_X.name:
-      case lambda.Runtime.NODEJS_18_X.name:
       case lambda.Runtime.NODEJS_20_X.name:
       case lambda.Runtime.NODEJS_22_X.name:
+      case lambda.Runtime.NODEJS_LATEST.name:
+      case lambda.Runtime.NODEJS_24_X.name:
         layer =
           layer ||
           new lambda.LayerVersion(this, layerKey, {

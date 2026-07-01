@@ -5,11 +5,11 @@ import { App } from 'aws-cdk-lib';
 import { Template } from 'aws-cdk-lib/assertions';
 import { SNSMessage } from 'aws-lambda';
 import { v4 as uuidv4 } from 'uuid';
-import { TestData } from './TestData';
 import { createServerlessSpyListener } from '../../../listener/createServerlessSpyListener';
 import { ServerlessSpyListener } from '../../../listener/ServerlessSpyListener';
 import { ServerlessSpyEvents } from '../serverlessSpyEvents/ServerlessSpyEventsSnsToSqs';
 import { SnsToSqsStack } from '../src/snsToSqsStack';
+import { TestData } from './TestData';
 
 jest.setTimeout(30000);
 

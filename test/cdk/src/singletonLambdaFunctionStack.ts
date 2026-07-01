@@ -2,8 +2,8 @@ import { Stack } from 'aws-cdk-lib';
 import * as s3 from 'aws-cdk-lib/aws-s3';
 import * as s3deploy from 'aws-cdk-lib/aws-s3-deployment';
 import { Construct } from 'constructs';
-import { GenerateSpyEventsFileProps } from './GenerateSpyEventsFileProps';
 import { ServerlessSpy } from '../../../src/ServerlessSpy';
+import { GenerateSpyEventsFileProps } from './GenerateSpyEventsFileProps';
 
 // No test file for this stack, because the error will occur during deployment
 export class SingletonLambdaFunctionStack extends Stack {

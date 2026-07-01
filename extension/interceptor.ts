@@ -1,7 +1,6 @@
-import { Callback, Context, Handler } from 'aws-lambda';
+import { Context, Handler } from 'aws-lambda';
 import { serializeError } from 'serialize-error';
 // @ts-ignore
-import { load } from './aws/UserFunction';
 import { FunctionConsoleSpyEvent } from '../common/spyEvents/FunctionConsoleSpyEvent';
 import { FunctionContext } from '../common/spyEvents/FunctionContext';
 import { FunctionErrorSpyEvent } from '../common/spyEvents/FunctionErrorSpyEvent';
@@ -9,6 +8,7 @@ import { FunctionRequestSpyEvent } from '../common/spyEvents/FunctionRequestSpyE
 import { FunctionResponseSpyEvent } from '../common/spyEvents/FunctionResponseSpyEvent';
 import { SpyEventSender } from '../common/SpyEventSender';
 import { envVariableNames } from '../src/common/envVariableNames';
+import { load } from './aws/UserFunction';
 // @ts-ignore
 
 const ORIGINAL_HANDLER_KEY = 'ORIGINAL_HANDLER';
@@ -39,11 +39,7 @@ const spyEventSender = new SpyEventSender({
 // Wrap original handler.
 // Handler can be async or non-async:
 // https://docs.aws.amazon.com/lambda/latest/dg/nodejs-prog-model-handler.html
-export const handler = async (
-  event: any,
-  context: Context,
-  callback: Callback
-): Promise<any | undefined> => {
+export const handler = async (event: any, context: Context): Promise<any> => {
   await spyEventSender.connect();
 
   const contextSpy: FunctionContext = {
@@ -114,41 +110,34 @@ export const handler = async (
     return Promise.all(promises);
   };
 
-  const newCallback = (err: any, data: any) => {
-    // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    (err ? fail(err) : succeed(data)).then(() => {
-      callback(err, data);
-    });
-  };
-
   try {
-    const result = originalHandler(event, context, newCallback);
+    const result = await new Promise<any>((resolve, reject) => {
+      const callback = (err: any, data: any) => {
+        (err ? fail(err) : succeed(data))
+          .then(() => {
+            err ? reject(err) : resolve(data);
+          })
+          .catch(() => {});
+      };
 
-    // Async handler returns Promise
-    if (isPromise(result)) {
-      return await new Promise((resolve, reject) => {
-        (result as Promise<any>)
-          .then((response: any) =>
-            // The response is received via Promise
-            succeed(response).then(() => {
-              resolve(response);
-            })
-          )
-          .catch((error: any) =>
-            fail(error).then(() => {
-              reject(error);
-            })
-          );
-      });
-    }
-  } catch (error) {
-    // Even if the original handler is not async, we return the promise as an async handler so we can send an error message
-    // eslint-disable-next-line @typescript-eslint/return-await
-    return new Promise((_, reject) =>
-      fail(error).then(() => {
-        reject(error);
-      })
-    );
+      try {
+        const handlerResult = originalHandler(event, context, callback);
+
+        if (isPromise(handlerResult)) {
+          handlerResult
+            .then((response: any) =>
+              succeed(response).then(() => resolve(response))
+            )
+            .catch((error: any) => fail(error).then(() => reject(error)));
+        }
+      } catch (error) {
+        fail(error)
+          .then(() => reject(error))
+          .catch(() => {});
+      }
+    });
+
+    return result;
   } finally {
     await spyEventSender.close();
   }
@@ -207,7 +196,7 @@ function interceptConsole() {
   };
 }
 
-function isPromise(obj: any): boolean {
+function isPromise(obj: any): obj is Promise<any> {
   return typeof obj?.then === 'function';
 }
 

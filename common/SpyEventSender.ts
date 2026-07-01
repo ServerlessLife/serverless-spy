@@ -8,6 +8,9 @@ import {
   SQSEvent,
 } from 'aws-lambda';
 import { v4 } from 'uuid';
+import { fragment, getConnection } from '../listener/iot-connection';
+import { getTopic } from '../listener/topic';
+import { envVariableNames } from '../src/common/envVariableNames';
 import { DynamoDBSpyEvent } from './spyEvents/DynamoDBSpyEvent';
 import { EventBridgeRuleSpyEvent } from './spyEvents/EventBridgeRuleSpyEvent';
 import { EventBridgeSpyEvent } from './spyEvents/EventBridgeSpyEvent';
@@ -16,9 +19,6 @@ import { SnsSubscriptionSpyEvent } from './spyEvents/SnsSubscriptionSpyEvent';
 import { SnsTopicSpyEvent } from './spyEvents/SnsTopicSpyEvent';
 import { SpyMessage } from './spyEvents/SpyMessage';
 import { SqsSpyEvent } from './spyEvents/SqsSpyEvent';
-import { fragment, getConnection } from '../listener/iot-connection';
-import { getTopic } from '../listener/topic';
-import { envVariableNames } from '../src/common/envVariableNames';
 
 export class SpyEventSender {
   debugMode = process.env[envVariableNames.SSPY_DEBUG] === 'true';
