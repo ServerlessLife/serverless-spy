@@ -26,7 +26,7 @@ jobs:
       - name: Upgrade dependencies
         run: scripts/run-task upgrade
     container:
-      image: jsii/superchain:1-buster-slim-node14
+      image: jsii/superchain:1-trixie-slim-node22
   pr:
     name: Create Pull Request
     needs: upgrade

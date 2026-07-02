@@ -1,11 +1,11 @@
 import { device } from 'aws-iot-device-sdk';
+import { FunctionRequestSpyEvent } from '../common/spyEvents/FunctionRequestSpyEvent';
+import { SpyMessage } from '../common/spyEvents/SpyMessage';
 import { fragment, getConnection } from './iot-connection';
 import { ServerlessSpyListener } from './ServerlessSpyListener';
 import { ServerlessSpyListenerParams } from './ServerlessSpyListenerParams';
 import { getTopic } from './topic';
 import { WaitForParams } from './WaitForParams';
-import { FunctionRequestSpyEvent } from '../common/spyEvents/FunctionRequestSpyEvent';
-import { SpyMessage } from '../common/spyEvents/SpyMessage';
 
 export class WsListener<TSpyEvents> {
   private messages: SpyMessageStorage[] = [];

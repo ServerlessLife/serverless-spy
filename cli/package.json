@@ -10,11 +10,11 @@
   "author": "",
   "license": "MPL-2.0",
   "dependencies": {
-    "bootstrap": "^5.2.1",
-    "bootstrap-icons": "^1.9.1",
-    "caporal": "^1.4.0",
-    "json-format-highlight": "^1.0.4",
-    "open": "^8.4.0"
+    "bootstrap": "5.2.1",
+    "bootstrap-icons": "1.9.1",
+    "caporal": "1.4.0",
+    "json-format-highlight": "1.0.4",
+    "open": "8.4.0"
   },
   "devDependencies": {}
 }

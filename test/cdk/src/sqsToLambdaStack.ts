@@ -5,8 +5,8 @@ import { SqsEventSource } from 'aws-cdk-lib/aws-lambda-event-sources';
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 import * as sqs from 'aws-cdk-lib/aws-sqs';
 import { Construct } from 'constructs';
-import { GenerateSpyEventsFileProps } from './GenerateSpyEventsFileProps';
 import { ServerlessSpy } from '../../../src/ServerlessSpy';
+import { GenerateSpyEventsFileProps } from './GenerateSpyEventsFileProps';
 
 export class SqsToLambdaStack extends Stack {
   constructor(scope: Construct, id: string, props: GenerateSpyEventsFileProps) {
@@ -31,7 +31,7 @@ export class SqsToLambdaStack extends Stack {
     const pythonFunc = new lambda.Function(this, 'MyPythonLambda', {
       memorySize: 512,
       timeout: Duration.seconds(5),
-      runtime: lambda.Runtime.PYTHON_3_9,
+      runtime: lambda.Runtime.PYTHON_3_10,
       handler: 'dummy.handler',
       code: lambda.Code.fromAsset(path.join(__dirname, '../functions/python/')),
       environment: {},
