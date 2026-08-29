@@ -10,14 +10,12 @@
     "diff": "scripts/run-task diff",
     "package": "scripts/run-task package",
     "post-compile": "scripts/run-task post-compile",
-    "post-upgrade": "scripts/run-task post-upgrade",
     "pre-compile": "scripts/run-task pre-compile",
     "synth": "scripts/run-task synth",
     "synth:silent": "scripts/run-task synth:silent",
     "test": "scripts/run-task test",
     "test:update": "scripts/run-task test:update",
     "test:watch": "scripts/run-task test:watch",
-    "upgrade": "scripts/run-task upgrade",
     "watch": "scripts/run-task watch"
   },
   "devDependencies": {
