@@ -237,10 +237,6 @@
       "description": "Runs after successful compilation",
       "steps": []
     },
-    "post-upgrade": {
-      "name": "post-upgrade",
-      "description": "Runs after upgrading dependencies"
-    },
     "pre-compile": {
       "name": "pre-compile",
       "description": "Prepare the project for compilation"
@@ -307,42 +303,6 @@
       "steps": [
         {
           "builtin": "../node_modules/projen/lib/release/reset-version"
-        }
-      ]
-    },
-    "upgrade": {
-      "name": "upgrade",
-      "description": "upgrade dependencies",
-      "env": {
-        "CI": "0"
-      },
-      "steps": [
-        {
-          "exec": "npm update npm-check-updates"
-        },
-        {
-          "exec": "npm-check-updates --dep dev --upgrade --target=minor"
-        },
-        {
-          "exec": "npm-check-updates --dep optional --upgrade --target=minor"
-        },
-        {
-          "exec": "npm-check-updates --dep peer --upgrade --target=minor"
-        },
-        {
-          "exec": "npm-check-updates --dep prod --upgrade --target=minor"
-        },
-        {
-          "exec": "npm run upgrade -w test/cdk"
-        },
-        {
-          "exec": "npm install"
-        },
-        {
-          "exec": "npm update"
-        },
-        {
-          "spawn": "post-upgrade"
         }
       ]
     },
