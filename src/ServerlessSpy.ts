@@ -2,6 +2,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { PythonLayerVersion } from '@aws-cdk/aws-lambda-python-alpha';
 import {
+  Annotations,
   aws_iam,
   BundlingFileAccess,
   CfnOutput,
@@ -31,6 +32,12 @@ import * as snsSubs from 'aws-cdk-lib/aws-sns-subscriptions';
 import * as sqs from 'aws-cdk-lib/aws-sqs';
 import { Construct, IConstruct } from 'constructs';
 import { envVariableNames } from './common/envVariableNames';
+import {
+  ResolvedSpyContext,
+  resolveSpyContext,
+  SPY_CONTEXT_KEY,
+  SpyKind,
+} from './common/spyContext';
 
 export interface ServerlessSpyProps {
   readonly generateSpyEventsFileLocation?: string;
@@ -63,6 +70,7 @@ export class ServerlessSpy extends Construct {
   private spiedNodes: IConstruct[] = [];
   private layerMap: Partial<Record<string, ILayerVersion>> = {};
   private readonly iotEndpoint: string;
+  private contextWarnings = new Set<string>();
 
   constructor(
     scope: Construct,
@@ -174,56 +182,23 @@ export class ServerlessSpy extends Construct {
           console.info(`Skipping ${node.node.id}`);
         }
         return false;
-      } else if (
-        filterWithDefaults.spyLambda &&
-        (node instanceof lambda.Function ||
-          node instanceof NodejsFunction ||
-          isLambdaFunction(node))
-      ) {
-        return true;
-      } else if (filterWithDefaults.spySnsTopic && node instanceof sns.Topic) {
-        return true;
-      } else if (
-        filterWithDefaults.spySnsSubsription &&
-        node instanceof sns.Subscription
-      ) {
-        return true;
-      } else if (filterWithDefaults.spyS3 && node instanceof s3.Bucket) {
-        return true;
-      } else if (
-        filterWithDefaults.spyDynamoDB &&
-        node instanceof dynamoDb.Table
-      ) {
-        return true;
-      } else if (
-        filterWithDefaults.spyDynamoDB &&
-        node instanceof dynamoDb.TableV2
-      ) {
-        return true;
-      } else if (
-        filterWithDefaults.spyEventBridge &&
-        node instanceof events.EventBus
-      ) {
-        return true;
-      } else if (
-        filterWithDefaults.spyEventBridgeRule &&
-        node instanceof events.Rule
-      ) {
-        return true;
-      } else if (
-        filterWithDefaults.spySqs &&
-        node instanceof lambda.CfnEventSourceMapping
-      ) {
-        return true;
-      } else if (
-        filterWithDefaults.spySqs &&
-        this.props?.spySqsWithNoSubscriptionAndDropAllMessages &&
-        node instanceof sqs.Queue
-      ) {
-        return true;
       }
 
-      return false;
+      const kind = this.getSpyKind(node);
+
+      if (!kind || !filterWithDefaults[kind]) {
+        return false;
+      }
+
+      if (
+        kind === 'spySqs' &&
+        node instanceof sqs.Queue &&
+        !this.props?.spySqsWithNoSubscriptionAndDropAllMessages
+      ) {
+        return false;
+      }
+
+      return true;
     });
 
     this.internalSpyNodes(nodes);
@@ -368,6 +343,67 @@ export class ServerlessSpy extends Construct {
     }
   }
 
+  /**
+   * Returns the filter flag that controls spying for the node, if the node is a
+   * resource type ServerlessSpy can spy on.
+   */
+  private getSpyKind(node: IConstruct): SpyKind | undefined {
+    if (
+      node instanceof lambda.Function ||
+      node instanceof NodejsFunction ||
+      isLambdaFunction(node)
+    ) {
+      return 'spyLambda';
+    } else if (node instanceof sns.Topic) {
+      return 'spySnsTopic';
+    } else if (node instanceof sns.Subscription) {
+      return 'spySnsSubsription';
+    } else if (node instanceof s3.Bucket) {
+      return 'spyS3';
+    } else if (
+      node instanceof dynamoDb.Table ||
+      node instanceof dynamoDb.TableV2
+    ) {
+      return 'spyDynamoDB';
+    } else if (node instanceof events.EventBus) {
+      return 'spyEventBridge';
+    } else if (node instanceof events.Rule) {
+      return 'spyEventBridgeRule';
+    } else if (
+      node instanceof lambda.CfnEventSourceMapping ||
+      node instanceof sqs.Queue
+    ) {
+      return 'spySqs';
+    }
+
+    return undefined;
+  }
+
+  /**
+   * Checks whether the "serverless-spy" CDK context (which is inherited from
+   * the closest scope that sets it) allows spying on the node.
+   */
+  private isSpyAllowed(node: IConstruct, kind: SpyKind): boolean {
+    const context = this.getSpyContext(node);
+    return context.enabled && context.flags[kind] !== false;
+  }
+
+  private getSpyContext(node: IConstruct): ResolvedSpyContext {
+    return resolveSpyContext(node, (scope, message) => {
+      const warningKey = `${scope.node.path}|${message}`;
+
+      if (this.contextWarnings.has(warningKey)) {
+        return;
+      }
+
+      this.contextWarnings.add(warningKey);
+      //annotate the ServerlessSpy construct, so that the warning ends up in the
+      //template of the stack ServerlessSpy is part of (an annotation on e.g. the
+      //App would not be visible)
+      Annotations.of(this).addWarningV2('serverless-spy/context', message);
+    });
+  }
+
   private internalSpyNode(node: IConstruct) {
     if (this.spiedNodes.includes(node)) {
       return;
@@ -380,6 +416,23 @@ export class ServerlessSpy extends Construct {
     }
 
     if (this.lambdaSubscriptionPool.find((s) => s.function === node)) {
+      return;
+    }
+
+    const kind = this.getSpyKind(node);
+
+    if (!kind) {
+      return;
+    }
+
+    if (!this.isSpyAllowed(node, kind)) {
+      if (this.props?.debugMode) {
+        console.info(
+          `Skipping ${this.getConstructName(
+            node
+          )} (disabled by "${SPY_CONTEXT_KEY}" CDK context)`
+        );
+      }
       return;
     }
 
