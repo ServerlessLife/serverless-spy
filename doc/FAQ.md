@@ -25,3 +25,6 @@ They are, but not directly. API Gateway and AppSync services do not support inte
 ## My custom resource/S3 deployment does not show up?
 Custom resources and s3Deployments (among other CDK constructs) are backed by a SingletonFunction which can cause a lot of issues with your deploy (circular dependencies etc.). 
 For everyone's sanity, these are excluded. Feel free to open an issue if you have a use-case where you need this to be included.  
+
+## Can I disable spying for only a part of my infrastructure?
+Yes. Besides disabling resource types for the whole stack in `spy()`, you can use the `serverless-spy` CDK context to turn spying on or off per scope (nested stack, construct, ...). Context is inherited, so a nested stack can disable spying on all its Lambda functions while everything else is still spied on. See [Disable spying per scope](CDK_construct.md#step-3-optional-disable-spying-per-scope-with-cdk-context).

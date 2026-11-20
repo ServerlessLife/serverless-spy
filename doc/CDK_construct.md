@@ -54,4 +54,75 @@ For DynamoDB, there could be only two Lambdas subscribed to DynamoDB Streams, an
 
 There could also be other reasons to exclude some of the nodes specific to your use case.
 
+# Step 3 (optional): Disable spying per scope with CDK context
+
+The filter in `spy()` applies to the whole stack. If you want to turn spying off for a part of your infrastructure (a nested stack, a construct, ...) use the `serverless-spy` CDK context. Context is inherited through the construct tree, so setting it on a stack applies to everything below that stack.
+
+A resource is spied on only when both the `spy()` filter and the context allow it.
+
+## Context value
+
+The context value is either a boolean (`false` is a shortcut for `{ enabled: false }`) or an object:
+
+| Key | Meaning |
+| --- | --- |
+| `enabled` | Turn spying on/off for this scope and all its children. |
+| `spyLambda`, `spySqs`, `spySnsTopic`, `spySnsSubsription`, `spyEventBridge`, `spyEventBridgeRule`, `spyS3`, `spyDynamoDB` | The same keys as the `spy()` filter, but only applied to this scope and its children. `spySnsSubscription` (correctly spelled) is accepted as an alias. |
+
+Every key is resolved separately and the closest scope that sets it wins. That means a nested stack can disable a single resource type without losing the flags that a parent scope set for other resource types.
+
+Unknown keys and non-boolean values are ignored with a CDK warning during `cdk synth` (spying stays on for them).
+
+## Examples
+
+Disable spying on all S3 buckets in all stacks (app wide):
+```typescript
+new App({
+  context: {
+    'serverless-spy': { spyS3: false },
+  },
+});
+```
+or in `cdk.json`:
+```json
+{
+  "context": { "serverless-spy": { "spyS3": false } }
+}
+```
+
+Disable spying on all Lambda functions in a nested stack, while everything else in that stack (and everything in the other stacks) is still spied on:
+```typescript
+export class AnalyticsStack extends NestedStack {
+  constructor(scope: Construct, id: string) {
+    super(scope, id);
+    this.node.setContext('serverless-spy', { spyLambda: false });
+
+    // ...resources, none of the Lambdas will be spied on
+  }
+}
+```
+
+Disable spying completely for a scope:
+```typescript
+this.node.setContext('serverless-spy', false);
+```
+
+Disable spying for a single Lambda function by grouping it in a construct:
+```typescript
+class OrderFeature extends Construct {
+  constructor(scope: Construct, id: string) {
+    super(scope, id);
+    this.node.setContext('serverless-spy', { enabled: false });
+
+    new NodejsFunction(this, 'OrderLambda', { /* ... */ });
+  }
+}
+```
+
+## Things to be aware of
+
+ - CDK only allows `setContext()` before a construct gets children (`Cannot set context after children have been added`). Because of that you can not disable spying on an already created construct like a `NodejsFunction`; set the context on the scope it lives in, or wrap it in your own construct and set the context before adding the function.
+ - Context is read when `spy()`/`spyNodes()` is called, so set it before you call them (usually it is set while the nested stack is constructed, which happens before `serverlessSpy.spy()` runs in the parent stack).
+ - Context only controls what is spied on. The ServerlessSpy construct itself (IoT endpoint, subscription functions) is always created.
+
  
